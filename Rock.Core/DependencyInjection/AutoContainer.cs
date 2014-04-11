@@ -1,22 +1,36 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 
 namespace Rock.DependencyInjection
 {
-    public class AutoContainer : IResolver
+    public partial class AutoContainer : IResolver
     {
-        private readonly IDictionary<Type, Func<object>> _bindings;
+        private readonly Lazy<MethodInfo> _getMethod;
+        private readonly ConcurrentDictionary<Type, Func<object>> _bindings;
 
-        private AutoContainer(IDictionary<Type, Func<object>> bindings)
+        private AutoContainer()
         {
-            _bindings = bindings;
+            _getMethod = new Lazy<MethodInfo>(() => GetType().GetMethod("Get", Type.EmptyTypes));
+        }
+
+        /// <summary>
+        /// Copy constructor.
+        /// </summary>
+        protected AutoContainer(AutoContainer parentContainer)
+            : this()
+        {
+            _bindings = parentContainer._bindings;
         }
 
         public AutoContainer(params object[] instances)
-            : this(new Dictionary<Type, Func<object>>())
+            : this()
         {
+            _bindings = new ConcurrentDictionary<Type, Func<object>>();
+
             foreach (var instance in instances.Where(x => x != null))
             {
                 BindConstant(instance.GetType(), instance);
@@ -62,14 +76,14 @@ namespace Rock.DependencyInjection
             return getInstance();
         }
 
-        public AutoContainer MergeWith(IResolver otherContainer)
-        {
-            return new MergedAutoContainer(_bindings, otherContainer);
-        }
-
         IResolver IResolver.MergeWith(IResolver otherContainer)
         {
             return MergeWith(otherContainer);
+        }
+
+        public virtual AutoContainer MergeWith(IResolver otherContainer)
+        {
+            return new MergedAutoContainer(this, otherContainer);
         }
 
         private Func<object> GetCreateInstanceFunc(Type type)
@@ -88,7 +102,6 @@ namespace Rock.DependencyInjection
                 return null;
             }
 
-            var getMethodOpenGeneric = GetType().GetMethod("Get", Type.EmptyTypes);
             var thisExpression = Expression.Constant(this);
 
             var createInstanceExpression =
@@ -100,7 +113,7 @@ namespace Rock.DependencyInjection
                                 p =>
                                 Expression.Call(
                                     thisExpression,
-                                    getMethodOpenGeneric.MakeGenericMethod(p.ParameterType)))));
+                                    _getMethod.Value.MakeGenericMethod(p.ParameterType)))));
 
             return createInstanceExpression.Compile();
         }
@@ -238,32 +251,6 @@ namespace Rock.DependencyInjection
             types = type.GetInterfaces().Aggregate(types, (typesSoFar, @interface) => typesSoFar.Concat(GetTypeHierarchy(@interface)));
 
             return types.Distinct();
-        }
-
-        private class MergedAutoContainer : AutoContainer
-        {
-            private readonly IResolver _otherContainer;
-
-            public MergedAutoContainer(IDictionary<Type, Func<object>> bindings, IResolver otherContainer)
-                : base(bindings)
-            {
-                _otherContainer = otherContainer;
-            }
-
-            public override bool CanResolve(Type type)
-            {
-                return base.CanResolve(type) || _otherContainer.CanResolve(type);
-            }
-
-            public override object Get(Type type)
-            {
-                if (base.CanResolve(type))
-                {
-                    return base.Get(type);
-                }
-
-                return _otherContainer.Get((type));
-            }
         }
     }
 }

@@ -50,6 +50,7 @@
     <Compile Include="Collections\KeyedCollection.cs" />
     <Compile Include="Default.cs" />
     <Compile Include="DependencyInjection\AutoContainer.cs" />
+    <Compile Include="DependencyInjection\AutoContainer.MergedAutoContainer.cs" />
     <Compile Include="DependencyInjection\IResolver.cs">
       <SubType>Code</SubType>
     </Compile>
