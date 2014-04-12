@@ -38,6 +38,7 @@
       <HintPath>..\packages\Reflectinator.0.0.8\lib\net40\Reflectinator.dll</HintPath>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -50,6 +51,16 @@
     <Compile Include="Collections\FunctionalKeyedCollection.cs" />
     <Compile Include="Collections\IKeyedEnumerable.cs" />
     <Compile Include="Collections\KeyedCollection.cs" />
+    <Compile Include="Configuration\CategoryElement.cs" />
+    <Compile Include="Configuration\CategoryElementCollection.cs" />
+    <Compile Include="Configuration\FormatterCollection.cs" />
+    <Compile Include="Configuration\FormatterElement.cs" />
+    <Compile Include="Configuration\LoggerSectionGroup.cs" />
+    <Compile Include="Configuration\LoggerSettingsSection.cs" />
+    <Compile Include="Configuration\ProviderElement.cs" />
+    <Compile Include="Configuration\RockFrameworkSection.cs" />
+    <Compile Include="Configuration\ThrottlingRuleCollection.cs" />
+    <Compile Include="Configuration\ThrottlingRuleElement.cs" />
     <Compile Include="Default.cs" />
     <Compile Include="DependencyInjection\AutoContainer.cs" />
     <Compile Include="DependencyInjection\AutoContainer.MergedAutoContainer.cs" />
