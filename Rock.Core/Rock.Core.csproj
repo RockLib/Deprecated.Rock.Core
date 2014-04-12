@@ -53,6 +53,7 @@
     <Compile Include="Collections\KeyedCollection.cs" />
     <Compile Include="Configuration\CategoryElement.cs" />
     <Compile Include="Configuration\CategoryElementCollection.cs" />
+    <Compile Include="Configuration\EnvironmentSection.cs" />
     <Compile Include="Configuration\FormatterCollection.cs" />
     <Compile Include="Configuration\FormatterElement.cs" />
     <Compile Include="Configuration\LoggerSectionGroup.cs" />

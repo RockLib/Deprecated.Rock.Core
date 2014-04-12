@@ -12,25 +12,23 @@ namespace Rock.DependencyInjection
         private readonly Lazy<MethodInfo> _getMethod;
         private readonly ConcurrentDictionary<Type, Func<object>> _bindings;
 
-        private AutoContainer()
+        private AutoContainer(ConcurrentDictionary<Type, Func<object>> bindings)
         {
             _getMethod = new Lazy<MethodInfo>(() => GetType().GetMethod("Get", Type.EmptyTypes));
+            _bindings = bindings;
         }
 
         /// <summary>
         /// Copy constructor.
         /// </summary>
         protected AutoContainer(AutoContainer parentContainer)
-            : this()
+            : this(parentContainer._bindings)
         {
-            _bindings = parentContainer._bindings;
         }
 
         public AutoContainer(params object[] instances)
-            : this()
+            : this(new ConcurrentDictionary<Type, Func<object>>())
         {
-            _bindings = new ConcurrentDictionary<Type, Func<object>>();
-
             foreach (var instance in instances.Where(x => x != null))
             {
                 BindConstant(instance.GetType(), instance);
@@ -90,7 +88,7 @@ namespace Rock.DependencyInjection
         {
             var ctor =
                 type.GetConstructors()
-                    .Where(c => c.GetParameters().All(p => CanResolve(p.ParameterType)))
+                    .Where(c => c.GetParameters().All(p => CanResolve(p.ParameterType) || p.HasDefaultValue))
                     .GroupBy(c => c.GetParameters().Length)
                     .OrderByDescending(g => g.Key)
                     .Where(g => g.Count() == 1)
@@ -111,9 +109,11 @@ namespace Rock.DependencyInjection
                         ctor.GetParameters()
                             .Select(
                                 p =>
-                                Expression.Call(
-                                    thisExpression,
-                                    _getMethod.Value.MakeGenericMethod(p.ParameterType)))));
+                                    CanResolve(p.ParameterType)
+                                        ? (Expression)Expression.Call(
+                                            thisExpression,
+                                            _getMethod.Value.MakeGenericMethod(p.ParameterType))
+                                        : Expression.Constant(p.DefaultValue, p.ParameterType))));
 
             return createInstanceExpression.Compile();
         }
@@ -226,7 +226,7 @@ namespace Rock.DependencyInjection
         {
             return
                 !type.IsAbstract
-                && type.GetConstructors().Any(c => c.GetParameters().All(p => CanResolve(p.ParameterType)));
+                && type.GetConstructors().Any(c => c.GetParameters().All(p => CanResolve(p.ParameterType) || p.HasDefaultValue));
         }
 
         private void AddConstantMapping(Type type, object instance)
