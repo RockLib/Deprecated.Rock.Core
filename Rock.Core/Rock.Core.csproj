@@ -46,6 +46,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Collections\AsKeyedExtension.cs" />
+    <Compile Include="Collections\FunctionalKeyedCollection.cs" />
     <Compile Include="Collections\IKeyedEnumerable.cs" />
     <Compile Include="Collections\KeyedCollection.cs" />
     <Compile Include="Default.cs" />
