@@ -19,11 +19,11 @@ namespace Rock.Configuration
         }
 
         [ConfigurationProperty("providers", IsDefaultCollection = true)]
-        public ProviderCollection Providers
+        public ProviderElementCollection Providers
         {
             get
             {
-                return (ProviderCollection)this["providers"]; // questionable
+                return (ProviderElementCollection)this["providers"]; // questionable
             }
             set
             {
@@ -42,6 +42,52 @@ namespace Rock.Configuration
             {
                 this["throttlingRule"] = value;
             }
+        }
+    }
+
+     [ConfigurationCollection(typeof(ProviderElement), AddItemName = "provider")]
+    public class ProviderElementCollection : ConfigurationElementCollection
+    {
+        public ProviderElement this[int index]
+        {
+            get
+            {
+                return (ProviderElement)BaseGet(index);
+            }
+            set
+            {
+                if (BaseGet(index) != null)
+                {
+                    BaseRemoveAt(index);
+                }
+                BaseAdd(index, value);
+            }
+        }
+
+        public new ProviderElement this[string key]
+        {
+            get
+            {
+                return (ProviderElement)BaseGet(key);
+            }
+            set
+            {
+                if (BaseGet(key) != null)
+                {
+                    BaseRemove(key);
+                }
+                BaseAdd(value, true);
+            }
+        }
+
+        protected override ConfigurationElement CreateNewElement()
+        {
+            return new ProviderElement();
+        }
+
+        protected override object GetElementKey(ConfigurationElement element)
+        {
+            return ((ProviderElement)element).ProviderType;
         }
     }
 }
