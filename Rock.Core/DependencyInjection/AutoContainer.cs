@@ -88,11 +88,11 @@ namespace Rock.DependencyInjection
         {
             var ctor =
                 type.GetConstructors()
-                    .Where(c => c.GetParameters().All(p => CanResolve(p.ParameterType) || p.HasDefaultValue))
+                    .Where(AllParametersAreResolvable)
                     .GroupBy(c => c.GetParameters().Length)
-                    .OrderByDescending(g => g.Key)
-                    .Where(g => g.Count() == 1)
-                    .Select(g => g.Single())
+                        .OrderByDescending(g => g.Key)
+                        .Where(g => g.Count() == 1) // This is debatable. What happens if there is more than one valid constructor with the same number of parameters? Here, we're ignoring all constructors of the same length, hoping that another constructor with fewer parameters will successfully resolve.
+                        .Select(g => g.Single())
                     .FirstOrDefault();
 
             if (ctor == null)
@@ -226,7 +226,12 @@ namespace Rock.DependencyInjection
         {
             return
                 !type.IsAbstract
-                && type.GetConstructors().Any(c => c.GetParameters().All(p => CanResolve(p.ParameterType) || p.HasDefaultValue));
+                && type.GetConstructors().Any(AllParametersAreResolvable);
+        }
+
+        private bool AllParametersAreResolvable(ConstructorInfo constructor)
+        {
+            return constructor.GetParameters().All(p => CanResolve(p.ParameterType) || p.HasDefaultValue);
         }
 
         private void AddConstantMapping(Type type, object instance)
