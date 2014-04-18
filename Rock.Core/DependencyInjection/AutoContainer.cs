@@ -10,11 +10,15 @@ namespace Rock.DependencyInjection
     public partial class AutoContainer : IResolver
     {
         private readonly Lazy<MethodInfo> _getMethod;
+        private readonly IConstructorSelector _constructorSelector;
         private readonly ConcurrentDictionary<Type, Func<object>> _bindings;
 
-        private AutoContainer(ConcurrentDictionary<Type, Func<object>> bindings)
+        private AutoContainer(
+            IConstructorSelector constructorSelector,
+            ConcurrentDictionary<Type, Func<object>> bindings)
         {
             _getMethod = new Lazy<MethodInfo>(() => GetType().GetMethod("Get", Type.EmptyTypes));
+            _constructorSelector = constructorSelector;
             _bindings = bindings;
         }
 
@@ -22,17 +26,22 @@ namespace Rock.DependencyInjection
         /// Copy constructor.
         /// </summary>
         protected AutoContainer(AutoContainer parentContainer)
-            : this(parentContainer._bindings)
+            : this(parentContainer._constructorSelector, parentContainer._bindings)
         {
         }
 
-        public AutoContainer(params object[] instances)
-            : this(new ConcurrentDictionary<Type, Func<object>>())
+        public AutoContainer(IConstructorSelector constructorSelector, params object[] instances)
+            : this(constructorSelector, new ConcurrentDictionary<Type, Func<object>>())
         {
             foreach (var instance in instances.Where(x => x != null))
             {
                 BindConstant(instance.GetType(), instance);
             }
+        }
+
+        public AutoContainer(params object[] instances)
+            : this(new ConstructorSelector(), instances)
+        {
         }
 
         public virtual bool CanResolve(Type type)

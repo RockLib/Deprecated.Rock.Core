@@ -1,13 +1,13 @@
+using System;
+using System.Collections;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Dynamic;
+using System.Linq;
+using Reflectinator;
+
 namespace Rock.Framework
 {
-    using Reflectinator;
-    using System;
-    using System.Collections;
-    using System.Collections.Concurrent;
-    using System.Collections.Generic;
-    using System.Dynamic;
-    using System.Linq;
-
     public class ReflectinatorObjectToExpandoObjectConverter : IConvertObjectsTo<ExpandoObject>
     {
         private readonly ConcurrentDictionary<Type, Func<object, ExpandoObject>> _createFunctionCache =

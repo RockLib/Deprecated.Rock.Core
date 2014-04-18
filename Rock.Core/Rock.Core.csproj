@@ -65,6 +65,8 @@
     <Compile Include="Default.cs" />
     <Compile Include="DependencyInjection\AutoContainer.cs" />
     <Compile Include="DependencyInjection\AutoContainer.MergedAutoContainer.cs" />
+    <Compile Include="DependencyInjection\ConstructorSelector.cs" />
+    <Compile Include="DependencyInjection\IConstructorSelector.cs" />
     <Compile Include="DependencyInjection\IResolver.cs">
       <SubType>Code</SubType>
     </Compile>
