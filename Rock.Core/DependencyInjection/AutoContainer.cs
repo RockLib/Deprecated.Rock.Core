@@ -39,14 +39,24 @@ namespace Rock.DependencyInjection
                 var localInstance = instance;
                 foreach (var type in GetTypeHierarchy(instance.GetType()))
                 {
-                    _bindings[type] = () => localInstance;
+                    if (_bindings.ContainsKey(type))
+                    {
+                        _bindings[type] = null;
+                    }
+                    else
+                    {
+                        _bindings[type] = () => localInstance;
+                    }
                 }
             }
         }
 
         public virtual bool CanResolve(Type type)
         {
-            return _bindings.ContainsKey(type) || _constructorSelector.CanGetConstructor(type, this);
+            Func<object> binding;
+            return
+                (_bindings.TryGetValue(type, out binding) && binding != null)
+                || CanGetConstructor(type);
         }
 
         public T Get<T>()
@@ -67,7 +77,7 @@ namespace Rock.DependencyInjection
                 _bindings.GetOrAdd(
                     type,
                     t =>
-                        _constructorSelector.CanGetConstructor(type, this)
+                        CanGetConstructor(type)
                             ? GetCreateInstanceFunc(type)
                             : null);
 
@@ -87,6 +97,13 @@ namespace Rock.DependencyInjection
         public virtual AutoContainer MergeWith(IResolver otherContainer)
         {
             return new MergedAutoContainer(this, otherContainer);
+        }
+
+        private bool CanGetConstructor(Type type)
+        {
+            return
+                type != typeof(object)
+                && _constructorSelector.CanGetConstructor(type, this);
         }
 
         private Func<object> GetCreateInstanceFunc(Type type)
@@ -117,21 +134,16 @@ namespace Rock.DependencyInjection
 
         private static IEnumerable<Type> GetTypeHierarchy(Type type)
         {
-            var types = Enumerable.Repeat(type, 1);
+            return GetConcreteHierarchy(type).Concat(type.GetInterfaces());
+        }
 
-            if (type == typeof(object))
+        private static IEnumerable<Type> GetConcreteHierarchy(Type type)
+        {
+            while (type != null && type != typeof(object))
             {
-                return types;
+                yield return type;
+                type = type.BaseType;
             }
-
-            if (!type.IsInterface)
-            {
-                types = types.Concat(GetTypeHierarchy(type.BaseType));
-            }
-
-            types = type.GetInterfaces().Aggregate(types, (typesSoFar, @interface) => typesSoFar.Concat(GetTypeHierarchy(@interface)));
-
-            return types.Distinct();
         }
     }
 }
