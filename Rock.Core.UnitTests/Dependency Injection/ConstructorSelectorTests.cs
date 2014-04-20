@@ -3,6 +3,7 @@ using System.Linq;
 using Moq;
 using NUnit.Framework;
 using Rock.DependencyInjection;
+using Rock.DependencyInjection.Heuristics;
 
 namespace ConstructorSelectorTests
 {

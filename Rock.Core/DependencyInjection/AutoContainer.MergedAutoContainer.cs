@@ -21,7 +21,7 @@ namespace Rock.DependencyInjection
 
             public override object Get(Type type)
             {
-                return base.CanResolve(type) ? base.Get(type) : _secondaryContainer.Get((type));
+                return base.CanResolve(type) ? base.Get(type) : _secondaryContainer.Get(type);
             }
         }
     }

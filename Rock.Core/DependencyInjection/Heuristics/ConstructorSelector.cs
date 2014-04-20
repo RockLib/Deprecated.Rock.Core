@@ -3,12 +3,41 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-namespace Rock.DependencyInjection
+namespace Rock.DependencyInjection.Heuristics
 {
     public class ConstructorSelector : IConstructorSelector
     {
+        public bool CanGetConstructor(Type type, IResolver resolver)
+        {
+            return GetConstructorImpl(type, resolver).Constructor != null;
+        }
+
+        public bool TryGetConstructor(Type type, IResolver resolver, out ConstructorInfo constructor)
+        {
+            var result = GetConstructorImpl(type, resolver);
+            constructor = result.Constructor;
+            return constructor != null;
+        }
+
         public ConstructorInfo GetConstructor(Type type, IResolver resolver)
         {
+            var result = GetConstructorImpl(type, resolver);
+
+            if (result.Constructor != null)
+            {
+                return result.Constructor;
+            }
+
+            throw result.Exception;
+        }
+
+        private GetConstructorResult GetConstructorImpl(Type type, IResolver resolver)
+        {
+            if (type.IsAbstract)
+            {
+                return new GetConstructorResult { Exception = new Exception("abstract types cannot be instantiated") };
+            }
+
             var rankedConstructors =
                 type.GetConstructors()
                     .SelectMany(GetVirtualContructors)
@@ -20,17 +49,15 @@ namespace Rock.DependencyInjection
 
             if (!enumerator.MoveNext())
             {
-                // TODO: better exception type and message
-                throw new Exception("no constructor found");
+                return new GetConstructorResult { Exception = new Exception("no constructor found") };
             }
 
             if (enumerator.Current.Count() > 1)
             {
-                // TODO: better exception type and message
-                throw new Exception("multiple constructors with the same priority found");
+                return new GetConstructorResult { Exception = new Exception("multiple constructors with the same priority found") };
             }
 
-            return enumerator.Current.Single().Constructor;
+            return new GetConstructorResult { Constructor = enumerator.Current.Single().Constructor };
         }
 
         private IEnumerable<VirtualContructor> GetVirtualContructors(ConstructorInfo constructor)
@@ -96,6 +123,12 @@ namespace Rock.DependencyInjection
                     || type == typeof(string)
                     || (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>) && type.GetGenericArguments()[0].IsPrimitive);
             }
+        }
+
+        private class GetConstructorResult
+        {
+            public ConstructorInfo Constructor { get; set; }
+            public Exception Exception { get; set; }
         }
     }
 }
