@@ -42,5 +42,18 @@ namespace Rock.Configuration
                 this["loggingLevel"] = value;
             }
         }
+
+        [ConfigurationProperty("propertyMapper", IsDefaultCollection = true)]
+        public PropertyMapperCollection PropertyMappers
+        {
+            get
+            {
+                return (PropertyMapperCollection)this["propertyMapper"]; // questionable
+            }
+            set
+            {
+                this["propertyMapper"] = value;
+            }
+        }
      }
 }

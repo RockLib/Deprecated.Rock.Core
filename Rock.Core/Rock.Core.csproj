@@ -58,6 +58,8 @@
     <Compile Include="Configuration\FormatterElement.cs" />
     <Compile Include="Configuration\LoggerSectionGroup.cs" />
     <Compile Include="Configuration\LoggerSettingsSection.cs" />
+    <Compile Include="Configuration\PropertyMapperCollection.cs" />
+    <Compile Include="Configuration\PropertyMapperElement.cs" />
     <Compile Include="Configuration\ProviderElement.cs" />
     <Compile Include="Configuration\RockFrameworkSection.cs" />
     <Compile Include="Configuration\ThrottlingRuleCollection.cs" />
