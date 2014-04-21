@@ -29,18 +29,5 @@ namespace Rock.Configuration
                 this["environment"] = value;
             }
         }
-
-        [ConfigurationProperty("logger", IsRequired = false)]
-        public LoggerSectionGroup LoggerSettings
-        {
-            get
-            {
-                return (LoggerSectionGroup)this["logger"];
-            }
-            set
-            {
-                this["logger"] = value;
-            }
-        }
     }
 }
