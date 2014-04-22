@@ -63,6 +63,12 @@
     </Compile>
     <Compile Include="DependencyInjection\ResolverSetValueExtensions.cs" />
     <Compile Include="DependencyInjection\ResolverTryGetExtensions.cs" />
+    <Compile Include="Mail\DeliveryMethod.DefaultDeliveryMethod.cs" />
+    <Compile Include="Mail\DeliveryMethod.SpecifiedPickupDirectoryDeliveryMethod.cs" />
+    <Compile Include="Mail\DeliveryMethod.NetworkDeliveryMethod.cs" />
+    <Compile Include="Mail\DeliveryMethod.cs" />
+    <Compile Include="Mail\IDeliveryMethod.cs" />
+    <Compile Include="Mail\MailMessageExtensions.cs" />
     <Compile Include="NoneOfTheseFilesBelongHereGiveThemAHome\IConvertObjectsTo.cs" />
     <Compile Include="NoneOfTheseFilesBelongHereGiveThemAHome\IEnumerableExtensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
