@@ -13,7 +13,13 @@ namespace Rock.DependencyInjection
         /// <param name="fieldOrVariable">The value to set if <paramref name="resolver"/> can successfully do so.</param>
         public static void SetValueFor<T>(this IResolver resolver, out T fieldOrVariable)
         {
-            SetValueFor(resolver, out fieldOrVariable, () => { throw UnableToResolveType<T>(); });
+            SetValueFor(
+                resolver,
+                out fieldOrVariable,
+                () => // If we can't resolve, instead of returning an default value of T, throw instead.
+                {
+                    throw new ResolveException(string.Format("Unable to resolve type '{0}'.", typeof(T)));
+                });
         }
 
         /// <summary>
@@ -29,17 +35,19 @@ namespace Rock.DependencyInjection
         /// </param>
         public static void SetValueFor<T>(this IResolver resolver, out T fieldOrVariable, Func<T> getDefaultValue)
         {
+            getDefaultValue = getDefaultValue ?? (() => default(T));
+
             fieldOrVariable =
                 resolver.CanResolve(typeof(T))
-                    ? GetValue(resolver, getDefaultValue)
-                    : GetValue(getDefaultValue);
+                    ? GetValueFromResolver(resolver, getDefaultValue)
+                    : getDefaultValue();
         }
 
         /// <summary>
         /// Tries to get the value from <paramref name="resolver"/>. If it fails, it returns the value
-        /// from <paramref name="getValue"/>.
+        /// from <paramref name="getDefaultValue"/>.
         /// </summary>
-        private static T GetValue<T>(IResolver resolver, Func<T> getValue)
+        private static T GetValueFromResolver<T>(IResolver resolver, Func<T> getDefaultValue)
         {
             try
             {
@@ -47,25 +55,8 @@ namespace Rock.DependencyInjection
             }
             catch
             {
-                return GetValue(getValue);
+                return getDefaultValue();
             }
-        }
-
-        /// <summary>
-        /// If <paramref name="getValue"/> is not null, return what it returns when evaluated. Otherwise,
-        /// if it is null, return the default value of <typeparamref name="T"/> (e.g. null for reference types).
-        /// </summary>
-        private static T GetValue<T>(Func<T> getValue)
-        {
-            return
-                getValue != null
-                    ? getValue()
-                    : default(T);
-        }
-
-        private static Exception UnableToResolveType<T>(Exception innerException = null)
-        {
-            return new Exception(string.Format("Unable to resolve type {0}.", typeof(T)), innerException); // TODO: better message
         }
     }
 }

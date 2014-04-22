@@ -61,8 +61,10 @@
     <Compile Include="DependencyInjection\IResolver.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="DependencyInjection\ResolveException.cs" />
     <Compile Include="DependencyInjection\ResolverSetValueExtensions.cs" />
     <Compile Include="DependencyInjection\ResolverTryGetExtensions.cs" />
+    <Compile Include="Extensions\GetEnumValueExtension.cs" />
     <Compile Include="Mail\DeliveryMethod.DefaultDeliveryMethod.cs" />
     <Compile Include="Mail\DeliveryMethod.SpecifiedPickupDirectoryDeliveryMethod.cs" />
     <Compile Include="Mail\DeliveryMethod.NetworkDeliveryMethod.cs" />

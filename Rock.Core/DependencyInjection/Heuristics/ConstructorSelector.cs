@@ -28,14 +28,21 @@ namespace Rock.DependencyInjection.Heuristics
                 return result.Constructor;
             }
 
-            throw result.Exception;
+            throw result.GetException();
         }
 
         private GetConstructorResult GetConstructorImpl(Type type, IResolver resolver)
         {
             if (type.IsAbstract)
             {
-                return new GetConstructorResult { Exception = new Exception("abstract types cannot be instantiated") };
+                return new GetConstructorResult
+                {
+                    GetException = () =>
+                        new ResolveException(
+                            string.Format(
+                                "No resolvable constructors found for type '{0}' - abstract types cannot be instantiated.",
+                                type))
+                };
             }
 
             var rankedConstructors =
@@ -49,15 +56,32 @@ namespace Rock.DependencyInjection.Heuristics
 
             if (!enumerator.MoveNext())
             {
-                return new GetConstructorResult { Exception = new Exception("no constructor found") };
+                return new GetConstructorResult
+                {
+                    GetException = () =>
+                        new ResolveException(
+                            string.Format(
+                                "No resolvable constructors found for type '{0}'.",
+                                type))
+                };
             }
 
             if (enumerator.Current.Count() > 1)
             {
-                return new GetConstructorResult { Exception = new Exception("multiple constructors with the same priority found") };
+                return new GetConstructorResult
+                {
+                    GetException = () =>
+                        new ResolveException(
+                            string.Format(
+                                "Multiple resolvable constructors found with the same priority for type '{0}'.",
+                                type))
+                };
             }
 
-            return new GetConstructorResult { Constructor = enumerator.Current.Single().Constructor };
+            return new GetConstructorResult
+            {
+                Constructor = enumerator.Current.Single().Constructor
+            };
         }
 
         private IEnumerable<VirtualContructor> GetVirtualContructors(ConstructorInfo constructor)
@@ -128,7 +152,7 @@ namespace Rock.DependencyInjection.Heuristics
         private class GetConstructorResult
         {
             public ConstructorInfo Constructor { get; set; }
-            public Exception Exception { get; set; }
+            public Func<Exception> GetException { get; set; }
         }
     }
 }
