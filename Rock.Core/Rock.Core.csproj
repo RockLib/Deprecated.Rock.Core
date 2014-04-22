@@ -47,6 +47,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AssemblyInitialization\IAssemblyInitializer.cs" />
     <Compile Include="Collections\AsKeyedExtension.cs" />
     <Compile Include="Collections\FunctionalKeyedCollection.cs" />
     <Compile Include="Collections\IKeyedEnumerable.cs" />
@@ -71,6 +72,7 @@
     <Compile Include="Mail\DeliveryMethod.cs" />
     <Compile Include="Mail\IDeliveryMethod.cs" />
     <Compile Include="Mail\MailMessageExtensions.cs" />
+    <Compile Include="AssemblyInitialization\ModuleInitializer.cs" />
     <Compile Include="NoneOfTheseFilesBelongHereGiveThemAHome\IConvertObjectsTo.cs" />
     <Compile Include="NoneOfTheseFilesBelongHereGiveThemAHome\IEnumerableExtensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -88,7 +90,8 @@
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
   </Target>
-  <Target Name="AfterBuild">
-  </Target>
   -->
+  <Target Name="AfterBuild">
+    <Exec Command="InjectModuleInitializer.exe &quot;$(TargetPath)&quot;" />
+  </Target>
 </Project>
