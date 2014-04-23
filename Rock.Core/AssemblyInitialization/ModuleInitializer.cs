@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.Composition.Hosting;
 using System.Linq;
-using System.Reflection;
 
 namespace Rock.AssemblyInitialization
 {
@@ -9,62 +9,20 @@ namespace Rock.AssemblyInitialization
     {
         internal static void Run()
         {
+            var container = new CompositionContainer(new DirectoryCatalog(AppDomain.CurrentDomain.BaseDirectory));
             var typeComparer = new TypeComparer();
 
-            var assemblies =
-                AppDomain.CurrentDomain.GetAssemblies().SelectMany(GetReferencedAssemblies);
-
-            Console.WriteLine("*************");
-            foreach (var aa in assemblies)
-            {
-                Console.WriteLine(aa.FullName);
-            }
-            Console.WriteLine("*************");
-            
-            var assemblyInitializerTypes =
-                assemblies.SelectMany(a => a.GetTypes())
-                    .Where(t =>
-                        !t.IsAbstract
-                        && typeof(IAssemblyInitializer).IsAssignableFrom(t)
-                        && t.GetConstructor(Type.EmptyTypes) != null)
-                    .OrderBy(x => x, typeComparer);
-
-            foreach (var assemblyInitializerType in assemblyInitializerTypes)
+            foreach (var initializer in container.GetExports<IAssemblyInitializer>().OrderBy(x => x.GetType(), typeComparer))
             {
                 try
                 {
-                    var assemblyInitializer = (IAssemblyInitializer)Activator.CreateInstance(assemblyInitializerType);
-                    assemblyInitializer.OnAssemblyInitialize();
+                    initializer.Value.OnAssemblyInitialize();
                 }
-                catch
+                catch (Exception ex)
                 {
+                    // TODO: Do something better than writing to console.
+                    Console.WriteLine(ex);
                 }
-            }
-        }
-
-        private static IEnumerable<Assembly> GetReferencedAssemblies(Assembly assembly)
-        {
-            yield return assembly;
-
-            foreach (var referencedAssembly in
-                assembly.GetReferencedAssemblies()
-                    .Select(TryLoad)
-                    .Where(a => a != null && !a.GlobalAssemblyCache)
-                    .SelectMany(GetReferencedAssemblies))
-            {
-                yield return referencedAssembly;
-            }
-        }
-
-        private static Assembly TryLoad(AssemblyName assemblyName)
-        {
-            try
-            {
-                return Assembly.Load(assemblyName);
-            }
-            catch
-            {
-                return null;
             }
         }
 
@@ -87,12 +45,16 @@ namespace Rock.AssemblyInitialization
                     return 1;
                 }
 
-                if (rhs.Assembly.GetReferencedAssemblies().Any(referenced => referenced.ToString() == lhs.Assembly.GetName().ToString()))
+                if (
+                    rhs.Assembly.GetReferencedAssemblies()
+                        .Any(referenced => referenced.ToString() == lhs.Assembly.GetName().ToString()))
                 {
                     return -1;
                 }
 
-                if (lhs.Assembly.GetReferencedAssemblies().Any(referenced => referenced.ToString() == rhs.Assembly.GetName().ToString()))
+                if (
+                    lhs.Assembly.GetReferencedAssemblies()
+                        .Any(referenced => referenced.ToString() == rhs.Assembly.GetName().ToString()))
                 {
                     return 1;
                 }
