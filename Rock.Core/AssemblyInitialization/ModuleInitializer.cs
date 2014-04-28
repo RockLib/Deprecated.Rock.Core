@@ -5,28 +5,46 @@ using System.Linq;
 
 namespace Rock.AssemblyInitialization
 {
-    internal static class ModuleInitializer
+    public static class ModuleInitializer // Future devs: Do not change the name of this class
     {
-        internal static void Run()
-        {
-            var container = new CompositionContainer(new DirectoryCatalog(AppDomain.CurrentDomain.BaseDirectory));
-            var typeComparer = new TypeComparer();
+        private static bool _hasRun;
+        private static readonly object _locker = new object();
 
-            foreach (var initializer in container.GetExports<IAssemblyInitializer>().OrderBy(x => x.GetType(), typeComparer))
+        public static void Run() // Future devs: Do not change the signature of this method
+        {
+            if (_hasRun)
             {
-                try
+                return;
+            }
+
+            lock (_locker)
+            {
+                if (_hasRun)
                 {
-                    initializer.Value.OnAssemblyInitialize();
+                    return;
                 }
-                catch (Exception ex)
+
+                _hasRun = true;
+
+                var container = new CompositionContainer(new DirectoryCatalog(AppDomain.CurrentDomain.BaseDirectory));
+                var coreLibrariesFirstEntryPointLast = new CoreLibrariesFirstEntryPointLastComparer();
+
+                foreach (var item in container.GetExports<IAssemblyInitializer>().OrderBy(x => x.GetType(), coreLibrariesFirstEntryPointLast))
                 {
-                    // TODO: Do something better than writing to console.
-                    Console.WriteLine(ex);
+                    try
+                    {
+                        item.Value.OnAssemblyInitialize();
+                    }
+                    catch (Exception ex)
+                    {
+                        // TODO: Do something better than writing to console.
+                        Console.WriteLine(ex);
+                    }
                 }
             }
         }
 
-        private class TypeComparer : IComparer<Type>
+        private class CoreLibrariesFirstEntryPointLastComparer : IComparer<Type>
         {
             int IComparer<Type>.Compare(Type lhs, Type rhs)
             {
@@ -45,15 +63,13 @@ namespace Rock.AssemblyInitialization
                     return 1;
                 }
 
-                if (
-                    rhs.Assembly.GetReferencedAssemblies()
+                if (rhs.Assembly.GetReferencedAssemblies()
                         .Any(referenced => referenced.ToString() == lhs.Assembly.GetName().ToString()))
                 {
                     return -1;
                 }
 
-                if (
-                    lhs.Assembly.GetReferencedAssemblies()
+                if (lhs.Assembly.GetReferencedAssemblies()
                         .Any(referenced => referenced.ToString() == rhs.Assembly.GetName().ToString()))
                 {
                     return 1;

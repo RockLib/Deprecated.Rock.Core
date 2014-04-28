@@ -1,8 +1,8 @@
-﻿namespace Rock.Framework
-{
-    using Serialization;
-    using System.Dynamic;
+﻿using System.Dynamic;
+using Rock.Serialization;
 
+namespace Rock.Framework
+{
     internal static class Default
     {
         public static readonly IJsonSerializer JsonSerializer = new NewtonsoftJsonSerializer();
