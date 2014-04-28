@@ -1,0 +1,1 @@
+nuget pack ..\Rock.Core\Rock.Core.csproj -Properties Configuration=Release
