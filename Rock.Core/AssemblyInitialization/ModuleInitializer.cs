@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.Composition;
 using System.ComponentModel.Composition.Hosting;
+using System.ComponentModel.Composition.Registration;
 using System.Linq;
 
 namespace Rock.AssemblyInitialization
@@ -25,20 +27,33 @@ namespace Rock.AssemblyInitialization
                 }
 
                 _hasRun = true;
+            }
 
-                var container = new CompositionContainer(new DirectoryCatalog(AppDomain.CurrentDomain.BaseDirectory));
-                var coreLibrariesFirstEntryPointLast = new CoreLibrariesFirstEntryPointLastComparer();
+            var conventions = new RegistrationBuilder();
+            conventions
+                .ForTypesDerivedFrom<IFrameworkInitializer>()
+                .ExportInterfaces(t => t == typeof(IFrameworkInitializer))
+                .SetCreationPolicy(CreationPolicy.NonShared);
 
-                foreach (var item in container.GetExports<IAssemblyInitializer>().OrderBy(x => x.GetType(), coreLibrariesFirstEntryPointLast))
+            using (var catalog = new DirectoryCatalog(AppDomain.CurrentDomain.BaseDirectory, conventions))
+            {
+                using (var container = new CompositionContainer(catalog))
                 {
-                    try
+                    var coreLibrariesFirstEntryPointLast = new CoreLibrariesFirstEntryPointLastComparer();
+
+                    foreach (var frameworkInitializer in
+                        container.GetExports<IFrameworkInitializer>()
+                            .OrderBy(x => x.GetType(), coreLibrariesFirstEntryPointLast))
                     {
-                        item.Value.OnAssemblyInitialize();
-                    }
-                    catch (Exception ex)
-                    {
-                        // TODO: Do something better than writing to console.
-                        Console.WriteLine(ex);
+                        try
+                        {
+                            frameworkInitializer.Value.Initialize();
+                        }
+                        catch (Exception ex)
+                        {
+                            // TODO: Do something better than writing to console.
+                            Console.WriteLine(ex);
+                        }
                     }
                 }
             }
