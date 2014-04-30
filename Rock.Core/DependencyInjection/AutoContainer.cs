@@ -108,26 +108,29 @@ namespace Rock.DependencyInjection
 
         private Func<object> GetCreateInstanceFunc(Type type)
         {
+            // First, we need to get the "right" constructor. We'll let our IConstructorSelector handle that.
             ConstructorInfo ctor;
             if (!_constructorSelector.TryGetConstructor(type, this, out ctor))
             {
                 return null;
             }
 
-            var thisExpression = Expression.Constant(this);
+            // We're going to be creating a lambda expression of type Func<object>.
+            // Then we'lle compile that expression and return the resulting Func<object>.
 
-            var createInstanceExpression =
-                Expression.Lambda<Func<object>>(
-                    Expression.New(
-                        ctor,
-                        ctor.GetParameters()
-                            .Select(
-                                p =>
-                                CanResolve(p.ParameterType)
-                                    ? (Expression)Expression.Call(
-                                        thisExpression,
-                                        _getMethod.Value.MakeGenericMethod(p.ParameterType))
-                                    : Expression.Constant(p.DefaultValue, p.ParameterType))));
+            // We want a closure around 'this' so that we can access its Get<> method.
+            var thisExpression = Expression.Constant(this);
+                                                                                                // The following is roughly what's going on in the lambda expression to the left.
+            var createInstanceExpression =                                                      // Note that the select statement will be fully realized at expression creation time.
+                Expression.Lambda<Func<object>>(                                                // () =>
+                    Expression.New(ctor,                                                        //     new instance_type(
+                        ctor.GetParameters()                                                    //             from the constructor's parameters...
+                            .Select(p =>                                                        //             select...
+                                CanResolve(p.ParameterType)                                     //                 if parameter_type can be resolved...
+                                    ? (Expression)Expression.Call(                              //                     yield
+                                        thisExpression,                                         //                         this
+                                        _getMethod.Value.MakeGenericMethod(p.ParameterType))    //                             .Get<parameter_type>()
+                                    : Expression.Constant(p.DefaultValue, p.ParameterType))));  //                 else... yield default parameter_type value)
 
             return createInstanceExpression.Compile();
         }
