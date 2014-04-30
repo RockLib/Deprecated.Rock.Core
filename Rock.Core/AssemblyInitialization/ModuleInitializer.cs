@@ -27,35 +27,56 @@ namespace Rock.AssemblyInitialization
                 }
 
                 _hasRun = true;
-            }
 
-            var conventions = new RegistrationBuilder();
-            conventions
-                .ForTypesDerivedFrom<IFrameworkInitializer>()
-                .ExportInterfaces(t => t == typeof(IFrameworkInitializer))
-                .SetCreationPolicy(CreationPolicy.NonShared);
+                var conventions = new RegistrationBuilder();
+                conventions
+                    .ForTypesDerivedFrom<IFrameworkInitializer>()
+                    .ExportInterfaces(t => t == typeof(IFrameworkInitializer))
+                    .SetCreationPolicy(CreationPolicy.NonShared);
 
-            using (var catalog = new DirectoryCatalog(AppDomain.CurrentDomain.BaseDirectory, conventions))
-            {
-                using (var container = new CompositionContainer(catalog))
+                using (var catalog = new AggregateCatalog())
                 {
-                    var coreLibrariesFirstEntryPointLast = new CoreLibrariesFirstEntryPointLastComparer();
+                    catalog.Catalogs.Add(new DirectoryCatalog(AppDomain.CurrentDomain.BaseDirectory, conventions));
+                    catalog.Catalogs.Add(new DirectoryCatalog(AppDomain.CurrentDomain.BaseDirectory, "*.exe", conventions));
 
-                    foreach (var frameworkInitializer in
-                        container.GetExports<IFrameworkInitializer>()
-                            .OrderBy(x => x.GetType(), coreLibrariesFirstEntryPointLast))
+                    using (var container = new CompositionContainer(catalog))
                     {
-                        try
+                        var coreLibrariesFirstEntryPointLast = new CoreLibrariesFirstEntryPointLastComparer();
+
+                        var frameworkInitializers =
+                            container.GetExports<IFrameworkInitializer>()
+                                     .Where(HasValidValue)
+                                     .Select(x => x.Value)
+                                     .OrderBy(x => x.GetType(), coreLibrariesFirstEntryPointLast);
+
+                        foreach (var frameworkInitializer in frameworkInitializers)
                         {
-                            frameworkInitializer.Value.Initialize();
-                        }
-                        catch (Exception ex)
-                        {
-                            // TODO: Do something better than writing to console.
-                            Console.WriteLine(ex);
+                            try
+                            {
+                                frameworkInitializer.Initialize();
+                            }
+                            catch (Exception ex)
+                            {
+                                // TODO: Do something better than writing to console.
+                                Console.WriteLine(ex);
+                            }
                         }
                     }
                 }
+            }
+        }
+
+        private static bool HasValidValue(Lazy<IFrameworkInitializer> lazy)
+        {
+            try
+            {
+                return lazy.Value != null;
+            }
+            catch (Exception ex)
+            {
+                // TODO: Do something better than writing to console.
+                Console.WriteLine(ex);
+                return false;
             }
         }
 
