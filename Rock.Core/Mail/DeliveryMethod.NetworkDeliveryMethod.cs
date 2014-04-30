@@ -2,9 +2,9 @@
 
 namespace Rock.Mail
 {
-    public static partial class DeliveryMethod
+    public partial class DeliveryMethod
     {
-        private class NetworkDeliveryMethod : IDeliveryMethod
+        private class NetworkDeliveryMethod : DeliveryMethod
         {
             private readonly string _host;
             private readonly int _port;
@@ -15,7 +15,7 @@ namespace Rock.Mail
                 _port = port;
             }
 
-            public void ConfigureSmtpClient(SmtpClient smtpClient)
+            internal override void ConfigureSmtpClient(SmtpClient smtpClient)
             {
                 smtpClient.DeliveryMethod = SmtpDeliveryMethod.Network;
                 smtpClient.Host = _host;

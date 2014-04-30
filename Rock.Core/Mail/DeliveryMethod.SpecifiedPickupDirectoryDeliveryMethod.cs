@@ -2,9 +2,9 @@
 
 namespace Rock.Mail
 {
-    public static partial class DeliveryMethod
+    public partial class DeliveryMethod
     {
-        private class SpecifiedPickupDirectoryDeliveryMethod : IDeliveryMethod
+        private class SpecifiedPickupDirectoryDeliveryMethod : DeliveryMethod
         {
             private readonly string _pickupDirectoryLocation;
 
@@ -13,7 +13,7 @@ namespace Rock.Mail
                 _pickupDirectoryLocation = pickupDirectoryLocation;
             }
 
-            public void ConfigureSmtpClient(SmtpClient smtpClient)
+            internal override void ConfigureSmtpClient(SmtpClient smtpClient)
             {
                 smtpClient.DeliveryMethod = SmtpDeliveryMethod.SpecifiedPickupDirectory;
                 smtpClient.PickupDirectoryLocation = _pickupDirectoryLocation;

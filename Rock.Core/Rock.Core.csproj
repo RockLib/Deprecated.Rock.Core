@@ -66,24 +66,21 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="DependencyInjection\ResolveException.cs" />
-    <Compile Include="DependencyInjection\ResolverSetValueExtensions.cs" />
-    <Compile Include="DependencyInjection\ResolverTryGetExtensions.cs" />
     <Compile Include="Extensions\GetEnumValueExtension.cs" />
     <Compile Include="Mail\DeliveryMethod.DefaultDeliveryMethod.cs" />
     <Compile Include="Mail\DeliveryMethod.SpecifiedPickupDirectoryDeliveryMethod.cs" />
     <Compile Include="Mail\DeliveryMethod.NetworkDeliveryMethod.cs" />
     <Compile Include="Mail\DeliveryMethod.cs" />
-    <Compile Include="Mail\IDeliveryMethod.cs" />
     <Compile Include="Mail\MailMessageExtensions.cs" />
     <Compile Include="AssemblyInitialization\ModuleInitializer.cs" />
-    <Compile Include="NoneOfTheseFilesBelongHereGiveThemAHome\IConvertObjectsTo.cs" />
-    <Compile Include="NoneOfTheseFilesBelongHereGiveThemAHome\IEnumerableExtensions.cs" />
+    <Compile Include="Conversion\IConvertTo.cs" />
+    <Compile Include="Collections\ConcatExtensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="NoneOfTheseFilesBelongHereGiveThemAHome\ReflectinatorObjectToExpandoObjectConverter.cs" />
+    <Compile Include="Conversion\ReflectinatorConvertToExpandoObject.cs" />
     <Compile Include="Serialization\IJsonSerializer.cs" />
     <Compile Include="Serialization\NewtonsoftJsonSerializer.cs" />
     <Compile Include="Serialization\ToJsonExtension.cs" />
-    <Compile Include="NoneOfTheseFilesBelongHereGiveThemAHome\ToExpandoObjectExtension.cs" />
+    <Compile Include="Conversion\ToExpandoObjectExtension.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

@@ -20,7 +20,7 @@ namespace Rock.Extensions
             {
                 if (!typeof(T).IsEnum)
                 {
-                    throw new InvalidOperationException("Unable to get enum value for type {0} - not an enum.");
+                    throw new InvalidOperationException("Unable to get enum value. Type '{0}' is not an enum.");
                 }
             }
 

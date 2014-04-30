@@ -2,17 +2,20 @@
 
 namespace Rock.Mail
 {
-    public static partial class DeliveryMethod
+    public partial class DeliveryMethod
     {
-        private class DefaultDeliveryMethod : IDeliveryMethod
+        private class DefaultDeliveryMethod : DeliveryMethod
         {
+            /// <summary>
+            /// The singleton instance of <see cref="DeliveryMethod.DefaultDeliveryMethod"/>.
+            /// </summary>
             public static readonly DefaultDeliveryMethod Instance = new DefaultDeliveryMethod();
 
             private DefaultDeliveryMethod()
             {
             }
 
-            public void ConfigureSmtpClient(SmtpClient smtpClient)
+            internal override void ConfigureSmtpClient(SmtpClient smtpClient)
             {
             }
         }

@@ -32,7 +32,7 @@ namespace Rock.DependencyInjection
         }
 
         public AutoContainer(params object[] instances)
-            : this(new ConcurrentDictionary<Type, Func<object>>(), new ConstructorSelector())
+            : this(new ConcurrentDictionary<Type, Func<object>>(), Default.ConstructorSelector)
         {
             foreach (var instance in instances.Where(x => x != null))
             {
@@ -120,17 +120,27 @@ namespace Rock.DependencyInjection
 
             // We want a closure around 'this' so that we can access its Get<> method.
             var thisExpression = Expression.Constant(this);
-                                                                                                // The following is roughly what's going on in the lambda expression to the left.
-            var createInstanceExpression =                                                      // Note that the select statement will be fully realized at expression creation time.
-                Expression.Lambda<Func<object>>(                                                // () =>
-                    Expression.New(ctor,                                                        //     new instance_type(
-                        ctor.GetParameters()                                                    //             from the constructor's parameters...
-                            .Select(p =>                                                        //             select...
-                                CanResolve(p.ParameterType)                                     //                 if parameter_type can be resolved...
-                                    ? (Expression)Expression.Call(                              //                     yield
-                                        thisExpression,                                         //                         this
-                                        _getMethod.Value.MakeGenericMethod(p.ParameterType))    //                             .Get<parameter_type>()
-                                    : Expression.Constant(p.DefaultValue, p.ParameterType))));  //                 else... yield default parameter_type value)
+
+            // The following is roughly what's going on in the lambda expression below.
+            // Note that the select statement will be fully realized at expression creation time.
+            // () =>
+            //     new instance_type(
+            //         for each of the constructor's parameters
+            //             if the parameter's type can be resolved
+            //                 use this.Get<parameter_type>()
+            //             else
+            //                 use the parameter's default value)
+                                                                                                
+            var createInstanceExpression =                                                      
+                Expression.Lambda<Func<object>>(                                                
+                    Expression.New(ctor,                                                        
+                        ctor.GetParameters()                                                    
+                            .Select(p =>                                                        
+                                CanResolve(p.ParameterType)                                     
+                                    ? (Expression)Expression.Call(                              
+                                        thisExpression,                                         
+                                        _getMethod.Value.MakeGenericMethod(p.ParameterType))    
+                                    : Expression.Constant(p.DefaultValue, p.ParameterType))));  
 
             return createInstanceExpression.Compile();
         }

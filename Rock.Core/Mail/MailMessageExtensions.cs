@@ -5,17 +5,17 @@ namespace Rock.Mail
 {
     public static class MailMessageExtensions
     {
-        public static void Send(this MailMessage mailMessage, IDeliveryMethod deliveryMethod = null)
+        public static void Send(this MailMessage mailMessage, DeliveryMethod deliveryMethod = null)
         {
             SendImpl(mailMessage, deliveryMethod ?? DeliveryMethod.Default);
         }
 
-        public static Task SendAsync(this MailMessage mailMessage, IDeliveryMethod deliveryMethod = null)
+        public static Task SendAsync(this MailMessage mailMessage, DeliveryMethod deliveryMethod = null)
         {
             return SendAsyncImpl(mailMessage, deliveryMethod ?? DeliveryMethod.Default);
         }
 
-        private static void SendImpl(this MailMessage mailMessage, IDeliveryMethod deliveryMethod)
+        private static void SendImpl(this MailMessage mailMessage, DeliveryMethod deliveryMethod)
         {
             using (var smtpClient = new SmtpClient())
             {
@@ -24,7 +24,7 @@ namespace Rock.Mail
             }
         }
 
-        private static async Task SendAsyncImpl(MailMessage mailMessage, IDeliveryMethod deliveryMethod)
+        private static async Task SendAsyncImpl(MailMessage mailMessage, DeliveryMethod deliveryMethod)
         {
             using (var smtpClient = new SmtpClient())
             {
