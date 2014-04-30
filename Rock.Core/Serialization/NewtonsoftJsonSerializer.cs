@@ -1,7 +1,7 @@
-namespace Rock.Framework.Serialization
-{
-    using Newtonsoft.Json;
+using Newtonsoft.Json;
 
+namespace Rock.Serialization
+{
     public class NewtonsoftJsonSerializer : IJsonSerializer
     {
         public string Serialize(object item)

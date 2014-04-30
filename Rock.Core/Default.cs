@@ -1,7 +1,7 @@
 ﻿using System.Dynamic;
 using Rock.Serialization;
 
-namespace Rock.Framework
+namespace Rock
 {
     internal static class Default
     {

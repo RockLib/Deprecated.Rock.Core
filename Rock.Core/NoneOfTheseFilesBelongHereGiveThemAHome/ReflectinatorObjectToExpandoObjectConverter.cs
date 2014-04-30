@@ -6,7 +6,7 @@ using System.Dynamic;
 using System.Linq;
 using Reflectinator;
 
-namespace Rock.Framework
+namespace Rock
 {
     public class ReflectinatorObjectToExpandoObjectConverter : IConvertObjectsTo<ExpandoObject>
     {

@@ -1,7 +1,7 @@
-﻿namespace Rock.Framework
-{
-    using System.Dynamic;
+﻿using System.Dynamic;
 
+namespace Rock
+{
     public static class ToExpandoObjectExtension
     {
         private static IConvertObjectsTo<ExpandoObject> _converter = Default.ObjectToExpandoObjectConverter;

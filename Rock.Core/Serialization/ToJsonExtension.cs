@@ -1,4 +1,4 @@
-﻿namespace Rock.Framework.Serialization
+﻿namespace Rock.Serialization
 {
     public static class ToJsonExtension
     {

@@ -1,4 +1,4 @@
-namespace Rock.Framework
+namespace Rock
 {
     public interface IConvertObjectsTo<TTarget>
     {
