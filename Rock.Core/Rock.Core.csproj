@@ -75,6 +75,12 @@
     <Compile Include="AssemblyInitialization\ModuleInitializer.cs" />
     <Compile Include="Conversion\IConvertTo.cs" />
     <Compile Include="Collections\ConcatExtensions.cs" />
+    <Compile Include="Net\EndpointDetector.cs" />
+    <Compile Include="Net\EndpointSelector.cs" />
+    <Compile Include="Net\EndpointSelectorExtensions.cs" />
+    <Compile Include="Net\EndpointStatus.cs" />
+    <Compile Include="Net\IEndpointDetector.cs" />
+    <Compile Include="Net\IEndpointSelector.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Conversion\ReflectinatorConvertToExpandoObject.cs" />
     <Compile Include="Serialization\IJsonSerializer.cs" />

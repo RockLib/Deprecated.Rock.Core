@@ -2,6 +2,7 @@
 using System.Dynamic;
 using Rock.Conversion;
 using Rock.DependencyInjection.Heuristics;
+using Rock.Net;
 using Rock.Serialization;
 
 namespace Rock
@@ -17,6 +18,12 @@ namespace Rock
         private static readonly Lazy<IConstructorSelector> _defaultConstructorSelector;
         private static Lazy<IConstructorSelector> _constructorSelector;
 
+        private static readonly Lazy<IEndpointDetector> _defaultEndpointDetector;
+        private static Lazy<IEndpointDetector> _endpointDetector;
+
+        private static readonly Lazy<IEndpointSelector> _defaultEndpointSelector;
+        private static Lazy<IEndpointSelector> _endpointSelector;
+
         static Default()
         {
             _defaultJsonSerializer = new Lazy<IJsonSerializer>(() => new NewtonsoftJsonSerializer());
@@ -28,6 +35,12 @@ namespace Rock
         
             _defaultConstructorSelector = new Lazy<IConstructorSelector>(() => new ConstructorSelector());
             _constructorSelector = _defaultConstructorSelector;
+
+            _defaultEndpointDetector = new Lazy<IEndpointDetector>(() => new EndpointDetector());
+            _endpointDetector = _defaultEndpointDetector;
+
+            _defaultEndpointSelector = new Lazy<IEndpointSelector>(() => new EndpointSelector(_defaultEndpointDetector.Value));
+            _endpointSelector = _defaultEndpointSelector;
         }
 
         public static IJsonSerializer JsonSerializer
@@ -91,6 +104,48 @@ namespace Rock
         private static bool CurrentConstructorSelectorIsSameAs(IConstructorSelector value)
         {
             return _constructorSelector.IsValueCreated && ReferenceEquals(_constructorSelector.Value, value);
+        }
+
+        public static IEndpointDetector EndpointDetector
+        {
+            get { return _endpointDetector.Value; }
+            set
+            {
+                if (value == null)
+                {
+                    _endpointDetector = _defaultEndpointDetector;
+                }
+                else if (!CurrentEndpointDetectorIsSameAs(value))
+                {
+                    _endpointDetector = new Lazy<IEndpointDetector>(() => value);
+                }
+            }
+        }
+
+        private static bool CurrentEndpointDetectorIsSameAs(IEndpointDetector value)
+        {
+            return _endpointDetector.IsValueCreated && ReferenceEquals(_endpointDetector.Value, value);
+        }
+
+        public static IEndpointSelector EndpointSelector
+        {
+            get { return _endpointSelector.Value; }
+            set
+            {
+                if (value == null)
+                {
+                    _endpointSelector = _defaultEndpointSelector;
+                }
+                else if (!CurrentEndpointSelectorIsSameAs(value))
+                {
+                    _endpointSelector = new Lazy<IEndpointSelector>(() => value);
+                }
+            }
+        }
+
+        private static bool CurrentEndpointSelectorIsSameAs(IEndpointSelector value)
+        {
+            return _endpointSelector.IsValueCreated && ReferenceEquals(_endpointSelector.Value, value);
         }
     }
 }
