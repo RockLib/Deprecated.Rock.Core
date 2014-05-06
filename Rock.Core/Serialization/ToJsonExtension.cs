@@ -1,10 +1,20 @@
-﻿namespace Rock.Serialization
+﻿using System.IO;
+using System.Text;
+
+namespace Rock.Serialization
 {
     public static class ToJsonExtension
     {
-        public static string ToJson(this object item)
+        public static string ToJson<T>(this T item)
         {
-            return Default.JsonSerializer.Serialize(item);
+            var sb = new StringBuilder();
+
+            using (var writer = new StringWriter(sb))
+            {
+                Default.JsonSerializer.Serialize(writer, item);
+            }
+
+            return sb.ToString();
         }
     }
 }

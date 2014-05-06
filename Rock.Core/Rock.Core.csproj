@@ -50,6 +50,15 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Defaults\Default.ApplicationInfo.cs" />
+    <Compile Include="Defaults\Default.BinarySerializer.cs" />
+    <Compile Include="Defaults\Default.ConstructorSelector.cs" />
+    <Compile Include="Defaults\Default.ConvertToExpandoObject.cs" />
+    <Compile Include="Defaults\Default.EndpointDetector.cs" />
+    <Compile Include="Defaults\Default.EndpointSelector.cs" />
+    <Compile Include="Defaults\Default.JsonSerializer.cs" />
+    <Compile Include="Defaults\Default.TempStorage.cs" />
+    <Compile Include="EntryAssemblyApplicationInfo.cs" />
     <Compile Include="AssemblyInitialization\IFrameworkInitializer.cs" />
     <Compile Include="Collections\AsKeyedExtension.cs" />
     <Compile Include="Collections\FunctionalKeyedCollection.cs" />
@@ -57,7 +66,7 @@
     <Compile Include="Collections\KeyedCollection.cs" />
     <Compile Include="Configuration\EnvironmentSection.cs" />
     <Compile Include="Configuration\RockFrameworkSection.cs" />
-    <Compile Include="Default.cs" />
+    <Compile Include="Defaults\Default.cs" />
     <Compile Include="DependencyInjection\AutoContainer.cs" />
     <Compile Include="DependencyInjection\AutoContainer.MergedAutoContainer.cs" />
     <Compile Include="DependencyInjection\Heuristics\ConstructorSelector.cs" />
@@ -67,6 +76,15 @@
     </Compile>
     <Compile Include="DependencyInjection\ResolveException.cs" />
     <Compile Include="Extensions\GetEnumValueExtension.cs" />
+    <Compile Include="IApplicationInfo.cs" />
+    <Compile Include="IO\DirectoryBucket.cs" />
+    <Compile Include="IO\FileBucketItem.cs" />
+    <Compile Include="IO\FileKeyValueStorage.cs" />
+    <Compile Include="IO\IBucket.cs" />
+    <Compile Include="IO\IBucketItem.cs" />
+    <Compile Include="IO\IKeyValueStorage.cs" />
+    <Compile Include="IO\KeyValueStorageExtensions.cs" />
+    <Compile Include="IO\TempStorage.cs" />
     <Compile Include="Mail\DeliveryMethod.DefaultDeliveryMethod.cs" />
     <Compile Include="Mail\DeliveryMethod.SpecifiedPickupDirectoryDeliveryMethod.cs" />
     <Compile Include="Mail\DeliveryMethod.NetworkDeliveryMethod.cs" />
@@ -83,8 +101,11 @@
     <Compile Include="Net\IEndpointSelector.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Conversion\ReflectinatorConvertToExpandoObject.cs" />
-    <Compile Include="Serialization\IJsonSerializer.cs" />
+    <Compile Include="Serialization\BclBinarySerializer.cs" />
+    <Compile Include="Serialization\IBinarySerializer.cs" />
+    <Compile Include="Serialization\ISerializer.cs" />
     <Compile Include="Serialization\NewtonsoftJsonSerializer.cs" />
+    <Compile Include="Serialization\BinaryExtension.cs" />
     <Compile Include="Serialization\ToJsonExtension.cs" />
     <Compile Include="Conversion\ToExpandoObjectExtension.cs" />
   </ItemGroup>
