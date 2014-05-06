@@ -5,8 +5,14 @@
         string BucketName { get; }
         string Key { get; }
 
-        T GetValue<T>();
+        bool TryGetValue<T>(out T value);
         void SetValue<T>(T value);
         void Delete();
+    }
+
+    public interface IExpirableBucketItem : IBucketItem
+    {
+        void Touch();
+        void SetValue<T>(T value, Expiry expiry);
     }
 }

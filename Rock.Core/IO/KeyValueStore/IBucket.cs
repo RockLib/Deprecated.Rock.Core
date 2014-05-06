@@ -8,8 +8,5 @@ namespace Rock.IO
 
         IEnumerable<IBucketItem> GetItems();
         IBucketItem GetItem(string key);
-
-        void AddItem<T>(string key, T value);
-        void RemoveItem(string key);
     }
 }

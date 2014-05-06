@@ -38,20 +38,6 @@ namespace Rock.IO
             return new FileBucketItem(_serializer, fileInfo);
         }
 
-        public void AddItem<T>(string key, T value)
-        {
-            var fileInfo = new FileInfo(Path.Combine(_directoryInfo.FullName, GetFileName(key)));
-            var item = new FileBucketItem(_serializer, fileInfo);
-            item.SetValue(value);
-        }
-
-        public void RemoveItem(string key)
-        {
-            var fileInfo = new FileInfo(Path.Combine(_directoryInfo.FullName, GetFileName(key)));
-            var item = new FileBucketItem(_serializer, fileInfo);
-            item.Delete();
-        }
-
         private static string GetFileName(string key)
         {
             return _invalidFileNameChars.Replace(key, "");

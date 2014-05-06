@@ -24,18 +24,20 @@ namespace Rock.IO
         public string BucketName { get { return _bucketName; } }
         public string Key { get { return _fileInfo.Name; } }
 
-        public T GetValue<T>()
+        public bool TryGetValue<T>(out T value)
         {
             if (!_fileInfo.Exists)
             {
-                return default(T);
+                value = default(T);
+                return false;
             }
 
             using (var stream = _fileInfo.OpenRead())
             {
                 using (var reader = new StreamReader(stream))
                 {
-                    return _serializer.Deserialize<T>(reader);
+                    value = _serializer.Deserialize<T>(reader);
+                    return true;
                 }
             }
         }

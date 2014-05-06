@@ -6,7 +6,7 @@ using Rock.Serialization;
 
 namespace Rock.IO
 {
-    public class FileKeyValueStorage : IKeyValueStorage
+    public class FileKeyValueStore : IKeyValueStore
     {
         private static readonly Regex _invalidPathChars =
             new Regex(
@@ -17,7 +17,7 @@ namespace Rock.IO
 
         private readonly DirectoryInfo _directoryInfo;
 
-        public FileKeyValueStorage(ISerializer serializer, DirectoryInfo directoryInfo)
+        public FileKeyValueStore(ISerializer serializer, DirectoryInfo directoryInfo)
         {
             if (!directoryInfo.Exists)
             {
@@ -35,7 +35,7 @@ namespace Rock.IO
                     .Select(subDirectoryInfo => new DirectoryBucket(_serializer, subDirectoryInfo));
         }
 
-        public IBucket GetBucket(string bucketName)
+        public IBucket GetOrAddBucket(string bucketName)
         {
             var subDirectoryInfo = new DirectoryInfo(Path.Combine(_directoryInfo.FullName, GetDirectoryName(bucketName)));
 

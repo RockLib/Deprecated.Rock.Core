@@ -2,9 +2,9 @@
 
 namespace Rock.IO
 {
-    public interface IKeyValueStorage
+    public interface IKeyValueStore
     {
         IEnumerable<IBucket> GetBuckets();
-        IBucket GetBucket(string bucketName);
+        IBucket GetOrAddBucket(string bucketName);
     }
 }
