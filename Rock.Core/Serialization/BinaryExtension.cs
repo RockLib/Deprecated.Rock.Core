@@ -1,4 +1,6 @@
-﻿namespace Rock.Serialization
+﻿using Rock.Defaults.Implementation;
+
+namespace Rock.Serialization
 {
     public static class BinaryExtension
     {

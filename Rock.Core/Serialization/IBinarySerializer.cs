@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Rock.Serialization
+﻿namespace Rock.Serialization
 {
     public interface IBinarySerializer
     {

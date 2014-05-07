@@ -50,14 +50,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Defaults\Default.ApplicationInfo.cs" />
-    <Compile Include="Defaults\Default.BinarySerializer.cs" />
-    <Compile Include="Defaults\Default.ConstructorSelector.cs" />
-    <Compile Include="Defaults\Default.ConvertToExpandoObject.cs" />
-    <Compile Include="Defaults\Default.EndpointDetector.cs" />
-    <Compile Include="Defaults\Default.EndpointSelector.cs" />
-    <Compile Include="Defaults\Default.JsonSerializer.cs" />
-    <Compile Include="Defaults\Default.TempStorage.cs" />
+    <Compile Include="Defaults\Implementation\Default.ApplicationInfo.cs" />
+    <Compile Include="Defaults\Implementation\Default.BinarySerializer.cs" />
+    <Compile Include="Defaults\Implementation\Default.ConstructorSelector.cs" />
+    <Compile Include="Defaults\Implementation\Default.ConvertToExpandoObject.cs" />
+    <Compile Include="Defaults\Implementation\Default.EndpointDetector.cs" />
+    <Compile Include="Defaults\Implementation\Default.EndpointSelector.cs" />
+    <Compile Include="Defaults\Implementation\Default.JsonSerializer.cs" />
+    <Compile Include="Defaults\Implementation\Default.TempStorage.cs" />
     <Compile Include="EntryAssemblyApplicationInfo.cs" />
     <Compile Include="AssemblyInitialization\IFrameworkInitializer.cs" />
     <Compile Include="Collections\AsKeyedExtension.cs" />
@@ -66,7 +66,7 @@
     <Compile Include="Collections\KeyedCollection.cs" />
     <Compile Include="Configuration\EnvironmentSection.cs" />
     <Compile Include="Configuration\RockFrameworkSection.cs" />
-    <Compile Include="Defaults\Default.cs" />
+    <Compile Include="Defaults\DefaultHelper.cs" />
     <Compile Include="DependencyInjection\AutoContainer.cs" />
     <Compile Include="DependencyInjection\AutoContainer.MergedAutoContainer.cs" />
     <Compile Include="DependencyInjection\Heuristics\ConstructorSelector.cs" />
@@ -77,7 +77,7 @@
     <Compile Include="DependencyInjection\ResolveException.cs" />
     <Compile Include="Extensions\GetEnumValueExtension.cs" />
     <Compile Include="IApplicationInfo.cs" />
-    <Compile Include="IO\KeyValueStore\AddItemExtensions.cs" />
+    <Compile Include="IO\KeyValueStore\Extensions\AddItemExtensions.cs" />
     <Compile Include="IO\KeyValueStore\DirectoryBucket.cs" />
     <Compile Include="IO\KeyValueStore\ExpirableBucketAdapter.cs" />
     <Compile Include="IO\KeyValueStore\ExpirableBucketItemAdapter.cs" />
@@ -85,17 +85,17 @@
     <Compile Include="IO\KeyValueStore\Expiry.cs" />
     <Compile Include="IO\KeyValueStore\FileBucketItem.cs" />
     <Compile Include="IO\KeyValueStore\FileKeyValueStore.cs" />
-    <Compile Include="IO\KeyValueStore\GetItemExtensions.cs" />
-    <Compile Include="IO\KeyValueStore\GetItemsExtensions.cs" />
-    <Compile Include="IO\KeyValueStore\GetValueExtensions.cs" />
+    <Compile Include="IO\KeyValueStore\Extensions\GetItemExtensions.cs" />
+    <Compile Include="IO\KeyValueStore\Extensions\GetItemsExtensions.cs" />
+    <Compile Include="IO\KeyValueStore\Extensions\GetValueExtensions.cs" />
     <Compile Include="IO\KeyValueStore\IBucket.cs" />
     <Compile Include="IO\KeyValueStore\IBucketItem.cs" />
     <Compile Include="IO\KeyValueStore\IExpirableBucket.cs" />
     <Compile Include="IO\KeyValueStore\IExpirableKeyValueStore.cs" />
     <Compile Include="IO\KeyValueStore\IKeyValueStore.cs" />
-    <Compile Include="IO\KeyValueStore\AsExpirableExtension.cs" />
-    <Compile Include="IO\KeyValueStore\RemoveItemExtensions.cs" />
-    <Compile Include="IO\KeyValueStore\TryGetValueExtensions.cs" />
+    <Compile Include="IO\KeyValueStore\Extensions\AsExpirableExtension.cs" />
+    <Compile Include="IO\KeyValueStore\Extensions\RemoveItemExtensions.cs" />
+    <Compile Include="IO\KeyValueStore\Extensions\TryGetValueExtensions.cs" />
     <Compile Include="IO\TempStorage.cs" />
     <Compile Include="Mail\DeliveryMethod.DefaultDeliveryMethod.cs" />
     <Compile Include="Mail\DeliveryMethod.SpecifiedPickupDirectoryDeliveryMethod.cs" />

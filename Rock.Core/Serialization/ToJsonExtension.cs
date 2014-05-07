@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using System.Text;
+using Rock.Defaults.Implementation;
 
 namespace Rock.Serialization
 {

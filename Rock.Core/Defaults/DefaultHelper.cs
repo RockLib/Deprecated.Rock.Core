@@ -1,13 +1,13 @@
 ﻿using System;
 
-namespace Rock
+namespace Rock.Defaults
 {
-    public sealed class Default<TContract>
+    public sealed class DefaultHelper<TContract>
     {
         private readonly Lazy<TContract> _defaultInstance;
         private Lazy<TContract> _currentInstance;
 
-        public Default(Func<TContract> createDefaultInstance)
+        public DefaultHelper(Func<TContract> createDefaultInstance)
         {
             _defaultInstance = new Lazy<TContract>(createDefaultInstance);
             _currentInstance = _defaultInstance;
