@@ -9,10 +9,4 @@
         void SetValue<T>(T value);
         void Delete();
     }
-
-    public interface IExpirableBucketItem : IBucketItem
-    {
-        void Touch();
-        void SetValue<T>(T value, Expiry expiry);
-    }
 }

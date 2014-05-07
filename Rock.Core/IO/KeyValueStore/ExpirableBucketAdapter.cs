@@ -6,10 +6,12 @@ namespace Rock.IO
     public class ExpirableBucketAdapter : IExpirableBucket
     {
         private readonly IBucket _bucket;
+        private readonly ExpirableAdapterHelper _expirableAdapterHelper;
 
-        public ExpirableBucketAdapter(IBucket bucket)
+        public ExpirableBucketAdapter(IBucket bucket, ExpirableAdapterHelper expirableAdapterHelper)
         {
             _bucket = bucket;
+            _expirableAdapterHelper = expirableAdapterHelper;
         }
 
         public string Name
@@ -24,7 +26,7 @@ namespace Rock.IO
 
         public IEnumerable<IExpirableBucketItem> GetItems()
         {
-            return _bucket.GetItems().Select(item => item as IExpirableBucketItem ?? new ExpirableBucketItemAdapter(item));
+            return _bucket.GetItems().Select(item => item as IExpirableBucketItem ?? new ExpirableBucketItemAdapter(item, _expirableAdapterHelper));
         }
 
         IBucketItem IBucket.GetItem(string key)
@@ -35,7 +37,7 @@ namespace Rock.IO
         public IExpirableBucketItem GetItem(string key)
         {
             var item = _bucket.GetItem(key);
-            return item as IExpirableBucketItem ?? new ExpirableBucketItemAdapter(item);
+            return item as IExpirableBucketItem ?? new ExpirableBucketItemAdapter(item, _expirableAdapterHelper);
         }
     }
 }

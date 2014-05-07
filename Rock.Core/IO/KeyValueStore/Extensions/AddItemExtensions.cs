@@ -1,4 +1,6 @@
-﻿namespace Rock.IO
+﻿using System;
+
+namespace Rock.IO
 {
     public static class AddItemExtensions
     {
@@ -8,7 +10,7 @@
             bucket.AddItem(key, value);
         }
 
-        public static void AddItem<T>(this IExpirableKeyValueStore keyValueStore, string bucketName, string key, T value, Expiry expiry)
+        public static void AddItem<T>(this IExpirableKeyValueStore keyValueStore, string bucketName, string key, T value, TimeSpan expiry)
         {
             var bucket = keyValueStore.GetOrAddBucket(bucketName);
             bucket.AddItem(key, value, expiry);
@@ -20,7 +22,7 @@
             item.SetValue(value);
         }
 
-        public static void AddItem<T>(this IExpirableBucket bucket, string key, T value, Expiry expiry)
+        public static void AddItem<T>(this IExpirableBucket bucket, string key, T value, TimeSpan expiry)
         {
             var item = bucket.GetItem(key);
             item.SetValue(value, expiry);

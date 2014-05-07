@@ -1,17 +1,19 @@
-﻿namespace Rock.IO
+﻿using System;
+
+namespace Rock.IO
 {
     public class ExpirableBucketItemAdapter : IExpirableBucketItem
     {
-        // notes on implementation
-        // there should be a static dictionary of some sort that holds the expiration information for an item
-        // there should be a background thread that checks items to see if one or more have expired.
-        // the value of this dictionary should probably be some sort of action, where the action contains a closure over the item to remove, and calls that item's Delete() method.
-
         private readonly IBucketItem _bucketItem;
+        private readonly ExpirableAdapterHelper _expirableAdapterHelper;
 
-        public ExpirableBucketItemAdapter(IBucketItem bucketItem)
+        private TimeSpan _expiry;
+        private DateTime _lastTouched;
+
+        public ExpirableBucketItemAdapter(IBucketItem bucketItem, ExpirableAdapterHelper expirableAdapterHelper)
         {
             _bucketItem = bucketItem;
+            _expirableAdapterHelper = expirableAdapterHelper;
         }
 
         public string BucketName
@@ -31,7 +33,28 @@
 
         public void SetValue<T>(T value)
         {
-            SetValue(value, Expiry.None);
+            SetValue(value, null);
+        }
+
+        public void SetValue<T>(T value, TimeSpan? expiry)
+        {
+            _bucketItem.SetValue(value);
+
+            if (expiry == null)
+            {
+                _expirableAdapterHelper.RemoveItem(this);
+                return;
+            }
+
+            _expiry = expiry.Value;
+            _lastTouched = DateTime.UtcNow;
+
+            _expirableAdapterHelper.RegisterItem(this);
+        }
+
+        public void Touch()
+        {
+            _lastTouched = DateTime.UtcNow;
         }
 
         public void Delete()
@@ -39,15 +62,9 @@
             _bucketItem.Delete();
         }
 
-        public void Touch()
+        public DateTime GetExpirationDate()
         {
-            // TODO: implement touch logic.
-        }
-
-        public void SetValue<T>(T value, Expiry expiry)
-        {
-            // TODO: implement expiry logic
-            _bucketItem.SetValue(value);
+            return _lastTouched + _expiry;
         }
     }
 }

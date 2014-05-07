@@ -77,12 +77,12 @@
     <Compile Include="DependencyInjection\ResolveException.cs" />
     <Compile Include="Extensions\GetEnumValueExtension.cs" />
     <Compile Include="IApplicationInfo.cs" />
+    <Compile Include="IO\KeyValueStore\ExpirableAdapterHelper.cs" />
     <Compile Include="IO\KeyValueStore\Extensions\AddItemExtensions.cs" />
     <Compile Include="IO\KeyValueStore\DirectoryBucket.cs" />
     <Compile Include="IO\KeyValueStore\ExpirableBucketAdapter.cs" />
     <Compile Include="IO\KeyValueStore\ExpirableBucketItemAdapter.cs" />
     <Compile Include="IO\KeyValueStore\ExpirableKeyValueStoreAdapter.cs" />
-    <Compile Include="IO\KeyValueStore\Expiry.cs" />
     <Compile Include="IO\KeyValueStore\FileBucketItem.cs" />
     <Compile Include="IO\KeyValueStore\FileKeyValueStore.cs" />
     <Compile Include="IO\KeyValueStore\Extensions\GetItemExtensions.cs" />
@@ -91,6 +91,7 @@
     <Compile Include="IO\KeyValueStore\IBucket.cs" />
     <Compile Include="IO\KeyValueStore\IBucketItem.cs" />
     <Compile Include="IO\KeyValueStore\IExpirableBucket.cs" />
+    <Compile Include="IO\KeyValueStore\IExpirableBucketItem.cs" />
     <Compile Include="IO\KeyValueStore\IExpirableKeyValueStore.cs" />
     <Compile Include="IO\KeyValueStore\IKeyValueStore.cs" />
     <Compile Include="IO\KeyValueStore\Extensions\AsExpirableExtension.cs" />
