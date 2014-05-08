@@ -35,7 +35,7 @@ namespace Rock.IO
                     .Select(subDirectoryInfo => new DirectoryBucket(_serializer, subDirectoryInfo));
         }
 
-        public IBucket GetOrAddBucket(string bucketName)
+        public IBucket GetBucket(string bucketName)
         {
             var subDirectoryInfo = new DirectoryInfo(Path.Combine(_directoryInfo.FullName, GetDirectoryName(bucketName)));
 

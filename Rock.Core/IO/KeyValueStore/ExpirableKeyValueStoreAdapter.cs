@@ -23,14 +23,14 @@ namespace Rock.IO
             return _keyValueStore.GetBuckets().Select(bucket => bucket as IExpirableBucket ?? new ExpirableBucketAdapter(bucket, _expirableAdapterHelper));
         }
 
-        IBucket IKeyValueStore.GetOrAddBucket(string bucketName)
+        IBucket IKeyValueStore.GetBucket(string bucketName)
         {
-            return GetOrAddBucket(bucketName);
+            return GetBucket(bucketName);
         }
 
-        public IExpirableBucket GetOrAddBucket(string bucketName)
+        public IExpirableBucket GetBucket(string bucketName)
         {
-            var bucket = _keyValueStore.GetOrAddBucket(bucketName);
+            var bucket = _keyValueStore.GetBucket(bucketName);
             return bucket as IExpirableBucket ?? new ExpirableBucketAdapter(bucket, _expirableAdapterHelper);
         }
     }

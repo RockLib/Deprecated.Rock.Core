@@ -5,6 +5,6 @@ namespace Rock.IO
     public interface IExpirableKeyValueStore : IKeyValueStore
     {
         new IEnumerable<IExpirableBucket> GetBuckets();
-        new IExpirableBucket GetOrAddBucket(string bucketName);
+        new IExpirableBucket GetBucket(string bucketName);
     }
 }

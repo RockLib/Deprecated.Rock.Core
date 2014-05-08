@@ -6,13 +6,13 @@ namespace Rock.IO
     {
         public static void AddItem<T>(this IKeyValueStore keyValueStore, string bucketName, string key, T value)
         {
-            var bucket = keyValueStore.GetOrAddBucket(bucketName);
+            var bucket = keyValueStore.GetBucket(bucketName);
             bucket.AddItem(key, value);
         }
 
         public static void AddItem<T>(this IExpirableKeyValueStore keyValueStore, string bucketName, string key, T value, TimeSpan expiry)
         {
-            var bucket = keyValueStore.GetOrAddBucket(bucketName);
+            var bucket = keyValueStore.GetBucket(bucketName);
             bucket.AddItem(key, value, expiry);
         }
 

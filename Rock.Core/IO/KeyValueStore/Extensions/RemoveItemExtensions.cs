@@ -4,7 +4,7 @@
     {
         public static void RemoveItem(this IKeyValueStore keyValueStore, string bucketName, string key)
         {
-            var bucket = keyValueStore.GetOrAddBucket(bucketName);
+            var bucket = keyValueStore.GetBucket(bucketName);
             bucket.RemoveItem(key);
         }
 
