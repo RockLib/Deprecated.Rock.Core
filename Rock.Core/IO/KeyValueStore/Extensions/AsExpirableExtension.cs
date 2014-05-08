@@ -1,19 +1,17 @@
 ﻿using System.Runtime.CompilerServices;
+using Rock.Defaults.Implementation;
 
 namespace Rock.IO
 {
     public static class AsExpirableExtension
     {
-        private static readonly ConditionalWeakTable<IKeyValueStore, ExpirableKeyValueStoreAdapter> _adapters = new ConditionalWeakTable<IKeyValueStore, ExpirableKeyValueStoreAdapter>();
+        private static readonly ConditionalWeakTable<IKeyValueStore, IExpirableKeyValueStore> _adapters = new ConditionalWeakTable<IKeyValueStore, IExpirableKeyValueStore>();
 
         public static IExpirableKeyValueStore AsExpirable(this IKeyValueStore keyValueStore)
         {
-            return keyValueStore as IExpirableKeyValueStore ?? _adapters.GetValue(keyValueStore, CreateAdapter);
-        }
-
-        private static ExpirableKeyValueStoreAdapter CreateAdapter(IKeyValueStore keyValueStore)
-        {
-            return new ExpirableKeyValueStoreAdapter(keyValueStore);
+            return
+                keyValueStore as IExpirableKeyValueStore
+                ?? _adapters.GetValue(keyValueStore, Default.ExpirableKeyValueStoreAdapterFactory.Create);
         }
     }
 }

@@ -58,6 +58,7 @@
     <Compile Include="Defaults\Implementation\Default.EndpointSelector.cs" />
     <Compile Include="Defaults\Implementation\Default.JsonSerializer.cs" />
     <Compile Include="Defaults\Implementation\Default.TempStorage.cs" />
+    <Compile Include="Defaults\Implementation\Default.ExpirableKeyValueStoreAdapterFactory.cs" />
     <Compile Include="EntryAssemblyApplicationInfo.cs" />
     <Compile Include="AssemblyInitialization\IFrameworkInitializer.cs" />
     <Compile Include="Collections\AsKeyedExtension.cs" />
@@ -83,6 +84,8 @@
     <Compile Include="IO\KeyValueStore\ExpirableBucketAdapter.cs" />
     <Compile Include="IO\KeyValueStore\ExpirableBucketItemAdapter.cs" />
     <Compile Include="IO\KeyValueStore\ExpirableKeyValueStoreAdapter.cs" />
+    <Compile Include="IO\KeyValueStore\Extensions\ExpirableKeyValueStoreAdapterFactory.cs" />
+    <Compile Include="IO\KeyValueStore\Extensions\IExpirableKeyValueStoreAdapterFactory.cs" />
     <Compile Include="IO\KeyValueStore\FileBucketItem.cs" />
     <Compile Include="IO\KeyValueStore\FileKeyValueStore.cs" />
     <Compile Include="IO\KeyValueStore\Extensions\GetItemExtensions.cs" />
