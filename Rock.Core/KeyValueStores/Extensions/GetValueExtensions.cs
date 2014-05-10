@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Rock.IO
+namespace Rock.KeyValueStores
 {
     public static class GetValueExtensions
     {

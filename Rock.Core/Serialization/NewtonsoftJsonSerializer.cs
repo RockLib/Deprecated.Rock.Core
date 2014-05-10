@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using Newtonsoft.Json;
 
@@ -7,19 +8,25 @@ namespace Rock.Serialization
     {
         private readonly JsonSerializer _jsonSerializer = JsonSerializer.CreateDefault();
 
-        public T Deserialize<T>(TextReader reader)
+        public void Serialize(Stream stream, object value, Type type)
         {
-            using (var jsonReader = new JsonTextReader(reader))
+            using (var streamWriter = new StreamWriter(stream))
             {
-                return _jsonSerializer.Deserialize<T>(jsonReader);
+                using (var jsonWriter = new JsonTextWriter(streamWriter))
+                {
+                    _jsonSerializer.Serialize(jsonWriter, value, type);
+                }
             }
         }
 
-        public void Serialize<T>(TextWriter writer, T value)
+        public object Deserialize(Stream stream, Type type)
         {
-            using (var jsonWriter = new JsonTextWriter(writer))
+            using (var streamReader = new StreamReader(stream))
             {
-                _jsonSerializer.Serialize(jsonWriter, value, typeof(T));
+                using (var jsonReader = new JsonTextReader(streamReader))
+                {
+                    return _jsonSerializer.Deserialize(jsonReader, type);
+                }
             }
         }
     }

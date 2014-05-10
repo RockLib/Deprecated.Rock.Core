@@ -11,7 +11,7 @@ namespace Rock.Serialization
     
         public static T To<T>(this byte[] data)
         {
-            return (T)Default.BinarySerializer.Deserialize(data);
+            return Default.BinarySerializer.Deserialize<T>(data);
         }
     }
 }

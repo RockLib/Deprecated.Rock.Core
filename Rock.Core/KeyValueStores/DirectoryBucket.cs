@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using Rock.Serialization;
 
-namespace Rock.IO
+namespace Rock.KeyValueStores
 {
     public class DirectoryBucket : IBucket
     {

@@ -1,4 +1,4 @@
-﻿namespace Rock.IO
+﻿namespace Rock.KeyValueStores
 {
     public interface IBucketItem
     {

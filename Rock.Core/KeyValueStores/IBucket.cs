@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Rock.IO
+namespace Rock.KeyValueStores
 {
     public interface IBucket
     {

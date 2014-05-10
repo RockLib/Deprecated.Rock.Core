@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using Rock.Serialization;
 
-namespace Rock.IO
+namespace Rock.KeyValueStores
 {
     public class FileKeyValueStore : IKeyValueStore
     {
@@ -14,7 +14,6 @@ namespace Rock.IO
                 RegexOptions.Compiled);
 
         private readonly ISerializer _serializer;
-
         private readonly DirectoryInfo _directoryInfo;
 
         public FileKeyValueStore(ISerializer serializer, DirectoryInfo directoryInfo)
@@ -50,6 +49,11 @@ namespace Rock.IO
         private static string GetDirectoryName(string bucketName)
         {
             return _invalidPathChars.Replace(bucketName, "");
+        }
+
+        public override int GetHashCode()
+        {
+            return (GetType().FullName.GetHashCode() * 397) ^ _directoryInfo.FullName.GetHashCode().GetHashCode();
         }
     }
 }

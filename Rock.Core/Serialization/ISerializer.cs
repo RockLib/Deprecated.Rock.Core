@@ -1,10 +1,11 @@
+using System;
 using System.IO;
 
 namespace Rock.Serialization
 {
     public interface ISerializer
     {
-        T Deserialize<T>(TextReader reader);
-        void Serialize<T>(TextWriter writer, T value);
+        void Serialize(Stream stream, object item, Type type);
+        object Deserialize(Stream stream, Type type);
     }
 }

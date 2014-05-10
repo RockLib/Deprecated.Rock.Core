@@ -8,14 +8,12 @@ namespace Rock.Serialization
     {
         public static string ToJson<T>(this T item)
         {
-            var sb = new StringBuilder();
-
-            using (var writer = new StringWriter(sb))
+            using (var stream = new MemoryStream())
             {
-                Default.JsonSerializer.Serialize(writer, item);
+                Default.JsonSerializer.Serialize(stream, item);
+                stream.Flush();
+                return Encoding.UTF8.GetString(stream.ToArray());
             }
-
-            return sb.ToString();
         }
     }
 }

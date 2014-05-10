@@ -1,6 +1,6 @@
 ﻿using System;
 using System.IO;
-using Rock.IO;
+using Rock.KeyValueStores;
 
 namespace Rock.Defaults.Implementation
 {
@@ -12,6 +12,11 @@ namespace Rock.Defaults.Implementation
             var tempStorageDirectoryInfo = new DirectoryInfo(Path.Combine(tempDirectory, "Rock", _applicationInfo.DefaultInstance.ApplicationId));
             return new FileKeyValueStore(_jsonSerializer.DefaultInstance, tempStorageDirectoryInfo);
         });
+
+        public static IKeyValueStore DefaultTempStorage
+        {
+            get { return _tempStorage.DefaultInstance; }
+        }
 
         public static IKeyValueStore TempStorage
         {
