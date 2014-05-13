@@ -11,12 +11,12 @@ namespace Rock.IO
             return Default.TempStorage.GetItems(bucket);
         }
 
-        public static void AddItem<T>(string bucket, string key, T value)
+        public static void Write<T>(string bucket, string key, T value)
         {
             Default.TempStorage.AddItem(bucket, key, value);
         }
 
-        public static T GetValue<T>(string bucket, string key)
+        public static T Get<T>(string bucket, string key)
         {
             return Default.TempStorage.GetValue<T>(bucket, key);
         }
