@@ -43,6 +43,9 @@
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
+    <Reference Include="XSerializer">
+      <HintPath>..\packages\XSerializer.0.1.11\lib\net40\XSerializer.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Dependency Injection\ConstructorSelectorTests.cs" />

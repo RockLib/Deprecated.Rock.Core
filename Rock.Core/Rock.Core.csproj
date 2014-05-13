@@ -48,6 +48,10 @@
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
+    <Reference Include="XSerializer, Version=0.1.0.0, Culture=neutral, PublicKeyToken=9ab97cfaa8f0c80a, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\XSerializer.0.1.11\lib\net40\XSerializer.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Defaults\Implementation\Default.ApplicationInfo.cs" />
@@ -58,6 +62,7 @@
     <Compile Include="Defaults\Implementation\Default.EndpointSelector.cs" />
     <Compile Include="Defaults\Implementation\Default.JsonSerializer.cs" />
     <Compile Include="Defaults\Implementation\Default.TempStorage.cs" />
+    <Compile Include="Defaults\Implementation\Default.XmlSerializer.cs" />
     <Compile Include="EntryAssemblyApplicationInfo.cs" />
     <Compile Include="AssemblyInitialization\IFrameworkInitializer.cs" />
     <Compile Include="Collections\AsKeyedExtension.cs" />
@@ -113,6 +118,7 @@
     <Compile Include="Serialization\SerializerExtensions.cs" />
     <Compile Include="Serialization\ToJsonExtension.cs" />
     <Compile Include="Conversion\ToExpandoObjectExtension.cs" />
+    <Compile Include="Serialization\XSerializerSerializer.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
