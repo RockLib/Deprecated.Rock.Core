@@ -6,12 +6,12 @@ namespace Rock.Serialization
     {
         public static byte[] ToBinary(this object item)
         {
-            return Default.BinarySerializer.Serialize(item);
+            return Default.BinarySerializer.SerializeToByteArray(item);
         }
     
         public static T To<T>(this byte[] data)
         {
-            return Default.BinarySerializer.Deserialize<T>(data);
+            return Default.BinarySerializer.DeserializeFromByteArray<T>(data);
         }
     }
 }

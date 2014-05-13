@@ -118,6 +118,7 @@
     <Compile Include="Serialization\SerializerExtensions.cs" />
     <Compile Include="Serialization\ToJsonExtension.cs" />
     <Compile Include="Conversion\ToExpandoObjectExtension.cs" />
+    <Compile Include="Serialization\ToXmlExtension.cs" />
     <Compile Include="Serialization\XSerializerSerializer.cs" />
   </ItemGroup>
   <ItemGroup>
