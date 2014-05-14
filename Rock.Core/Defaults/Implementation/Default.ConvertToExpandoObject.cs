@@ -13,6 +13,11 @@ namespace Rock.Defaults.Implementation
             get { return _convertToExpandoObject.Current; }
         }
 
+        public static IConvertTo<ExpandoObject> DefaultConvertToExpandoObject
+        {
+            get { return _convertToExpandoObject.DefaultInstance; }
+        }
+
         public static void SetConvertToExpandoObject(Func<IConvertTo<ExpandoObject>> getConvertToExpandoObjectInstance)
         {
             _convertToExpandoObject.SetCurrent(getConvertToExpandoObjectInstance);

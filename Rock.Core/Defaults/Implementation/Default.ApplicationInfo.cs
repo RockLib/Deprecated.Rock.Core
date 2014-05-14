@@ -11,6 +11,11 @@ namespace Rock.Defaults.Implementation
             get { return _applicationInfo.Current; }
         }
 
+        public static IApplicationInfo DefaultApplicationInfo
+        {
+            get { return _applicationInfo.DefaultInstance; }
+        }
+
         public static void SetApplicationInfo(Func<IApplicationInfo> getApplicationInfoInstance)
         {
             _applicationInfo.SetCurrent(getApplicationInfoInstance);

@@ -12,6 +12,11 @@ namespace Rock.Defaults.Implementation
             get { return _xmlSerializer.Current; }
         }
 
+        public static ISerializer DefaultXmlSerializer
+        {
+            get { return _xmlSerializer.DefaultInstance; }
+        }
+
         public static void SetXmlSerializer(Func<ISerializer> getXmlSerializerInstance)
         {
             _xmlSerializer.SetCurrent(getXmlSerializerInstance);

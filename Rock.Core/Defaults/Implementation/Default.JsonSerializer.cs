@@ -12,6 +12,11 @@ namespace Rock.Defaults.Implementation
             get { return _jsonSerializer.Current; }
         }
 
+        public static ISerializer DefaultJsonSerializer
+        {
+            get { return _jsonSerializer.DefaultInstance; }
+        }
+
         public static void SetJsonSerializer(Func<ISerializer> getJsonSerializerInstance)
         {
             _jsonSerializer.SetCurrent(getJsonSerializerInstance);

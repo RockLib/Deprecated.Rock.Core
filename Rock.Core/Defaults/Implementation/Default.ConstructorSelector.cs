@@ -12,6 +12,11 @@ namespace Rock.Defaults.Implementation
             get { return _constructorSelector.Current; }
         }
 
+        public static IConstructorSelector DefaultConstructorSelector
+        {
+            get { return _constructorSelector.DefaultInstance; }
+        }
+
         public static void SetConstructorSelector(Func<IConstructorSelector> getConstructorSelectorInstance)
         {
             _constructorSelector.SetCurrent(getConstructorSelectorInstance);

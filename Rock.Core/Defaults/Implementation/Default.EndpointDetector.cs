@@ -12,6 +12,11 @@ namespace Rock.Defaults.Implementation
             get { return _endpointDetector.Current; }
         }
 
+        public static IEndpointDetector DefaultEndpointDetector
+        {
+            get { return _endpointDetector.DefaultInstance; }
+        }
+
         public static void SetEndpointDetector(Func<IEndpointDetector> getEndpointDetectorInstance)
         {
             _endpointDetector.SetCurrent(getEndpointDetectorInstance);

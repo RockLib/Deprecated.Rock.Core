@@ -12,6 +12,11 @@ namespace Rock.Defaults.Implementation
             get { return _endpointSelector.Current; }    
         }
 
+        public static IEndpointSelector DefaultEndpointSelector
+        {
+            get { return _endpointSelector.DefaultInstance; }    
+        }
+
         public static void SetEndpointSelector(Func<IEndpointSelector> getEndpointSelectorInstance)
         {
             _endpointSelector.SetCurrent(getEndpointSelectorInstance);

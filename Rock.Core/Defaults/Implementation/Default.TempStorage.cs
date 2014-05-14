@@ -13,14 +13,14 @@ namespace Rock.Defaults.Implementation
             return new FileKeyValueStore(_jsonSerializer.DefaultInstance, tempStorageDirectoryInfo);
         });
 
-        public static IKeyValueStore DefaultTempStorage
-        {
-            get { return _tempStorage.DefaultInstance; }
-        }
-
         public static IKeyValueStore TempStorage
         {
             get { return _tempStorage.Current; }
+        }
+
+        public static IKeyValueStore DefaultTempStorage
+        {
+            get { return _tempStorage.DefaultInstance; }
         }
 
         public static void SetTempStorage(Func<IKeyValueStore> getTempStorageInstance)
