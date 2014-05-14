@@ -12,7 +12,7 @@ namespace Rock.Defaults.Implementation
             get { return _xmlSerializer.Current; }
         }
 
-        public static void SetApplicationInfo(Func<ISerializer> getXmlSerializerInstance)
+        public static void SetXmlSerializer(Func<ISerializer> getXmlSerializerInstance)
         {
             _xmlSerializer.SetCurrent(getXmlSerializerInstance);
         }
