@@ -80,6 +80,7 @@
     <Compile Include="DependencyInjection\ResolveException.cs" />
     <Compile Include="Extensions\GetEnumValueExtension.cs" />
     <Compile Include="IApplicationInfo.cs" />
+    <Compile Include="IO\EncodedStringWriter.cs" />
     <Compile Include="KeyValueStores\Extensions\AddItemExtensions.cs" />
     <Compile Include="KeyValueStores\DirectoryBucket.cs" />
     <Compile Include="KeyValueStores\FileBucketItem.cs" />
