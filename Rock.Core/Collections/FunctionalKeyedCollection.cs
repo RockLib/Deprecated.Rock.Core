@@ -9,6 +9,11 @@ namespace Rock.Collections
 
         public FunctionalKeyedCollection(Func<TItem, TKey> getKey, IEnumerable<TItem> items = null)
         {
+            if (getKey == null)
+            {
+                throw new ArgumentNullException("getKey");
+            }
+
             _getKey = getKey;
 
             if (items != null)
