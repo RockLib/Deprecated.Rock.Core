@@ -48,6 +48,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Defaults\DefaultHelperTests.cs" />
     <Compile Include="DependencyInjection\ConstructorSelectorTests.cs" />
     <Compile Include="Extensions\GetEnumValueExtensionTests.cs" />
     <Compile Include="Net\EndpointSelectorTests.cs" />
