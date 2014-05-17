@@ -11,19 +11,19 @@ namespace Rock.IO
             return Default.TempStorage.GetItems(bucket);
         }
 
-        public static void Write<T>(string bucket, string key, T value)
+        public static void Put<T>(string bucket, string key, T value)
         {
-            Default.TempStorage.AddItem(bucket, key, value);
+            Default.TempStorage.Put(bucket, key, value);
         }
 
         public static T Get<T>(string bucket, string key)
         {
-            return Default.TempStorage.GetValue<T>(bucket, key);
+            return Default.TempStorage.Get<T>(bucket, key);
         }
 
         public static void Delete(string bucket, string key)
         {
-            Default.TempStorage.GetItem(bucket, key).Delete();
+            Default.TempStorage.Delete(bucket, key);
         }
     }
 }

@@ -5,8 +5,8 @@
         string BucketName { get; }
         string Key { get; }
 
-        bool TryGetValue<T>(out T value);
-        void SetValue<T>(T value);
+        bool TryGet<T>(out T value);
+        void Put<T>(T value);
         void Delete();
     }
 }

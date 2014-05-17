@@ -33,7 +33,7 @@ namespace Rock.KeyValueStores
         public string BucketName { get { return _bucketName; } }
         public string Key { get { return _fileInfo.Name; } }
 
-        public bool TryGetValue<T>(out T value)
+        public bool TryGet<T>(out T value)
         {
             if (!_fileInfo.Exists)
             {
@@ -59,7 +59,7 @@ namespace Rock.KeyValueStores
             }
         }
 
-        public void SetValue<T>(T value)
+        public void Put<T>(T value)
         {
             var mutex = GetMutex();
 
