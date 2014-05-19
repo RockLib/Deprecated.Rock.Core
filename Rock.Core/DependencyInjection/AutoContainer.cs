@@ -131,17 +131,17 @@ namespace Rock.DependencyInjection
             //                 use this.Get<parameter_type>()
             //             else
             //                 use the parameter's default value)
-                                                                                                
-            var createInstanceExpression =                                                      
-                Expression.Lambda<Func<object>>(                                                
-                    Expression.New(ctor,                                                        
-                        ctor.GetParameters()                                                    
-                            .Select(p =>                                                        
-                                CanResolve(p.ParameterType)                                     
-                                    ? (Expression)Expression.Call(                              
-                                        thisExpression,                                         
-                                        _getMethod.Value.MakeGenericMethod(p.ParameterType))    
-                                    : Expression.Constant(p.DefaultValue, p.ParameterType))));  
+
+            var createInstanceExpression =
+                Expression.Lambda<Func<object>>(
+                    Expression.New(ctor,
+                        ctor.GetParameters()
+                            .Select(p =>
+                                CanResolve(p.ParameterType)
+                                    ? (Expression)Expression.Call(
+                                        thisExpression,
+                                        _getMethod.Value.MakeGenericMethod(p.ParameterType))
+                                    : Expression.Constant(p.DefaultValue, p.ParameterType))));
 
             return createInstanceExpression.Compile();
         }

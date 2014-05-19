@@ -16,6 +16,7 @@ namespace EndpointDetectorTests
 
             Assert.That(result.Endpoint, Is.EqualTo(google));
             Assert.That(result.Success, Is.True);
+            Assert.That(result.StatusCode.HasValue, Is.True);
         }
 
         [Test]
@@ -29,6 +30,7 @@ namespace EndpointDetectorTests
 
             Assert.That(result.Endpoint, Is.EqualTo(google));
             Assert.That(result.Success, Is.True);
+            Assert.That(result.StatusCode.HasValue, Is.True);
         }
 
         [Test]
