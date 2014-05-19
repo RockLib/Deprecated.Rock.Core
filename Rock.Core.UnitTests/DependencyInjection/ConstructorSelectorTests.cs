@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Reflection;
 using Moq;
 using NUnit.Framework;
 using Rock.DependencyInjection;
@@ -52,6 +53,14 @@ namespace ConstructorSelectorTests
             public Class4(IInterface1 p1, IInterface2 p2) {}
             public Class4(IInterface3 p1, IInterface4 p2 = null) {}
         }
+
+        protected class Class5
+        {
+        }
+
+        protected abstract class AbstractClass
+        {
+        }
     }
 
     public class TheGetConstructorMethod : ConstructorSelectorTestBase
@@ -75,6 +84,15 @@ namespace ConstructorSelectorTests
             var sut = new ConstructorSelector();
 
             Assert.That(() => sut.GetConstructor(typeof(Class1), MockResolver.Object), Throws.Exception);
+        }
+
+        [TestCase(typeof(AbstractClass))]
+        [TestCase(typeof(IInterface1))]
+        public void ThrowsAnExceptionIfTheTypeIsAbstract(Type abstractType)
+        {
+            var sut = new ConstructorSelector();
+
+            Assert.That(() => sut.GetConstructor(abstractType, MockResolver.Object), Throws.Exception);
         }
 
         [Test]
@@ -134,6 +152,68 @@ namespace ConstructorSelectorTests
 
                 Assert.That(ctor.GetParameters().Select(p => p.ParameterType), Is.EquivalentTo(new[] { typeof(IInterface1), typeof(IInterface2) }));
             }
+        }
+    }
+
+    public class TheCanGetConstructorMethod : ConstructorSelectorTestBase
+    {
+        [Test]
+        public void ReturnsTrueWhenAResolvableConstructorExists()
+        {
+            var sut = new ConstructorSelector();
+
+            Assert.That(sut.CanGetConstructor(typeof(Class5), MockResolver.Object), Is.True);
+        }
+
+        [Test]
+        public void ReturnsFalseWhenAResolvableConstructorDoesNotExist()
+        {
+            var sut = new ConstructorSelector();
+
+            Assert.That(sut.CanGetConstructor(typeof(Class1), MockResolver.Object), Is.False);
+        }
+    }
+
+    public class TheTryGetConstructorMethod : ConstructorSelectorTestBase
+    {
+        [Test]
+        public void ReturnsTrueWhenAResolvableConstructorExists()
+        {
+            var sut = new ConstructorSelector();
+
+            ConstructorInfo dummy;
+            Assert.That(sut.TryGetConstructor(typeof(Class5), MockResolver.Object, out dummy), Is.True);
+        }
+
+        [Test]
+        public void SetsTheOutParameterToTheResolvableConstructorWhenOneExists()
+        {
+            var sut = new ConstructorSelector();
+
+            ConstructorInfo ctor;
+            sut.TryGetConstructor(typeof(Class5), MockResolver.Object, out ctor);
+
+            Assert.That(ctor, Is.Not.Null);
+        }
+
+        [Test]
+        public void ReturnsFalseWhenAResolvableConstructorDoesNotExist()
+        {
+            var sut = new ConstructorSelector();
+
+            ConstructorInfo dummy;
+            Assert.That(sut.TryGetConstructor(typeof(Class1), MockResolver.Object, out dummy), Is.False);
+        }
+
+        [Test]
+        public void SetsTheOutParameterToNullWhenNoResolvableConstructorExists()
+        {
+            var sut = new ConstructorSelector();
+
+            ConstructorInfo ctor;
+            sut.TryGetConstructor(typeof(Class1), MockResolver.Object, out ctor);
+
+            Assert.That(ctor, Is.Null);
         }
     }
 }

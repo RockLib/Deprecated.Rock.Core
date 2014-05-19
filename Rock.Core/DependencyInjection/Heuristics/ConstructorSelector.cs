@@ -49,7 +49,7 @@ namespace Rock.DependencyInjection.Heuristics
                 type.GetConstructors()
                     .SelectMany(GetVirtualContructors)
                     .Where(v => v.CanResolve(resolver))
-                    .GroupBy(v => v.GetScore(resolver))
+                    .GroupBy(v => v.GetScore())
                     .OrderByDescending(g => g.Key);
 
             var enumerator = rankedConstructors.GetEnumerator();
@@ -135,7 +135,7 @@ namespace Rock.DependencyInjection.Heuristics
                 return Parameters.All(p => resolver.CanResolve(p) && !IsPrimitivish(p));
             }
 
-            public int GetScore(IResolver resolver)
+            public int GetScore()
             {
                 return (100 * Parameters.Length) - DefaultParameterCount;
             }

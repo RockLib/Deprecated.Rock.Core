@@ -15,6 +15,12 @@ namespace Rock.Core.UnitTests.Collections
             Assert.That(() => collection["z"], Throws.Exception);
         }
 
+        [Test]
+        public void ThrowsAnExceptionIfTheFunctionPassedInToItsConstructorIsNull()
+        {
+            Assert.That(() => new FunctionalKeyedCollection<string, Foo>(null), Throws.Exception);
+        }
+
         private class Foo
         {
             public string Bar { get; set; }
