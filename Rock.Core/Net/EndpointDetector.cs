@@ -1,5 +1,7 @@
 ﻿using System;
+using System.IO;
 using System.Net;
+using System.Net.Security;
 using System.Net.Sockets;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -26,6 +28,7 @@ namespace Rock.Net
             private readonly string _server;
             private readonly int _port;
             private readonly string _path;
+            private readonly bool _isHttps;
             private readonly int _timeoutMilliseconds;
 
             public ManualHttpWebRequest(string endpoint, int timeoutSeconds)
@@ -36,6 +39,7 @@ namespace Rock.Net
                 _server = url.Host;
                 _port = url.Port;
                 _path = url.AbsolutePath;
+                _isHttps = url.Scheme.ToLower() == "https";
 
                 _timeoutMilliseconds = timeoutSeconds * 1000;
             }
@@ -44,7 +48,33 @@ namespace Rock.Net
             {
                 try
                 {
-                    return await GetStatusImpl();
+                    var socket = await ConnectSocket();
+
+                    if (socket == null)
+                    {
+                        return new EndpointStatus(false, _endpoint);
+                    }
+
+                    socket.SendTimeout = _timeoutMilliseconds;
+                    socket.ReceiveTimeout = _timeoutMilliseconds;
+
+                    EndpointStatus endpointStatus;
+
+                    using (var networkStream = new NetworkStream(socket, true))
+                    {
+                        Stream stream = networkStream;
+
+                        if (_isHttps)
+                        {
+                            var sslStream = new SslStream(networkStream);
+                            await sslStream.AuthenticateAsClientAsync(_server);
+                            stream = sslStream;
+                        }
+
+                        endpointStatus = await GetStatus(stream);
+                    }
+
+                    return endpointStatus;
                 }
                 catch
                 {
@@ -52,43 +82,25 @@ namespace Rock.Net
                 }
             }
 
-            private async Task<EndpointStatus> GetStatusImpl()
+            private async Task<EndpointStatus> GetStatus(Stream stream)
             {
                 var request = string.Format("GET {2} HTTP/1.1{0}Host: {1}{0}Connection: Close{0}{0}", "\r\n", _server, _path);
 
-                var bytesSent = Encoding.ASCII.GetBytes(request);
-                var bytesReceived = new Byte[256];
+                var sendBuffer = Encoding.ASCII.GetBytes(request);
+                var receiveBuffer = new Byte[256];
 
-                var socket = await ConnectSocket();
+                await stream.WriteAsync(sendBuffer, 0, sendBuffer.Length);
 
-                if (socket == null)
-                {
-                    return new EndpointStatus(false, _endpoint);
-                }
-
-                socket.SendTimeout = _timeoutMilliseconds;
-                socket.ReceiveTimeout = _timeoutMilliseconds;
-
-                await Task.Factory.FromAsync(
-                    (callback, state) => socket.BeginSend(bytesSent, 0, bytesSent.Length, SocketFlags.None, callback, state),
-                    result => socket.EndSend(result),
-                    null);
-
-                int bytes;
+                int receiveBufferLength;
                 var rawResponse = new StringBuilder();
 
                 EndpointStatus endpointStatus = null;
 
                 do
                 {
-                    bytes =
-                        await Task.Factory.FromAsync(
-                            (callback, o) =>
-                            socket.BeginReceive(bytesReceived, 0, bytesReceived.Length, SocketFlags.None, callback, o),
-                            result => socket.EndReceive(result),
-                            null);
+                    receiveBufferLength = await stream.ReadAsync(receiveBuffer, 0, receiveBuffer.Length);
 
-                    rawResponse.Append(Encoding.ASCII.GetString(bytesReceived, 0, bytes));
+                    rawResponse.Append(Encoding.ASCII.GetString(receiveBuffer, 0, receiveBufferLength));
 
                     var statusLineMatch = _statusLineRegex.Match(rawResponse.ToString());
                     if (statusLineMatch.Success)
@@ -98,12 +110,7 @@ namespace Rock.Net
                         endpointStatus = new EndpointStatus(true, _endpoint, statusCode);
                         break;
                     }
-                } while (bytes > 0);
-
-                await Task.Factory.FromAsync(
-                    (callback, o) => socket.BeginDisconnect(false, callback, o),
-                    socket.EndDisconnect,
-                    null).ContinueWith(task => socket.Dispose());
+                } while (receiveBufferLength > 0);
 
                 return endpointStatus ?? new EndpointStatus(false, _endpoint);
             }

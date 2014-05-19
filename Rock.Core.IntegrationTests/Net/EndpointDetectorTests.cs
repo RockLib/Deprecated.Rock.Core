@@ -6,7 +6,7 @@ namespace EndpointDetectorTests
     public class TheGetEndpointStatusMethod
     {
         [Test]
-        public void ReturnsSuccessfulEndpointStatusWhenTheServerIsReachable()
+        public void ReturnsSuccessfulEndpointStatusWhenTheHttpEndpointIsReachable()
         {
             const string google = "http://google.com";
 
@@ -19,8 +19,7 @@ namespace EndpointDetectorTests
         }
 
         [Test]
-        [CategoryAttribute("Failing Tests")] // TODO: implement https endpoint detection.
-        public void WorksWithHttps()
+        public void ReturnsSuccessfulEndpointStatusWhenTheHttpsEndpointIsReachable()
         {
             const string google = "https://google.com";
 
