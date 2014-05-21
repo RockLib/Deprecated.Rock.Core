@@ -41,12 +41,11 @@ namespace Rock.AssemblyInitialization
 
                     using (var container = new CompositionContainer(catalog))
                     {
-                        var coreLibrariesFirstEntryPointLast = new CoreLibrariesFirstEntryPointLastComparer();
+                        var coreLibrariesFirstEntryPointLast = new AssemblyReferenceOrderComparer();
 
                         var frameworkInitializers =
                             container.GetExports<IFrameworkInitializer>()
-                                     .Where(HasValidValue)
-                                     .Select(x => x.Value)
+                                     .Select(GetValue)
                                      .OrderBy(x => x.GetType(), coreLibrariesFirstEntryPointLast);
 
                         foreach (var frameworkInitializer in frameworkInitializers)
@@ -57,8 +56,9 @@ namespace Rock.AssemblyInitialization
                             }
                             catch (Exception ex)
                             {
-                                // TODO: Do something better than writing to console.
+                                // TODO: Do something better than writing to console. (system event log?)
                                 Console.WriteLine(ex);
+                                throw new Exception(string.Format("The Initialize() method from {0} threw an exception. This is a fatal exception, and the application cannot continue.", frameworkInitializer.GetType()), ex);
                             }
                         }
                     }
@@ -66,37 +66,42 @@ namespace Rock.AssemblyInitialization
             }
         }
 
-        private static bool HasValidValue(Lazy<IFrameworkInitializer> lazy)
+        private static IFrameworkInitializer GetValue(Lazy<IFrameworkInitializer> lazy)
         {
+            IFrameworkInitializer value;
+
             try
             {
-                return lazy.Value != null;
+                value = lazy.Value;
             }
             catch (Exception ex)
             {
-                // TODO: Do something better than writing to console.
+                // TODO: Do something better than writing to console. (system event log?)
                 Console.WriteLine(ex);
-                return false;
+                throw new Exception(string.Format("An exception was thrown while creating an instance of {0}. This is a fatal exception, and the application cannot continue.", typeof(IFrameworkInitializer)), ex);
             }
+
+            return value;
         }
 
-        private class CoreLibrariesFirstEntryPointLastComparer : IComparer<Type>
+        /// <summary>
+        /// An implementation of <see cref="IComparer{T}"/> of type <see cref="Type"/> that, when used
+        /// order a list of types, puts a type whose assembly is referenced by the assembly of another 
+        /// type in the list before those other types.
+        /// 
+        /// Given two types, A & B:
+        /// - If they are the same type, they are considered equal.
+        /// - If the assembly of A references the assembly of B, B is considered to be less than A.
+        /// - If the assembly of B references the assembly of A, A is considered to be less than B.
+        /// - Otherwise, return what the default string comparer returns for the full name of each type.
+        /// </summary>
+        private class AssemblyReferenceOrderComparer : IComparer<Type>
         {
             int IComparer<Type>.Compare(Type lhs, Type rhs)
             {
                 if (lhs == rhs)
                 {
                     return 0;
-                }
-
-                if (rhs == null)
-                {
-                    return -1;
-                }
-
-                if (lhs == null)
-                {
-                    return 1;
                 }
 
                 if (rhs.Assembly.GetReferencedAssemblies()

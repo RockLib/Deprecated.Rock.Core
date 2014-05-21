@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{6C71E326-E9B5-407E-889D-443311B0B22B}</ProjectGuid>
+    <ProjectGuid>{34D6B6AD-5725-469C-AF77-EAB7DBE61666}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Rock.Core.UnitTests</RootNamespace>
-    <AssemblyName>Rock.Core.UnitTests</AssemblyName>
+    <RootNamespace>Rock.Core.ModuleInitializer.UnitTestSupport</RootNamespace>
+    <AssemblyName>Rock.Core.ModuleInitializer.UnitTestSupport</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -30,12 +30,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Moq">
-      <HintPath>..\packages\Moq.4.2.1402.2112\lib\net40\Moq.dll</HintPath>
-    </Reference>
-    <Reference Include="nunit.framework">
-      <HintPath>..\packages\NUnit.2.6.3\lib\nunit.framework.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -43,44 +37,21 @@
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
-    <Reference Include="XSerializer">
-      <HintPath>..\packages\XSerializer.0.1.11\lib\net40\XSerializer.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AssemblyInitialization\ModuleInitializerTests.cs" />
-    <Compile Include="Collections\AsKeyedExtensionTests.cs" />
-    <Compile Include="Collections\ConcatExtensionsTests.cs" />
-    <Compile Include="Collections\FunctionalKeyedCollectionTests.cs" />
-    <Compile Include="Collections\KeyedCollectionTests.cs" />
-    <Compile Include="Defaults\DefaultHelperTests.cs" />
-    <Compile Include="DependencyInjection\ConstructorSelectorTests.cs" />
-    <Compile Include="Extensions\GetEnumValueExtensionTests.cs" />
-    <Compile Include="KeyValueStores\Extensions\DeleteExtensionsTests.cs" />
-    <Compile Include="KeyValueStores\Extensions\GetExtensionsTests.cs" />
-    <Compile Include="KeyValueStores\Extensions\GetItemExtensionTests.cs" />
-    <Compile Include="KeyValueStores\Extensions\PutExtensionsTests.cs" />
-    <Compile Include="KeyValueStores\Extensions\GetItemsExtensionTests.cs" />
-    <Compile Include="KeyValueStores\Extensions\KeyValueStoreExtensionsTestsBase.cs" />
-    <Compile Include="KeyValueStores\Extensions\TryGetExtensionsTests.cs" />
+    <Compile Include="AssemblyInitialization\FrameworkInitializerTestHelper.cs" />
     <Compile Include="AssemblyInitialization\ModuleInitializer.cs" />
-    <Compile Include="Net\EndpointSelectorTests.cs" />
+    <Compile Include="AssemblyInitialization\Rock_Core_ModuleInitializer_UnitTestSupport_FrameworkInitializer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Rock.IO\TempStorageTests.cs" />
-    <Compile Include="AssemblyInitialization\Rock_Core_UnitTests_FrameworkInitializer.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Rock.Core.ModuleInitializer.UnitTestSupport\Rock.Core.ModuleInitializer.UnitTestSupport.csproj">
-      <Project>{34d6b6ad-5725-469c-af77-eab7dbe61666}</Project>
-      <Name>Rock.Core.ModuleInitializer.UnitTestSupport</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Rock.Core\Rock.Core.csproj">
       <Project>{0feb58cd-b15c-4cdc-83d6-7621c1db98c7}</Project>
       <Name>Rock.Core</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="InjectModuleInitializer" AfterTargets="AfterBuild">

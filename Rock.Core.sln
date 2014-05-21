@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rock.Core.UnitTests", "Rock
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rock.Core.IntegrationTests", "Rock.Core.IntegrationTests\Rock.Core.IntegrationTests.csproj", "{B189B018-183A-47B8-A410-BCD9482D62FC}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rock.Core.ModuleInitializer.UnitTestSupport", "Rock.Core.ModuleInitializer.UnitTestSupport\Rock.Core.ModuleInitializer.UnitTestSupport.csproj", "{34D6B6AD-5725-469C-AF77-EAB7DBE61666}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{B189B018-183A-47B8-A410-BCD9482D62FC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B189B018-183A-47B8-A410-BCD9482D62FC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B189B018-183A-47B8-A410-BCD9482D62FC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{34D6B6AD-5725-469C-AF77-EAB7DBE61666}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{34D6B6AD-5725-469C-AF77-EAB7DBE61666}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{34D6B6AD-5725-469C-AF77-EAB7DBE61666}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{34D6B6AD-5725-469C-AF77-EAB7DBE61666}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
