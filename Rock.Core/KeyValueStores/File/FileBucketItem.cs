@@ -1,11 +1,13 @@
 ﻿using System;
 using System.IO;
+using System.Runtime.Serialization;
 using System.Threading;
 using Rock.Serialization;
 
 namespace Rock.KeyValueStores
 {
     [Serializable]
+    [DataContract]
     public class FileBucketItem : IBucketItem
     {
         [NonSerialized]
@@ -14,18 +16,18 @@ namespace Rock.KeyValueStores
         [NonSerialized]
         private readonly ISerializer _serializer;
 
+        [DataMember]
         private readonly FileInfo _fileInfo;
+
+        [DataMember]
         private readonly string _bucketName;
 
-        public FileBucketItem(ISerializer serializer, FileInfo fileInfo)
+        public FileBucketItem(ISerializer serializer, FileInfo fileInfo, string bucketName)
         {
             _serializer = serializer;
 
             _fileInfo = fileInfo;
-            _bucketName =
-                _fileInfo.Directory != null
-                    ? _fileInfo.Directory.Name
-                    : null;
+            _bucketName = bucketName;
 
             _mutex = CreateMutex();
         }
@@ -49,8 +51,16 @@ namespace Rock.KeyValueStores
 
                 using (var stream = _fileInfo.OpenRead())
                 {
-                    value = _serializer.Deserialize<T>(stream);
-                    return true;
+                    try
+                    {
+                        value = _serializer.Deserialize<T>(stream);
+                        return true;
+                    }
+                    catch
+                    {
+                        value = default(T);
+                        return false;
+                    }
                 }
             }
             finally

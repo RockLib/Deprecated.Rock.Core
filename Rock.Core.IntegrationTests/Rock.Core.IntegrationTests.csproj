@@ -46,6 +46,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AssemblyInitialization\ModuleInitializer.cs" />
+    <Compile Include="KeyValueStores\File\DirectoryBucketTestBase.cs" />
+    <Compile Include="KeyValueStores\File\DirectoryBucketTests.cs" />
+    <Compile Include="KeyValueStores\File\FileBucketItemTestBase.cs" />
+    <Compile Include="KeyValueStores\File\FileBucketItemTests.cs" />
+    <Compile Include="KeyValueStores\File\FileKeyValueStoreTests.cs" />
+    <Compile Include="KeyValueStores\File\FileKeyValueStoreTestBase.cs" />
     <Compile Include="Net\EndpointDetectorTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

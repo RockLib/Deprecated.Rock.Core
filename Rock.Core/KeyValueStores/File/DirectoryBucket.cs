@@ -29,13 +29,13 @@ namespace Rock.KeyValueStores
         {
             return
                 _directoryInfo.GetFiles()
-                    .Select(fileInfo => new FileBucketItem(_serializer, fileInfo));
+                    .Select(fileInfo => new FileBucketItem(_serializer, fileInfo, Name));
         }
 
         public IBucketItem GetItem(string key)
         {
             var fileInfo = new FileInfo(Path.Combine(_directoryInfo.FullName, GetFileName(key)));
-            return new FileBucketItem(_serializer, fileInfo);
+            return new FileBucketItem(_serializer, fileInfo, Name);
         }
 
         private static string GetFileName(string key)

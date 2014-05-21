@@ -50,10 +50,5 @@ namespace Rock.KeyValueStores
         {
             return _invalidPathChars.Replace(bucketName, "");
         }
-
-        public override int GetHashCode()
-        {
-            return (GetType().FullName.GetHashCode() * 397) ^ _directoryInfo.FullName.GetHashCode().GetHashCode();
-        }
     }
 }

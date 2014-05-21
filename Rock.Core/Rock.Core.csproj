@@ -43,6 +43,7 @@
     <Reference Include="System.Core" />
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Reflection.Context" />
+    <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -82,9 +83,9 @@
     <Compile Include="IApplicationInfo.cs" />
     <Compile Include="IO\EncodedStringWriter.cs" />
     <Compile Include="KeyValueStores\Extensions\PutExtensions.cs" />
-    <Compile Include="KeyValueStores\DirectoryBucket.cs" />
-    <Compile Include="KeyValueStores\FileBucketItem.cs" />
-    <Compile Include="KeyValueStores\FileKeyValueStore.cs" />
+    <Compile Include="KeyValueStores\File\DirectoryBucket.cs" />
+    <Compile Include="KeyValueStores\File\FileBucketItem.cs" />
+    <Compile Include="KeyValueStores\File\FileKeyValueStore.cs" />
     <Compile Include="KeyValueStores\Extensions\GetItemExtension.cs" />
     <Compile Include="KeyValueStores\Extensions\GetItemsExtension.cs" />
     <Compile Include="KeyValueStores\Extensions\GetExtensions.cs" />
