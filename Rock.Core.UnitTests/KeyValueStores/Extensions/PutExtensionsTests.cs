@@ -1,27 +1,26 @@
-﻿using Rock.KeyValueStores;
+﻿using Rock.Core.UnitTests.KeyValueStores.Extensions;
+using Rock.KeyValueStores;
 
-namespace Rock.Core.UnitTests.KeyValueStores.Extensions
+// ReSharper disable once CheckNamespace
+namespace PutExtensionsTests
 {
-    public class PutExtensionsTests : KeyValueStoreExtensionsTestsBase
+    public class ThePutMethodThatExtendsIKeyValueStore : KeyValueStoreExtensionsTestsBase
     {
-        public class ThePutMethodThatExtendsIKeyValueStore : PutExtensionsTests
+        public void GetsABucketByNameThenCallsThePutExtensionMethodOnTheBucket()
         {
-            public void GetsABucketByNameThenCallsThePutExtensionMethodOnTheBucket()
-            {
-                MockKeyValueStore.Object.Put("my_bucket", "my_key", 123);
+            MockKeyValueStore.Object.Put("my_bucket", "my_key", 123);
 
-                VerifyPut("my_bucket", "my_key", 123);
-            }
+            VerifyPut("my_bucket", "my_key", 123);
         }
+    }
 
-        public class ThePutMethodThatExtendsIBucket : PutExtensionsTests
+    public class ThePutMethodThatExtendsIBucket : KeyValueStoreExtensionsTestsBase
+    {
+        public void GetsABucketItemByKeyThenCallsThePutMethodOnTheBucketItem()
         {
-            public void GetsABucketItemByKeyThenCallsThePutMethodOnTheBucketItem()
-            {
-                MockBucket.Object.Put("my_key", 123);
+            MockBucket.Object.Put("my_key", 123);
 
-                VerifyPut("my_key", 123);
-            }
+            VerifyPut("my_key", 123);
         }
     }
 }

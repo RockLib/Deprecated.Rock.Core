@@ -1,73 +1,72 @@
 ﻿using NUnit.Framework;
+using Rock.Core.UnitTests.KeyValueStores.Extensions;
 using Rock.KeyValueStores;
 
-namespace Rock.Core.UnitTests.KeyValueStores.Extensions
+// ReSharper disable once CheckNamespace
+namespace GetExtensionsTests
 {
-    public class GetExtensionsTests : KeyValueStoreExtensionsTestsBase
+    public class TheGetMethodThatExtendsIKeyValueStore : KeyValueStoreExtensionsTestsBase
     {
-        public class TheGetMethodThatExtendsIKeyValueStore : GetExtensionsTests
+        [Test]
+        public void GetsABucketItemByBucketNameAndKeyThenCallsTheGetExtensionMethodOnTheBucketItem()
         {
-            [Test]
-            public void GetsABucketItemByBucketNameAndKeyThenCallsTheGetExtensionMethodOnTheBucketItem()
-            {
-                SetupTryGet<int>();
+            SetupTryGet<int>();
 
-                MockKeyValueStore.Object.Get<int>("my_bucket", "my_key");
+            MockKeyValueStore.Object.Get<int>("my_bucket", "my_key");
 
-                VerifyGet<int>("my_bucket", "my_key");
-            }
-
-            [Test]
-            public void ReturnsWhatTheTryGetMethodOfTheBucketItemAssignsToTheOutParameter()
-            {
-                SetupTryGet(123);
-
-                var value = MockKeyValueStore.Object.Get<int>("my_bucket", "my_key");
-
-                Assert.That(value, Is.EqualTo(123));
-            }
+            VerifyGet<int>("my_bucket", "my_key");
         }
 
-        public class TheGetMethodThatExtendsIBucket : GetExtensionsTests
+        [Test]
+        public void ReturnsWhatTheTryGetMethodOfTheBucketItemAssignsToTheOutParameter()
         {
-            [Test]
-            public void GetsABucketItemByKeyThenCallsTheGetExtensionMethodOnTheBucketItem()
-            {
-                SetupTryGet<int>();
+            SetupTryGet(123);
 
-                MockBucket.Object.Get<int>("my_key");
+            var value = MockKeyValueStore.Object.Get<int>("my_bucket", "my_key");
 
-                VerifyGet<int>("my_key");
-            }
+            Assert.That(value, Is.EqualTo(123));
+        }
+    }
 
-            [Test]
-            public void ReturnsWhatTheTryGetMethodOfTheBucketItemAssignsToTheOutParameter()
-            {
-                SetupTryGet(123);
+    public class TheGetMethodThatExtendsIBucket : KeyValueStoreExtensionsTestsBase
+    {
+        [Test]
+        public void GetsABucketItemByKeyThenCallsTheGetExtensionMethodOnTheBucketItem()
+        {
+            SetupTryGet<int>();
 
-                var value = MockBucket.Object.Get<int>("my_key");
+            MockBucket.Object.Get<int>("my_key");
 
-                Assert.That(value, Is.EqualTo(123));
-            }
+            VerifyGet<int>("my_key");
         }
 
-        public class TheGetMethodThatExtendsIBucketItem : GetExtensionsTests
+        [Test]
+        public void ReturnsWhatTheTryGetMethodOfTheBucketItemAssignsToTheOutParameter()
         {
-            [Test]
-            public void WhenTryGetIsSuccessfulReturnsTheValueOfTheOutParameter()
-            {
-                SetupTryGet(123);
+            SetupTryGet(123);
 
-                var value = MockBucketItem.Object.Get<int>();
+            var value = MockBucket.Object.Get<int>("my_key");
 
-                Assert.That(value, Is.EqualTo(123));
-            }
+            Assert.That(value, Is.EqualTo(123));
+        }
+    }
 
-            [Test]
-            public void WhenTryGetIsUnsuccessfulThrowAnException()
-            {
-                Assert.That(() => MockBucketItem.Object.Get<int>(), Throws.Exception);
-            }
+    public class TheGetMethodThatExtendsIBucketItem : KeyValueStoreExtensionsTestsBase
+    {
+        [Test]
+        public void WhenTryGetIsSuccessfulReturnsTheValueOfTheOutParameter()
+        {
+            SetupTryGet(123);
+
+            var value = MockBucketItem.Object.Get<int>();
+
+            Assert.That(value, Is.EqualTo(123));
+        }
+
+        [Test]
+        public void WhenTryGetIsUnsuccessfulThrowAnException()
+        {
+            Assert.That(() => MockBucketItem.Object.Get<int>(), Throws.Exception);
         }
     }
 }

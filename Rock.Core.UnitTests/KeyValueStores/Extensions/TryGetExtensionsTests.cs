@@ -1,100 +1,99 @@
 ﻿using NUnit.Framework;
+using Rock.Core.UnitTests.KeyValueStores.Extensions;
 using Rock.KeyValueStores;
 
-namespace Rock.Core.UnitTests.KeyValueStores.Extensions
+// ReSharper disable once CheckNamespace
+namespace TryGetExtensionsTests
 {
-    public class TryGetExtensionsTests : KeyValueStoreExtensionsTestsBase
+    public class TheGetMethodThatExtendsIKeyValueStore : KeyValueStoreExtensionsTestsBase
     {
-        public class TheGetMethodThatExtendsIKeyValueStore : TryGetExtensionsTests
+        [Test]
+        public void GetsABucketItemByBucketNameAndKeyThenCallsTheTryGetMethodOnTheBucketItem()
         {
-            [Test]
-            public void GetsABucketItemByBucketNameAndKeyThenCallsTheTryGetMethodOnTheBucketItem()
-            {
-                SetupTryGet<int>();
+            SetupTryGet<int>();
 
-                int dummy;
-                MockKeyValueStore.Object.TryGet("my_bucket", "my_key", out dummy);
+            int dummy;
+            MockKeyValueStore.Object.TryGet("my_bucket", "my_key", out dummy);
 
-                VerifyTryGet<int>("my_bucket", "my_key");
-            }
-
-            [Test]
-            public void ReturnsTrueWhenTheTryGetMethodOfTheBucketItemReturnsTrue()
-            {
-                SetupTryGet<int>();
-
-                int dummy;
-                var success = MockKeyValueStore.Object.TryGet("my_bucket", "my_key", out dummy);
-
-                Assert.That(success, Is.True);
-            }
-
-            [Test]
-            public void ReturnsFalseWhenTheTryGetMethodOfTheBucketItemReturnsFalse()
-            {
-
-                int dummy;
-                var success = MockKeyValueStore.Object.TryGet("my_bucket", "my_key", out dummy);
-
-                Assert.That(success, Is.False);
-            }
-
-            [Test]
-            public void HasTheSameOutParameterOfTheTryGetMethodOfTheBucketItem()
-            {
-                SetupTryGet(123);
-
-                int value;
-                MockKeyValueStore.Object.TryGet("my_bucket", "my_key", out value);
-
-                Assert.That(value, Is.EqualTo(123));
-            }
+            VerifyTryGet<int>("my_bucket", "my_key");
         }
 
-        public class TheGetMethodThatExtendsIBucket : TryGetExtensionsTests
+        [Test]
+        public void ReturnsTrueWhenTheTryGetMethodOfTheBucketItemReturnsTrue()
         {
-            [Test]
-            public void GetsABucketItemByKeyThenCallsTheTryGetMethodOnTheBucketItem()
-            {
-                SetupTryGet<int>();
+            SetupTryGet<int>();
 
-                int dummy;
-                MockBucket.Object.TryGet("my_key", out dummy);
+            int dummy;
+            var success = MockKeyValueStore.Object.TryGet("my_bucket", "my_key", out dummy);
 
-                VerifyTryGet<int>("my_key");
-            }
+            Assert.That(success, Is.True);
+        }
 
-            [Test]
-            public void ReturnsTrueWhenTheTryGetMethodOfTheBucketItemReturnsTrue()
-            {
-                SetupTryGet<int>();
+        [Test]
+        public void ReturnsFalseWhenTheTryGetMethodOfTheBucketItemReturnsFalse()
+        {
 
-                int dummy;
-                var success = MockBucket.Object.TryGet("my_key", out dummy);
+            int dummy;
+            var success = MockKeyValueStore.Object.TryGet("my_bucket", "my_key", out dummy);
 
-                Assert.That(success, Is.True);
-            }
+            Assert.That(success, Is.False);
+        }
 
-            [Test]
-            public void ReturnsFalseWhenTheTryGetMethodOfTheBucketItemReturnsFalse()
-            {
+        [Test]
+        public void HasTheSameOutParameterOfTheTryGetMethodOfTheBucketItem()
+        {
+            SetupTryGet(123);
 
-                int dummy;
-                var success = MockBucket.Object.TryGet("my_key", out dummy);
+            int value;
+            MockKeyValueStore.Object.TryGet("my_bucket", "my_key", out value);
 
-                Assert.That(success, Is.False);
-            }
+            Assert.That(value, Is.EqualTo(123));
+        }
+    }
 
-            [Test]
-            public void HasTheSameOutParameterOfTheTryGetMethodOfTheBucketItem()
-            {
-                SetupTryGet(123);
+    public class TheGetMethodThatExtendsIBucket : KeyValueStoreExtensionsTestsBase
+    {
+        [Test]
+        public void GetsABucketItemByKeyThenCallsTheTryGetMethodOnTheBucketItem()
+        {
+            SetupTryGet<int>();
 
-                int value;
-                MockBucket.Object.TryGet("my_key", out value);
+            int dummy;
+            MockBucket.Object.TryGet("my_key", out dummy);
 
-                Assert.That(value, Is.EqualTo(123));
-            }
+            VerifyTryGet<int>("my_key");
+        }
+
+        [Test]
+        public void ReturnsTrueWhenTheTryGetMethodOfTheBucketItemReturnsTrue()
+        {
+            SetupTryGet<int>();
+
+            int dummy;
+            var success = MockBucket.Object.TryGet("my_key", out dummy);
+
+            Assert.That(success, Is.True);
+        }
+
+        [Test]
+        public void ReturnsFalseWhenTheTryGetMethodOfTheBucketItemReturnsFalse()
+        {
+
+            int dummy;
+            var success = MockBucket.Object.TryGet("my_key", out dummy);
+
+            Assert.That(success, Is.False);
+        }
+
+        [Test]
+        public void HasTheSameOutParameterOfTheTryGetMethodOfTheBucketItem()
+        {
+            SetupTryGet(123);
+
+            int value;
+            MockBucket.Object.TryGet("my_key", out value);
+
+            Assert.That(value, Is.EqualTo(123));
         }
     }
 }

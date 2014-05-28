@@ -3,6 +3,7 @@ using System.Linq;
 using NUnit.Framework;
 using Rock.Core.IntegrationTests.KeyValueStores;
 
+// ReSharper disable once CheckNamespace
 namespace FileKeyValueStoreTests
 {
     public class AnInstanceOfFileKeyValueStore : FileKeyValueStoreTestBase

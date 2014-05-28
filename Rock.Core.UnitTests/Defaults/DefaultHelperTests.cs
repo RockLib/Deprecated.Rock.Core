@@ -1,8 +1,8 @@
-﻿using System;
-using NUnit.Framework;
+﻿using NUnit.Framework;
 using Rock.Defaults;
 
-namespace Rock.Core.UnitTests.Defaults
+// ReSharper disable once CheckNamespace
+namespace DefaultHelperTests
 {
     public class DefaultHelperTests
     {

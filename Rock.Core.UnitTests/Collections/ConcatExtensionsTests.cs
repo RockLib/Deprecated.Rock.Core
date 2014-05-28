@@ -2,20 +2,21 @@
 using NUnit.Framework;
 using Rock.Collections;
 
-namespace Rock.Core.UnitTests.Collections
+// ReSharper disable once CheckNamespace
+namespace ConcatExtensionMethodTests
 {
-    public class TheConcatMethodThatExtendsT
+    public class TheConcatExtensionMethodThatExtendsT
     {
         [Test]
         public void ReturnsAnEnumerableWithTheInstanceOfTAtTheBeginning()
         {
-            var collection = 0.Concat(new[] { 1, 2, 3 });
+            var collection = 0.Concat(new[] {1, 2, 3});
 
             Assert.That(collection.First(), Is.EqualTo(0));
         }
     }
 
-    public class TheConcatMethodThatExtendsIEnumerableOfT
+    public class TheConcatExtensionMethodThatExtendsIEnumerableOfT
     {
         [Test]
         public void ReturnsAnEnumerableWithTheAdditionalItemsAtTheEnd()

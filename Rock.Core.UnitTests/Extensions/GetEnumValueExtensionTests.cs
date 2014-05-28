@@ -1,7 +1,8 @@
 ﻿using NUnit.Framework;
 using Rock.Extensions;
 
-namespace Rock.Core.UnitTests.Extensions
+// ReSharper disable once CheckNamespace
+namespace GetEnumValueExtensionTests
 {
     public class TheGetEnumValueExtensionMethod
     {

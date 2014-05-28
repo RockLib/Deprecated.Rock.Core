@@ -1,6 +1,7 @@
 ﻿using NUnit.Framework;
 using Rock.Net;
 
+// ReSharper disable once CheckNamespace
 namespace EndpointDetectorTests
 {
     public class TheGetEndpointStatusMethod

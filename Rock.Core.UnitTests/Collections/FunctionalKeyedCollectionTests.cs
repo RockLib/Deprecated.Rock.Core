@@ -1,12 +1,13 @@
 ﻿using NUnit.Framework;
 using Rock.Collections;
 
-namespace Rock.Core.UnitTests.Collections
+// ReSharper disable once CheckNamespace
+namespace FunctionalKeyedCollectionTests
 {
-    public class AnInstanceOfFunctionalKeyedCollection
+    public class TheFunctionalKeyedCollectionConstrucor
     {
         [Test]
-        public void UsesTheFunctionPassedInToTheConstructorToDetermineItsKey()
+        public void UsesTheFunctionPassedInToDetermineTheKeyOfAnObject()
         {
             var item = new Foo {Bar = "a", Baz = "z"};
             var collection = new FunctionalKeyedCollection<string, Foo>(foo => foo.Bar) { item };
@@ -16,7 +17,7 @@ namespace Rock.Core.UnitTests.Collections
         }
 
         [Test]
-        public void ThrowsAnExceptionIfTheFunctionPassedInToItsConstructorIsNull()
+        public void ThrowsAnExceptionIfTheFunctionPassedInIsNull()
         {
             Assert.That(() => new FunctionalKeyedCollection<string, Foo>(null), Throws.Exception);
         }

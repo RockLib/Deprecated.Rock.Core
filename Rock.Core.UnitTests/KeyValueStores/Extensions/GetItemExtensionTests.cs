@@ -1,9 +1,11 @@
 ﻿using NUnit.Framework;
+using Rock.Core.UnitTests.KeyValueStores.Extensions;
 using Rock.KeyValueStores;
 
-namespace Rock.Core.UnitTests.KeyValueStores.Extensions
+// ReSharper disable once CheckNamespace
+namespace GetItemExtensionTests
 {
-    public class GetItemExtensionTests : KeyValueStoreExtensionsTestsBase
+    public class TheGetItemExtensionMethod : KeyValueStoreExtensionsTestsBase
     {
         [Test]
         public void GetsABucketByNameThenCallsGetItemOnTheBucket()

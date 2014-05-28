@@ -3,13 +3,15 @@ using System.Collections.Generic;
 using NUnit.Framework;
 using Rock.AssemblyInitialization;
 using Rock.Core.ModuleInitializer.UnitTestSupport.AssemblyInitialization;
+using Rock.Core.UnitTests.AssemblyInitialization;
 
-namespace Rock.Core.UnitTests.AssemblyInitialization
+// ReSharper disable once CheckNamespace
+namespace ModuleInitializerTests
 {
-    public class ModuleInitializerTests
+    public class ImplementorsOfIFrameworkInitializer
     {
         [Test]
-        public void EachImplementorOfIFrameworkInitializerHasItsInitializeMethodInvokedOnce()
+        public void HaveTheirInitializeMethodsInvokedOnce()
         {
             Assert.That(Rock_Core_UnitTests_FrameworkInitializer.InitializeInvocationCount, Is.EqualTo(1));
             Assert.That(Rock_Core_ModuleInitializer_UnitTestSupport_FrameworkInitializer.InitializeInvocationCount, Is.EqualTo(1));
@@ -22,7 +24,7 @@ namespace Rock.Core.UnitTests.AssemblyInitialization
         /// other types.
         /// </summary>
         [Test]
-        public void ImplementorsOfFrameworkInitializerAreExecutedInAssemblyReferenceOrder()
+        public void AreExecutedInAssemblyReferenceOrder()
         {
             Assert.That(FrameworkInitializerTestHelper.CalledFrameworkInitializerTypes, Is.EqualTo(TypesInAssemblyReferenceOrder));
         }

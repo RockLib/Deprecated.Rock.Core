@@ -2,6 +2,7 @@
 using NUnit.Framework;
 using Rock.Core.IntegrationTests.KeyValueStores;
 
+// ReSharper disable once CheckNamespace
 namespace FileBucketItemTests
 {
     public class TheKeyProperty : FileBucketItemTestBase

@@ -1,7 +1,8 @@
 ﻿using NUnit.Framework;
 using Rock.Collections;
 
-namespace Rock.Core.UnitTests.Collections
+// ReSharper disable once CheckNamespace
+namespace AsKeyedExtensionMethodTests
 {
     public class TheAsKeyedExtensionMethod
     {

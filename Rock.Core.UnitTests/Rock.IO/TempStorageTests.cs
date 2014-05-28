@@ -3,7 +3,8 @@ using Rock.Core.UnitTests.KeyValueStores.Extensions;
 using Rock.Defaults.Implementation;
 using Rock.IO;
 
-namespace Rock.Core.UnitTests.Rock.IO
+// ReSharper disable once CheckNamespace
+namespace TempStorageTests
 {
     public class TempStorageTests : KeyValueStoreExtensionsTestsBase
     {
