@@ -21,7 +21,7 @@ namespace Rock.Core.IntegrationTests.KeyValueStores
         {
             using (var stream = File.Create(BucketItemPath))
             {
-                Serializer.Serialize(stream, value, typeof(T));
+                Serializer.SerializeToStream(stream, value, typeof(T));
             }
         }
 
@@ -29,7 +29,7 @@ namespace Rock.Core.IntegrationTests.KeyValueStores
         {
             using (var stream = File.OpenRead(BucketItemPath))
             {
-                return (T)Serializer.Deserialize(stream, typeof(T));
+                return (T)Serializer.DeserializeFromStream(stream, typeof(T));
             }
         }
     }

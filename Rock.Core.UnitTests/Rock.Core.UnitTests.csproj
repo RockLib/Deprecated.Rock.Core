@@ -33,6 +33,10 @@
     <Reference Include="Moq">
       <HintPath>..\packages\Moq.4.2.1402.2112\lib\net40\Moq.dll</HintPath>
     </Reference>
+    <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Newtonsoft.Json.6.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="nunit.framework">
       <HintPath>..\packages\NUnit.2.6.3\lib\nunit.framework.dll</HintPath>
     </Reference>
@@ -66,8 +70,17 @@
     <Compile Include="AssemblyInitialization\ModuleInitializer.cs" />
     <Compile Include="Net\EndpointSelectorTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Rock.IO\TempStorageTests.cs" />
+    <Compile Include="IO\EncodedStringWriterTests.cs" />
+    <Compile Include="IO\TempStorageTests.cs" />
     <Compile Include="AssemblyInitialization\Rock_Core_UnitTests_FrameworkInitializer.cs" />
+    <Compile Include="Serialization\BinaryFormatterSerializerTests.cs" />
+    <Compile Include="Serialization\NewtonsoftJsonSerializerTests.cs" />
+    <Compile Include="Serialization\SerializerExtensionsTests.cs" />
+    <Compile Include="Serialization\ToBinaryExtensionTests.cs" />
+    <Compile Include="Serialization\ToJsonExtensionTests.cs" />
+    <Compile Include="Serialization\ToXmlExtensionTests.cs" />
+    <Compile Include="Serialization\UponRoundTripSerializationBase.cs" />
+    <Compile Include="Serialization\XSerializerSerializerTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

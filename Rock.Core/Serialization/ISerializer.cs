@@ -1,11 +1,15 @@
 using System;
 using System.IO;
+using System.Text;
 
 namespace Rock.Serialization
 {
     public interface ISerializer
     {
-        void Serialize(Stream stream, object item, Type type);
-        object Deserialize(Stream stream, Type type);
+        void SerializeToStream(Stream stream, object item, Type type);
+        object DeserializeFromStream(Stream stream, Type type);
+
+        string SerializeToString(object item, Type type, Encoding encoding = null);
+        object DeserializeFromString(string data, Type type, Encoding encoding = null);
     }
 }

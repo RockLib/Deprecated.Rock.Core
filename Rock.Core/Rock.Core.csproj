@@ -115,7 +115,7 @@
     <Compile Include="Serialization\BinaryFormatterSerializer.cs" />
     <Compile Include="Serialization\ISerializer.cs" />
     <Compile Include="Serialization\NewtonsoftJsonSerializer.cs" />
-    <Compile Include="Serialization\BinaryExtension.cs" />
+    <Compile Include="Serialization\ToBinaryExtension.cs" />
     <Compile Include="Serialization\SerializerExtensions.cs" />
     <Compile Include="Serialization\ToJsonExtension.cs" />
     <Compile Include="Conversion\ToExpandoObjectExtension.cs" />

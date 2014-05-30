@@ -53,7 +53,7 @@ namespace Rock.KeyValueStores
                 {
                     try
                     {
-                        value = _serializer.Deserialize<T>(stream);
+                        value = _serializer.DeserializeFromStream<T>(stream);
                         return true;
                     }
                     catch
@@ -79,7 +79,7 @@ namespace Rock.KeyValueStores
 
                 using (var stream = _fileInfo.OpenWrite())
                 {
-                    _serializer.Serialize(stream, value);
+                    _serializer.SerializeToStream(stream, value);
                 }
             }
             finally

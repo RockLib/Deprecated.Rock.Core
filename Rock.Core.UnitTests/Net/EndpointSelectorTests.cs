@@ -3,6 +3,7 @@ using Moq;
 using NUnit.Framework;
 using Rock.Net;
 
+// ReSharper disable once CheckNamespace
 namespace EndpointSelectorTests
 {
     public class TheGetFirstToRespondMethod
