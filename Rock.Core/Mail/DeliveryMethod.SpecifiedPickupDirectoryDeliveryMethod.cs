@@ -13,7 +13,7 @@ namespace Rock.Mail
                 _pickupDirectoryLocation = pickupDirectoryLocation;
             }
 
-            internal override void ConfigureSmtpClient(SmtpClient smtpClient)
+            public override void ConfigureSmtpClient(SmtpClient smtpClient)
             {
                 smtpClient.DeliveryMethod = SmtpDeliveryMethod.SpecifiedPickupDirectory;
                 smtpClient.PickupDirectoryLocation = _pickupDirectoryLocation;

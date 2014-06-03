@@ -68,6 +68,7 @@
     <Compile Include="KeyValueStores\Extensions\KeyValueStoreExtensionsTestsBase.cs" />
     <Compile Include="KeyValueStores\Extensions\TryGetExtensionsTests.cs" />
     <Compile Include="AssemblyInitialization\ModuleInitializer.cs" />
+    <Compile Include="Mail\DeliveryMethodTests.cs" />
     <Compile Include="Net\EndpointSelectorTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="IO\EncodedStringWriterTests.cs" />

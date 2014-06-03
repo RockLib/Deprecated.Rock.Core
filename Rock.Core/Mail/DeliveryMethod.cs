@@ -9,20 +9,13 @@ namespace Rock.Mail
     public abstract partial class DeliveryMethod
     {
         /// <summary>
-        /// Don't allow non-nested inheritors.
-        /// </summary>
-        private DeliveryMethod()
-        {
-        }
-
-        /// <summary>
         /// When overridden in a derived class, sets various properties of <paramref name="smtpClient"/>.
         /// </summary>
         /// <param name="smtpClient">The <see cref="SmtpClient"/> whose property values will be customized.</param>
-        internal abstract void ConfigureSmtpClient(SmtpClient smtpClient);
+        public abstract void ConfigureSmtpClient(SmtpClient smtpClient);
 
         /// <summary>
-        /// Gets the default delivery method, which uses the application's web.config or app.config for configuration.
+        /// Gets a delivery method that is configured by an application's web.config or app.config.
         /// </summary>
         public static DeliveryMethod Default
         {
@@ -30,7 +23,7 @@ namespace Rock.Mail
         }
 
         /// <summary>
-        /// Gets a delivery method that sends mail to the specified host using the specified port.
+        /// Gets a delivery method for sending mail to the specified host using the specified port.
         /// </summary>
         /// <param name="host">The host to send mail to.</param>
         /// <param name="port">The port on which to send mail. Optional.</param>
@@ -41,7 +34,7 @@ namespace Rock.Mail
         }
 
         /// <summary>
-        /// Gets a delivery method that saves mail messages to a target directory, accessable from the local machine.
+        /// Gets a delivery method for saving mail messages to a target directory, accessable from the local machine.
         /// </summary>
         /// <param name="pickupDirectoryLocation">The directory in which to save mail messages.</param>
         /// <returns>

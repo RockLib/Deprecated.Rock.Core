@@ -15,7 +15,7 @@ namespace Rock.Mail
             {
             }
 
-            internal override void ConfigureSmtpClient(SmtpClient smtpClient)
+            public override void ConfigureSmtpClient(SmtpClient smtpClient)
             {
             }
         }

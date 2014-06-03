@@ -99,7 +99,7 @@
     <Compile Include="Mail\DeliveryMethod.SpecifiedPickupDirectoryDeliveryMethod.cs" />
     <Compile Include="Mail\DeliveryMethod.NetworkDeliveryMethod.cs" />
     <Compile Include="Mail\DeliveryMethod.cs" />
-    <Compile Include="Mail\MailMessageExtensions.cs" />
+    <Compile Include="Mail\SendExtension.cs" />
     <Compile Include="AssemblyInitialization\ModuleInitializer.cs" />
     <Compile Include="Conversion\IConvertTo.cs" />
     <Compile Include="Collections\ConcatExtensions.cs" />

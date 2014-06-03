@@ -15,7 +15,7 @@ namespace Rock.Mail
                 _port = port;
             }
 
-            internal override void ConfigureSmtpClient(SmtpClient smtpClient)
+            public override void ConfigureSmtpClient(SmtpClient smtpClient)
             {
                 smtpClient.DeliveryMethod = SmtpDeliveryMethod.Network;
                 smtpClient.Host = _host;
