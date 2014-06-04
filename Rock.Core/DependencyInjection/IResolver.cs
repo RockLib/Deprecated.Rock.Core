@@ -4,7 +4,7 @@ namespace Rock.DependencyInjection
 {
     public interface IResolver
     {
-        bool CanResolve(Type type);
+        bool CanGet(Type type);
         T Get<T>();
         object Get(Type type);
 

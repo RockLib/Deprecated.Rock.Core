@@ -64,6 +64,7 @@
     <Compile Include="Defaults\Implementation\Default.JsonSerializer.cs" />
     <Compile Include="Defaults\Implementation\Default.TempStorage.cs" />
     <Compile Include="Defaults\Implementation\Default.XmlSerializer.cs" />
+    <Compile Include="DependencyInjection\Heuristics\ConstructorSelectorExtensions.cs" />
     <Compile Include="EntryAssemblyApplicationInfo.cs" />
     <Compile Include="AssemblyInitialization\IFrameworkInitializer.cs" />
     <Compile Include="Collections\AsKeyedExtension.cs" />

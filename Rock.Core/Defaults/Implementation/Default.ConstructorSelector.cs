@@ -21,5 +21,10 @@ namespace Rock.Defaults.Implementation
         {
             _constructorSelector.SetCurrent(getConstructorSelectorInstance);
         }
+
+        public static void RestoreDefaultConstructorSelector()
+        {
+            _constructorSelector.RestoreDefault();
+        }
     }
 }

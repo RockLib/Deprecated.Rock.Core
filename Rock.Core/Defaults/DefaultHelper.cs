@@ -23,6 +23,11 @@ namespace Rock.Defaults
             get { return _currentInstance.Value; }
         }
 
+        public void RestoreDefault()
+        {
+            SetCurrent(null);
+        }
+
         public void SetCurrent(Func<TContract> getInstance)
         {
             _currentInstance =

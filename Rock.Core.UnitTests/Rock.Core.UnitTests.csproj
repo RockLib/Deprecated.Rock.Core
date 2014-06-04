@@ -58,6 +58,8 @@
     <Compile Include="Collections\FunctionalKeyedCollectionTests.cs" />
     <Compile Include="Collections\KeyedCollectionTests.cs" />
     <Compile Include="Defaults\DefaultHelperTests.cs" />
+    <Compile Include="DependencyInjection\AutoContainerTests.cs" />
+    <Compile Include="DependencyInjection\ConstructorSelectorExtensionsTests.cs" />
     <Compile Include="DependencyInjection\ConstructorSelectorTests.cs" />
     <Compile Include="Extensions\GetEnumValueExtensionTests.cs" />
     <Compile Include="KeyValueStores\Extensions\DeleteExtensionsTests.cs" />

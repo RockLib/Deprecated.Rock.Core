@@ -14,14 +14,24 @@ namespace Rock.DependencyInjection
                 _secondaryContainer = seconaryContainer;
             }
 
-            public override bool CanResolve(Type type)
+            public override bool CanGet(Type type)
             {
-                return base.CanResolve(type) || _secondaryContainer.CanResolve(type);
+                return base.CanGet(type) || _secondaryContainer.CanGet(type);
             }
 
             public override object Get(Type type)
             {
-                return base.CanResolve(type) ? base.Get(type) : _secondaryContainer.Get(type);
+                return
+                    base.CanGet(type)
+                        ? base.Get(type)
+                        : _secondaryContainer.CanGet(type)
+                            ? _secondaryContainer.Get(type)
+                            : ThrowResolveException(type);
+            }
+
+            private static object ThrowResolveException(Type type)
+            {
+                throw new ResolveException("Neither the primary AutoContainer nor the secondary IResolver were able to retrieve an instance of type " + type);
             }
         }
     }

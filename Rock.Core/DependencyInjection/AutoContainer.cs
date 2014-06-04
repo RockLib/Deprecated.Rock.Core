@@ -33,7 +33,12 @@ namespace Rock.DependencyInjection
         }
 
         public AutoContainer(params object[] instances)
-            : this(new ConcurrentDictionary<Type, Func<object>>(), Default.ConstructorSelector)
+            : this(Default.ConstructorSelector, instances)
+        {
+        }
+
+        public AutoContainer(IConstructorSelector constructorSelector, IEnumerable<object> instances)
+            : this(new ConcurrentDictionary<Type, Func<object>>(), constructorSelector)
         {
             foreach (var instance in instances.Where(x => x != null))
             {
@@ -52,24 +57,20 @@ namespace Rock.DependencyInjection
             }
         }
 
-        public virtual bool CanResolve(Type type)
+        public virtual bool CanGet(Type type)
         {
             Func<object> binding;
-            return
-                (_bindings.TryGetValue(type, out binding) && binding != null)
-                || CanGetConstructor(type);
+            if (_bindings.TryGetValue(type, out binding))
+            {
+                return binding != null;
+            }
+
+            return CanGetConstructor(type);
         }
 
         public T Get<T>()
         {
-            var instance = Get(typeof(T));
-
-            if (instance == null)
-            {
-                return default(T);
-            }
-
-            return (T)instance;
+            return (T)Get(typeof(T));
         }
 
         public virtual object Get(Type type)
@@ -78,13 +79,17 @@ namespace Rock.DependencyInjection
                 _bindings.GetOrAdd(
                     type,
                     t =>
-                        CanGetConstructor(type)
-                            ? GetCreateInstanceFunc(type)
-                            : null);
+                    {
+                        ConstructorInfo ctor;
+                        return
+                            _constructorSelector.TryGetConstructor(type, this, out ctor)
+                                ? GetCreateInstanceFunc(ctor)
+                                : null;
+                    });
 
             if (getInstance == null)
             {
-                return null;
+                throw new ResolveException("Cannot resolve type: " + type);
             }
 
             return getInstance();
@@ -107,15 +112,8 @@ namespace Rock.DependencyInjection
                 && _constructorSelector.CanGetConstructor(type, this);
         }
 
-        private Func<object> GetCreateInstanceFunc(Type type)
+        private Func<object> GetCreateInstanceFunc(ConstructorInfo ctor)
         {
-            // First, we need to get the "right" constructor. We'll let our IConstructorSelector handle that.
-            ConstructorInfo ctor;
-            if (!_constructorSelector.TryGetConstructor(type, this, out ctor))
-            {
-                return null;
-            }
-
             // We're going to be creating a lambda expression of type Func<object>.
             // Then we'lle compile that expression and return the resulting Func<object>.
 
@@ -137,7 +135,7 @@ namespace Rock.DependencyInjection
                     Expression.New(ctor,
                         ctor.GetParameters()
                             .Select(p =>
-                                CanResolve(p.ParameterType)
+                                CanGet(p.ParameterType)
                                     ? (Expression)Expression.Call(
                                         thisExpression,
                                         _getMethod.Value.MakeGenericMethod(p.ParameterType))

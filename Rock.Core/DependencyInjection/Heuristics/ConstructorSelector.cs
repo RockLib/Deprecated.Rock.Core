@@ -7,42 +7,12 @@ namespace Rock.DependencyInjection.Heuristics
 {
     public class ConstructorSelector : IConstructorSelector
     {
-        public bool CanGetConstructor(Type type, IResolver resolver)
-        {
-            return GetConstructorImpl(type, resolver).Constructor != null;
-        }
-
         public bool TryGetConstructor(Type type, IResolver resolver, out ConstructorInfo constructor)
-        {
-            var result = GetConstructorImpl(type, resolver);
-            constructor = result.Constructor;
-            return constructor != null;
-        }
-
-        public ConstructorInfo GetConstructor(Type type, IResolver resolver)
-        {
-            var result = GetConstructorImpl(type, resolver);
-
-            if (result.Constructor != null)
-            {
-                return result.Constructor;
-            }
-
-            throw result.GetException();
-        }
-
-        private GetConstructorResult GetConstructorImpl(Type type, IResolver resolver)
         {
             if (type.IsAbstract)
             {
-                return new GetConstructorResult
-                {
-                    GetException = () =>
-                        new ResolveException(
-                            string.Format(
-                                "No resolvable constructors found for type '{0}' - abstract types cannot be instantiated.",
-                                type))
-                };
+                constructor = null;
+                return false;
             }
 
             var rankedConstructors =
@@ -56,35 +26,21 @@ namespace Rock.DependencyInjection.Heuristics
 
             if (!enumerator.MoveNext())
             {
-                return new GetConstructorResult
-                {
-                    GetException = () =>
-                        new ResolveException(
-                            string.Format(
-                                "No resolvable constructors found for type '{0}'.",
-                                type))
-                };
+                constructor = null;
+                return false;
             }
 
             if (enumerator.Current.Count() > 1)
             {
-                return new GetConstructorResult
-                {
-                    GetException = () =>
-                        new ResolveException(
-                            string.Format(
-                                "Multiple resolvable constructors found with the same priority for type '{0}'.",
-                                type))
-                };
+                constructor = null;
+                return false;
             }
 
-            return new GetConstructorResult
-            {
-                Constructor = enumerator.Current.Single().Constructor
-            };
+            constructor = enumerator.Current.Single().Constructor;
+            return true;
         }
 
-        private IEnumerable<VirtualContructor> GetVirtualContructors(ConstructorInfo constructor)
+        private static IEnumerable<VirtualContructor> GetVirtualContructors(ConstructorInfo constructor)
         {
             var parameters = constructor.GetParameters();
 
@@ -95,12 +51,7 @@ namespace Rock.DependencyInjection.Heuristics
                 GetCombinations(defaultParameters)
                     .OrderByDescending(x => x.Count)
                     .Select(combination =>
-                        new VirtualContructor
-                        {
-                            Constructor = constructor,
-                            Parameters = nonDefaultParameters.Concat(combination).ToArray(),
-                            DefaultParameterCount = defaultParameters.Length
-                        });
+                        new VirtualContructor(constructor, nonDefaultParameters.Concat(combination).ToArray(), defaultParameters.Length));
         }
 
         private static IEnumerable<IList<Type>> GetCombinations(IList<Type> types)
@@ -126,33 +77,54 @@ namespace Rock.DependencyInjection.Heuristics
 
         private class VirtualContructor
         {
-            public ConstructorInfo Constructor { get; set; }
-            public Type[] Parameters { get; set; }
-            public int DefaultParameterCount { get; set; }
+            private readonly Type[] _parameters;
+            private readonly int _defaultParameterCount;
+
+            public VirtualContructor(ConstructorInfo constructor, Type[] parameters, int defaultParameterCount)
+            {
+                Constructor = constructor;
+                _parameters = parameters;
+                _defaultParameterCount = defaultParameterCount;
+            }
+
+            public ConstructorInfo Constructor { get; private set; }
 
             public bool CanResolve(IResolver resolver)
             {
-                return Parameters.All(p => resolver.CanResolve(p) && !IsPrimitivish(p));
+                return _parameters.All(p => resolver.CanGet(p) && !IsPrimitivish(p));
             }
 
             public int GetScore()
             {
-                return (100 * Parameters.Length) - DefaultParameterCount;
+                return (100 * _parameters.Length) - _defaultParameterCount;
             }
 
             private static bool IsPrimitivish(Type type)
             {
                 return
+                    IsNonNullablePrimitivish(type)
+                    || IsNullablePrimitivish(type);
+            }
+
+            private static bool IsNonNullablePrimitivish(Type type)
+            {
+                return
                     type.IsPrimitive
                     || type == typeof(string)
-                    || (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>) && type.GetGenericArguments()[0].IsPrimitive);
+                    || type == typeof(decimal)
+                    || type == typeof(DateTime)
+                    || type == typeof(DateTimeOffset)
+                    || type == typeof(Guid)
+                    || type == typeof(TimeSpan);
             }
-        }
 
-        private class GetConstructorResult
-        {
-            public ConstructorInfo Constructor { get; set; }
-            public Func<Exception> GetException { get; set; }
+            private static bool IsNullablePrimitivish(Type type)
+            {
+                return
+                    type.IsGenericType
+                    && type.GetGenericTypeDefinition() == typeof(Nullable<>)
+                    && IsNonNullablePrimitivish(type.GetGenericArguments()[0]);
+            }
         }
     }
 }
