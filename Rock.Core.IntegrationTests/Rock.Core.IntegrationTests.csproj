@@ -53,6 +53,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AssemblyInitialization\ModuleInitializer.cs" />
+    <Compile Include="EntryAssemblyApplicationInfoTests.cs" />
     <Compile Include="KeyValueStores\File\DirectoryBucketTestBase.cs" />
     <Compile Include="KeyValueStores\File\DirectoryBucketTests.cs" />
     <Compile Include="KeyValueStores\File\FileBucketItemTestBase.cs" />
@@ -76,6 +77,10 @@
     <ProjectReference Include="..\Rock.Core\Rock.Core.csproj">
       <Project>{0feb58cd-b15c-4cdc-83d6-7621c1db98c7}</Project>
       <Name>Rock.Core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\SampleApplication\SampleApplication.csproj">
+      <Project>{21577cbe-8ae1-4188-b1e3-81d0700535d1}</Project>
+      <Name>SampleApplication</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

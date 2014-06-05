@@ -10,20 +10,21 @@ namespace Rock
     {
         private static readonly IEnumerable<string> _assembliesToIgnore = new[]
         {
+            typeof(EntryAssemblyApplicationInfo).Assembly.GetName().Name,
             "mscorlib",
             "Microsoft.VisualStudio.HostingProcess.Utilities",
             "nunit.core",
             "JetBrains.ReSharper.UnitTestRunner.nUnit",
-            "JetBrains.ReSharper.TaskRunnerFramework"
+            "JetBrains.ReSharper.TaskRunnerFramework",
+            // TODO: add assembly names for other unit test runners
         };
 
-        private readonly Lazy<Assembly> _entryAssembly;
         private readonly Lazy<string> _appId;
 
         public EntryAssemblyApplicationInfo()
         {
-            _entryAssembly = new Lazy<Assembly>(GetEntryAssembly);
-            _appId = new Lazy<string>(() => _entryAssembly.Value.GetName().Name);
+            var entryAssembly = new Lazy<Assembly>(GetEntryAssembly);
+            _appId = new Lazy<string>(() => entryAssembly.Value.GetName().Name);
         }
 
         private static Assembly GetEntryAssembly()
