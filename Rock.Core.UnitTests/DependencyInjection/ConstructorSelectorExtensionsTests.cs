@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Reflection;
 using Moq;
 using NUnit.Framework;
 using Rock.DependencyInjection;
 using Rock.DependencyInjection.Heuristics;
 
+// ReSharper disable once CheckNamespace
 namespace ConstructorSelectorExtensionsTests
 {
     public class TheGetConstructorExtensionMethod
@@ -11,9 +13,10 @@ namespace ConstructorSelectorExtensionsTests
         [Test]
         public void WhenTryGetConstructorReturnsTrueReturnsTheValueOfTheOutParameter()
         {
+            var mockConstructorSelector = new Mock<IConstructorSelector>();
+
             // ReSharper disable once RedundantAssignment
             var returnCtor = typeof(object).GetConstructor(Type.EmptyTypes);
-            var mockConstructorSelector = new Mock<IConstructorSelector>();
             mockConstructorSelector
                 .Setup(m => m.TryGetConstructor(typeof(object), It.IsAny<IResolver>(), out returnCtor))
                 .Returns(true);
@@ -25,9 +28,10 @@ namespace ConstructorSelectorExtensionsTests
         [Test]
         public void WhenTryGetConstructorReturnsFalseThrowsAnException()
         {
-            // ReSharper disable once RedundantAssignment
-            var returnCtor = typeof(object).GetConstructor(Type.EmptyTypes);
             var mockConstructorSelector = new Mock<IConstructorSelector>();
+
+            // ReSharper disable once RedundantAssignment
+            ConstructorInfo returnCtor = null;
             mockConstructorSelector
                 .Setup(m => m.TryGetConstructor(typeof(object), It.IsAny<IResolver>(), out returnCtor))
                 .Returns(false);
@@ -42,9 +46,10 @@ namespace ConstructorSelectorExtensionsTests
         [TestCase(false)]
         public void ReturnsWhatTheTryGetConstructorMethodFromTheConstructorSelectorReturns(bool whatTheTryGetConstructorMethodReturns)
         {
-            // ReSharper disable once RedundantAssignment
-            var returnCtor = typeof(object).GetConstructor(Type.EmptyTypes);
             var mockConstructorSelector = new Mock<IConstructorSelector>();
+
+            // ReSharper disable once RedundantAssignment
+            ConstructorInfo returnCtor = null;
             mockConstructorSelector
                 .Setup(m => m.TryGetConstructor(typeof(object), It.IsAny<IResolver>(), out returnCtor))
                 .Returns(whatTheTryGetConstructorMethodReturns);

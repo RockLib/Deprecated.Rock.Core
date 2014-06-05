@@ -29,6 +29,7 @@ namespace GetEnumValueExtensionTests
             const string value = "Baz";
 
             Assert.That(() => value.GetEnumValue<Bar>(), Throws.Exception);
+            Assert.That(() => value.GetEnumValue<Bar>(), Throws.Exception);
         }
 
         public enum Foo

@@ -21,5 +21,10 @@ namespace Rock.Defaults.Implementation
         {
             _binarySerializer.SetCurrent(getBinarySerializerInstance);
         }
+
+        public static void RestoreDefaultBinarySerializer()
+        {
+            _binarySerializer.RestoreDefault();
+        }
     }
 }

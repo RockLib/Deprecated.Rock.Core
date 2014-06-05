@@ -20,5 +20,10 @@ namespace Rock.Defaults.Implementation
         {
             _applicationInfo.SetCurrent(getApplicationInfoInstance);
         }
+
+        public static void RestoreDefaultApplicationInfo()
+        {
+            _applicationInfo.RestoreDefault();
+        }
     }
 }

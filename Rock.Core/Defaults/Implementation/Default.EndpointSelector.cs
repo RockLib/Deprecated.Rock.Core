@@ -21,5 +21,10 @@ namespace Rock.Defaults.Implementation
         {
             _endpointSelector.SetCurrent(getEndpointSelectorInstance);
         }
+
+        public static void RestoreDefaultEndpointSelector()
+        {
+            _endpointSelector.RestoreDefault();
+        }
     }
 }

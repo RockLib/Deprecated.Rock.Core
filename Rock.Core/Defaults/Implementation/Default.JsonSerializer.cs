@@ -21,5 +21,10 @@ namespace Rock.Defaults.Implementation
         {
             _jsonSerializer.SetCurrent(getJsonSerializerInstance);
         }
+
+        public static void RestoreDefaultJsonSerializer()
+        {
+            _jsonSerializer.RestoreDefault();
+        }
     }
 }

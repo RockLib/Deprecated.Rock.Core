@@ -4,7 +4,7 @@ using Rock.Collections;
 // ReSharper disable once CheckNamespace
 namespace FunctionalKeyedCollectionTests
 {
-    public class TheFunctionalKeyedCollectionConstrucor
+    public class TheFunctionalKeyedCollectionConstructor
     {
         [Test]
         public void UsesTheFunctionPassedInToDetermineTheKeyOfAnObject()

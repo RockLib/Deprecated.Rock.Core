@@ -21,5 +21,10 @@ namespace Rock.Defaults.Implementation
         {
             _xmlSerializer.SetCurrent(getXmlSerializerInstance);
         }
+
+        public static void RestoreDefaultXmlSerializer()
+        {
+            _xmlSerializer.RestoreDefault();
+        }
     }
 }

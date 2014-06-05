@@ -9,7 +9,7 @@ namespace AsKeyedExtensionMethodTests
         [Test]
         public void ReturnsAnInstanceOfKeyedCollection()
         {
-            var enumerable = new[] { new Foo() { Bar = "abc" } };
+            var enumerable = new[] { new Foo { Bar = "abc" } };
 
             var keyedEnumerable = enumerable.AsKeyed(f => f.Bar);
 

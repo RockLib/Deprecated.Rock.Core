@@ -57,6 +57,17 @@ namespace ConstructorSelectorTests
                 Assert.That(sut.TryGetConstructor(typeof(Class1), MockResolver.Object, out dummy), Is.False);
             }
 
+            [Test]
+            public void SetsTheOutParameterToNullWhenNoResolvableConstructorExists()
+            {
+                var sut = new ConstructorSelector();
+
+                ConstructorInfo ctor;
+                sut.TryGetConstructor(typeof(Class1), MockResolver.Object, out ctor);
+
+                Assert.That(ctor, Is.Null);
+            }
+
             [TestCase(typeof(AbstractClass))]
             [TestCase(typeof(IInterface1))]
             public void ReturnsFalseIfTheTypeIsAbstract(Type abstractType)
@@ -70,18 +81,7 @@ namespace ConstructorSelectorTests
             }
 
             [Test]
-            public void SetsTheOutParameterToNullWhenNoResolvableConstructorExists()
-            {
-                var sut = new ConstructorSelector();
-
-                ConstructorInfo ctor;
-                sut.TryGetConstructor(typeof(Class1), MockResolver.Object, out ctor);
-
-                Assert.That(ctor, Is.Null);
-            }
-
-            [Test]
-            public void ChoosesAResolvableConstructor()
+            public void ChoosesTheResolvableConstructorWhenThereAreMoreThanOnceResolvableConstructorsAndOnlyOneIsResolvable()
             {
                 SetResolvable(typeof(IInterface1));
                 SetResolvable(typeof(IInterface2));
@@ -125,7 +125,7 @@ namespace ConstructorSelectorTests
             public class GivenTwoResolvableConstructorsWithTheSameNumberOfParameters : ConstructorSelectorTests
             {
                 [Test]
-                public void IfNoParametersAreDefaultReturnsFalse()
+                public void IfNoParametersAreDefaultOnEitherReturnsFalse()
                 {
                     SetResolvable(typeof(IInterface1));
                     SetResolvable(typeof(IInterface2));

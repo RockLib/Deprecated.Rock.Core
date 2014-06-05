@@ -1,13 +1,21 @@
 ﻿using System.Globalization;
+using System.IO;
 using System.Text;
 using NUnit.Framework;
 using Rock.IO;
 
 // ReSharper disable once CheckNamespace
-
-
 namespace EncodedStringWriterTests
 {
+    public class TheEncodedStringWriterClass
+    {
+        [Test]
+        public void InheritsFromTheStringWriterClass()
+        {
+            Assert.That(typeof(EncodedStringWriter).BaseType, Is.EqualTo(typeof(StringWriter)));
+        }
+    }
+
     public class TheFirstConstructor
     {
         [Test]

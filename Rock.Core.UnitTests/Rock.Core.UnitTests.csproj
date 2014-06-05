@@ -58,6 +58,16 @@
     <Compile Include="Collections\FunctionalKeyedCollectionTests.cs" />
     <Compile Include="Collections\KeyedCollectionTests.cs" />
     <Compile Include="Defaults\DefaultHelperTests.cs" />
+    <Compile Include="Defaults\Implementation\DefaultTestBase.cs" />
+    <Compile Include="Defaults\Implementation\Default.ApplicationInfoTests.cs" />
+    <Compile Include="Defaults\Implementation\Default.BinarySerializerTests.cs" />
+    <Compile Include="Defaults\Implementation\Default.ConstructorSelectorTests.cs" />
+    <Compile Include="Defaults\Implementation\Default.ConvertToExpandoObjectTests.cs" />
+    <Compile Include="Defaults\Implementation\Default.EndpointDetectorTests.cs" />
+    <Compile Include="Defaults\Implementation\Default.EndpointSelectorTests.cs" />
+    <Compile Include="Defaults\Implementation\Default.JsonSerializerTests.cs" />
+    <Compile Include="Defaults\Implementation\Default.TempStorageTests.cs" />
+    <Compile Include="Defaults\Implementation\Default.XmlSerializerTests.cs" />
     <Compile Include="DependencyInjection\AutoContainerTests.cs" />
     <Compile Include="DependencyInjection\ConstructorSelectorExtensionsTests.cs" />
     <Compile Include="DependencyInjection\ConstructorSelectorTests.cs" />

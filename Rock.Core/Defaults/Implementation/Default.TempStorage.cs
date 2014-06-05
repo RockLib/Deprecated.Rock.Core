@@ -27,5 +27,10 @@ namespace Rock.Defaults.Implementation
         {
             _tempStorage.SetCurrent(getTempStorageInstance);
         }
+
+        public static void RestoreDefaultTempStorage()
+        {
+            _tempStorage.RestoreDefault();
+        }
     }
 }

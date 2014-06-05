@@ -22,5 +22,10 @@ namespace Rock.Defaults.Implementation
         {
             _convertToExpandoObject.SetCurrent(getConvertToExpandoObjectInstance);
         }
+
+        public static void RestoreDefaultConvertToExpandoObject()
+        {
+            _convertToExpandoObject.RestoreDefault();
+        }
     }
 }

@@ -21,5 +21,10 @@ namespace Rock.Defaults.Implementation
         {
             _endpointDetector.SetCurrent(getEndpointDetectorInstance);
         }
+
+        public static void RestoreDefaultEndpointDetector()
+        {
+            _endpointDetector.RestoreDefault();
+        }
     }
 }

@@ -23,7 +23,7 @@ namespace AutoContainerTests
                     Default.SetConstructorSelector(() => mockConstructorSelector.Object);
 
                     var container = new AutoContainer();
-                    container.CanGet(typeof(Foo));
+                    container.CanGet(typeof(Foo)); // This method ends up accessing the constructor selector.
 
                     ConstructorInfo dummy;
                     mockConstructorSelector.Verify(
@@ -320,7 +320,7 @@ namespace AutoContainerTests
 
         public class Foo : FooBase, IFoo
         {
-            public Foo(int x)
+            public Foo(object x)
             {
             }
         }

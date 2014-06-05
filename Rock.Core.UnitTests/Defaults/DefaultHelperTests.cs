@@ -58,8 +58,28 @@ namespace DefaultHelperTests
             {
                 var defaultHelper = new DefaultHelper<Foo>(() => new Foo());
 
-                defaultHelper.SetCurrent(() => new Foo());
+                var foo = new Foo();
+                defaultHelper.SetCurrent(() => foo);
+                Assert.That(defaultHelper.Current, Is.SameAs(foo)); // Sanity check, since we've called SetCurrent
+
                 defaultHelper.SetCurrent(null);
+
+                Assert.That(defaultHelper.Current, Is.SameAs(defaultHelper.DefaultInstance));
+            }
+        }
+
+        public class TheRestoreDefaultMethod
+        {
+            [Test]
+            public void CausesTheCurrentPropertyToReturnTheValueOfTheDefaultInstanceProperty()
+            {
+                var defaultHelper = new DefaultHelper<Foo>(() => new Foo());
+
+                var foo = new Foo();
+                defaultHelper.SetCurrent(() => foo);
+                Assert.That(defaultHelper.Current, Is.SameAs(foo)); // Sanity check, since we've called SetCurrent
+
+                defaultHelper.RestoreDefault();
 
                 Assert.That(defaultHelper.Current, Is.SameAs(defaultHelper.DefaultInstance));
             }
