@@ -108,7 +108,7 @@
     <Compile Include="Net\EndpointSelector.cs" />
     <Compile Include="Net\EndpointSelectorExtensions.cs" />
     <Compile Include="Net\EndpointStatus.cs" />
-    <Compile Include="Net\Http\RetryHttpClient.cs" />
+    <Compile Include="Net\Http\WithRetryExtension.cs" />
     <Compile Include="Net\IEndpointDetector.cs" />
     <Compile Include="Net\IEndpointSelector.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
