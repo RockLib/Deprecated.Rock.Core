@@ -63,7 +63,7 @@
     <Compile Include="Defaults\Implementation\Default.ApplicationInfoTests.cs" />
     <Compile Include="Defaults\Implementation\Default.BinarySerializerTests.cs" />
     <Compile Include="Defaults\Implementation\Default.ConstructorSelectorTests.cs" />
-    <Compile Include="Defaults\Implementation\Default.ConvertToExpandoObjectTests.cs" />
+    <Compile Include="Defaults\Implementation\Default.ExpandoObjectConverterTests.cs" />
     <Compile Include="Defaults\Implementation\Default.EndpointDetectorTests.cs" />
     <Compile Include="Defaults\Implementation\Default.EndpointSelectorTests.cs" />
     <Compile Include="Defaults\Implementation\Default.JsonSerializerTests.cs" />

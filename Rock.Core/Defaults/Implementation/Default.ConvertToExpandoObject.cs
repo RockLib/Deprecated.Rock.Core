@@ -6,26 +6,26 @@ namespace Rock.Defaults.Implementation
 {
     public static partial class Default
     {
-        private static readonly DefaultHelper<IConvertTo<ExpandoObject>> _convertToExpandoObject = new DefaultHelper<IConvertTo<ExpandoObject>>(() => new ReflectinatorConvertToExpandoObject());
+        private static readonly DefaultHelper<IConverter<ExpandoObject>> _expandoObjectConverter = new DefaultHelper<IConverter<ExpandoObject>>(() => new ReflectinatorExpandoObjectConverter());
 
-        public static IConvertTo<ExpandoObject> ConvertToExpandoObject
+        public static IConverter<ExpandoObject> ExpandoObjectConverter
         {
-            get { return _convertToExpandoObject.Current; }
+            get { return _expandoObjectConverter.Current; }
         }
 
-        public static IConvertTo<ExpandoObject> DefaultConvertToExpandoObject
+        public static IConverter<ExpandoObject> DefaultExpandoObjectConverter
         {
-            get { return _convertToExpandoObject.DefaultInstance; }
+            get { return _expandoObjectConverter.DefaultInstance; }
         }
 
-        public static void SetConvertToExpandoObject(Func<IConvertTo<ExpandoObject>> getConvertToExpandoObjectInstance)
+        public static void SetExpandoObjectConverter(Func<IConverter<ExpandoObject>> getExpandoObjectConverterInstance)
         {
-            _convertToExpandoObject.SetCurrent(getConvertToExpandoObjectInstance);
+            _expandoObjectConverter.SetCurrent(getExpandoObjectConverterInstance);
         }
 
-        public static void RestoreDefaultConvertToExpandoObject()
+        public static void RestoreDefaultExpandoObjectConverter()
         {
-            _convertToExpandoObject.RestoreDefault();
+            _expandoObjectConverter.RestoreDefault();
         }
     }
 }

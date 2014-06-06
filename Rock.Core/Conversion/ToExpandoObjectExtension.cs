@@ -7,7 +7,7 @@ namespace Rock.Conversion
     {
         public static ExpandoObject ToExpandoObject(this object obj)
         {
-            return Default.ConvertToExpandoObject.Convert(obj);
+            return Default.ExpandoObjectConverter.Convert(obj);
         }
     }
 }
