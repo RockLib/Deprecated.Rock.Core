@@ -18,7 +18,7 @@ namespace Rock.Core.IntegrationTests.KeyValueStores
         public void Setup()
         {
             Delete();
-            _keyValueStore = new Lazy<FileKeyValueStore>(() => new FileKeyValueStore(Serializer, _directoryInfo));
+            _keyValueStore = new Lazy<FileKeyValueStore>(CreateKeyValueStore);
         }
 
         [TearDown]
@@ -32,6 +32,10 @@ namespace Rock.Core.IntegrationTests.KeyValueStores
             get { return _keyValueStore.Value; }
         }
 
+        protected static FileKeyValueStore CreateKeyValueStore()
+        {
+            return new FileKeyValueStore(Serializer, _directoryInfo);
+        }
 
         private static void Delete()
         {

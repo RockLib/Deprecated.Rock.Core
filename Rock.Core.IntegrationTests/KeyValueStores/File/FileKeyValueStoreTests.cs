@@ -17,11 +17,6 @@ namespace FileKeyValueStoreTests
 
             Assert.That(Directory.Exists(KeyValueStorePath), Is.True);
         }
-
-        private void CreateKeyValueStore()
-        {
-            KeyValueStore.GetBuckets();
-        }
     }
 
     public class TheGetBucketsMethod : FileKeyValueStoreTestBase
