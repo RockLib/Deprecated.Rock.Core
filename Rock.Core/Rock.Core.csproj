@@ -55,6 +55,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Defaults\Implementation\Default.PrimitivishTypes.cs" />
     <Compile Include="Defaults\Implementation\Default.ApplicationInfo.cs" />
     <Compile Include="Defaults\Implementation\Default.BinarySerializer.cs" />
     <Compile Include="Defaults\Implementation\Default.ConstructorSelector.cs" />
@@ -81,6 +82,7 @@
     </Compile>
     <Compile Include="DependencyInjection\ResolveException.cs" />
     <Compile Include="Extensions\GetEnumValueExtension.cs" />
+    <Compile Include="Extensions\IsPrimitivishExtension.cs" />
     <Compile Include="IApplicationInfo.cs" />
     <Compile Include="IO\EncodedStringWriter.cs" />
     <Compile Include="KeyValueStores\Extensions\PutExtensions.cs" />

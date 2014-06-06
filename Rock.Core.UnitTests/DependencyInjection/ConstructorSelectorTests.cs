@@ -109,7 +109,7 @@ namespace ConstructorSelectorTests
             }
 
             [Test]
-            public void NeverSelectsAConstructorWithANonDefaultPrimitiveParameter()
+            public void NeverSelectsAConstructorWithANonDefaultPrimitivishParameter()
             {
                 SetResolvable(typeof(IInterface1));
                 SetResolvable(typeof(IInterface2));

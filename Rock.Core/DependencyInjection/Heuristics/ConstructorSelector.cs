@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Rock.Extensions;
 
 namespace Rock.DependencyInjection.Heuristics
 {
@@ -91,39 +92,12 @@ namespace Rock.DependencyInjection.Heuristics
 
             public bool CanResolve(IResolver resolver)
             {
-                return _parameters.All(p => resolver.CanGet(p) && !IsPrimitivish(p));
+                return _parameters.All(p => resolver.CanGet(p) && !p.IsPrimitivish());
             }
 
             public int GetScore()
             {
                 return (100 * _parameters.Length) - _defaultParameterCount;
-            }
-
-            private static bool IsPrimitivish(Type type)
-            {
-                return
-                    IsNonNullablePrimitivish(type)
-                    || IsNullablePrimitivish(type);
-            }
-
-            private static bool IsNonNullablePrimitivish(Type type)
-            {
-                return
-                    type.IsPrimitive
-                    || type == typeof(string)
-                    || type == typeof(decimal)
-                    || type == typeof(DateTime)
-                    || type == typeof(DateTimeOffset)
-                    || type == typeof(Guid)
-                    || type == typeof(TimeSpan);
-            }
-
-            private static bool IsNullablePrimitivish(Type type)
-            {
-                return
-                    type.IsGenericType
-                    && type.GetGenericTypeDefinition() == typeof(Nullable<>)
-                    && IsNonNullablePrimitivish(type.GetGenericArguments()[0]);
             }
         }
     }

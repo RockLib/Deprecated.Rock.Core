@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
 using Reflectinator;
+using Rock.Extensions;
 
 namespace Rock.Conversion
 {
@@ -12,9 +13,6 @@ namespace Rock.Conversion
     {
         private readonly ConcurrentDictionary<Type, Func<object, ExpandoObject>> _createFunctionCache =
             new ConcurrentDictionary<Type, Func<object, ExpandoObject>>();
-
-        private readonly ConcurrentDictionary<Type, bool> _isPrimitivishOrNullablePrimitivishCache =
-            new ConcurrentDictionary<Type, bool>(); 
 
         public ExpandoObject Convert(object obj)
         {
@@ -33,7 +31,7 @@ namespace Rock.Conversion
 
         private Func<object, ExpandoObject> GetCreateFunction(Type type)
         {
-            if (IsPrimitivishOrNullablePrimitivish(type))
+            if (type.IsPrimitivish())
             {
                 throw new InvalidOperationException(string.Format("Cannot convert type '{0}' to ExpandoObject.", type));
             }
@@ -168,28 +166,12 @@ namespace Rock.Conversion
                 return null;
             }
 
-            if (IsPrimitivishOrNullablePrimitivish(obj.GetType()))
+            if (obj.GetType().IsPrimitivish())
             {
                 return obj;
             }
 
             return Convert(obj);
-        }
-
-        private bool IsPrimitivishOrNullablePrimitivish(Type type)
-        {
-            return _isPrimitivishOrNullablePrimitivishCache.GetOrAdd(
-                type,
-                t =>
-                    IsPrimitivish(t)
-                    || (t.IsGenericType
-                        && t.GetGenericTypeDefinition() == typeof(Nullable<>)
-                        && IsPrimitivish(t.GetGenericArguments()[0])));
-        }
-
-        private static bool IsPrimitivish(Type type)
-        {
-            return type.IsPrimitive || type == typeof(string) || type == typeof(decimal);
         }
     }
 }

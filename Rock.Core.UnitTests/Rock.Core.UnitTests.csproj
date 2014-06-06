@@ -58,6 +58,7 @@
     <Compile Include="Collections\FunctionalKeyedCollectionTests.cs" />
     <Compile Include="Collections\KeyedCollectionTests.cs" />
     <Compile Include="Defaults\DefaultHelperTests.cs" />
+    <Compile Include="Defaults\Implementation\Default.PrimitivishTypesTests.cs" />
     <Compile Include="Defaults\Implementation\DefaultTestBase.cs" />
     <Compile Include="Defaults\Implementation\Default.ApplicationInfoTests.cs" />
     <Compile Include="Defaults\Implementation\Default.BinarySerializerTests.cs" />
@@ -72,6 +73,7 @@
     <Compile Include="DependencyInjection\ConstructorSelectorExtensionsTests.cs" />
     <Compile Include="DependencyInjection\ConstructorSelectorTests.cs" />
     <Compile Include="Extensions\GetEnumValueExtensionTests.cs" />
+    <Compile Include="Extensions\IsPrimitivishExtensionTests.cs" />
     <Compile Include="KeyValueStores\Extensions\DeleteExtensionsTests.cs" />
     <Compile Include="KeyValueStores\Extensions\GetExtensionsTests.cs" />
     <Compile Include="KeyValueStores\Extensions\GetItemExtensionTests.cs" />
