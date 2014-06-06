@@ -7,7 +7,7 @@ namespace DefaultHelperTests.Implementation
     {
         protected override string PropertyName
         {
-            get { return "PrimitivishTypes"; }
+            get { return "ExtraPrimitivishTypes"; }
         }
     }
 }

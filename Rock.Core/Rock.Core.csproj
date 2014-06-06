@@ -55,7 +55,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Defaults\Implementation\Default.PrimitivishTypes.cs" />
+    <Compile Include="Defaults\Implementation\Default.ExtraPrimitivishTypes.cs" />
     <Compile Include="Defaults\Implementation\Default.ApplicationInfo.cs" />
     <Compile Include="Defaults\Implementation\Default.BinarySerializer.cs" />
     <Compile Include="Defaults\Implementation\Default.ConstructorSelector.cs" />

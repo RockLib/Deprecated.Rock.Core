@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Linq;
 using Rock.Defaults.Implementation;
 
@@ -7,32 +7,39 @@ namespace Rock.Extensions
 {
     public static class IsPrimitivishExtension
     {
-        private static readonly ConcurrentDictionary<Type, bool> _cache = new ConcurrentDictionary<Type, bool>(); 
-
-        public static bool IsPrimitivish(this Type type)
+        internal static readonly Type[] _defaultPrimitivishTypes =
         {
-            return _cache.GetOrAdd(type, t => t.IsNonNullablePrimitivish() || t.IsNullablePrimitivish());
+            typeof(string),
+            typeof(decimal),
+            typeof(DateTime),
+            typeof(DateTimeOffset),
+            typeof(Guid),
+            typeof(TimeSpan)
+        };
+
+        public static bool IsPrimitivish(this Type type, IEnumerable<Type> extraPrimitivishTypes = null)
+        {
+            var primitivishTypeList = _defaultPrimitivishTypes.Concat(extraPrimitivishTypes ?? Default.ExtraPrimitivishTypes).ToList();
+
+            return
+                type.IsNonNullablePrimitivish(primitivishTypeList)
+                || type.IsNullablePrimitivish(primitivishTypeList);
         }
 
-        internal static void ClearCache()
-        {
-            _cache.Clear();
-        }
-
-        private static bool IsNonNullablePrimitivish(this Type type)
+        private static bool IsNonNullablePrimitivish(this Type type, IEnumerable<Type> primitivishTypes)
         {
             return
                 type.IsPrimitive
                 || type.IsEnum
-                || Default.PrimitivishTypes.Any(t => t == type);
+                || primitivishTypes.Any(t => t == type);
         }
 
-        private static bool IsNullablePrimitivish(this Type type)
+        private static bool IsNullablePrimitivish(this Type type, IEnumerable<Type> primitivishTypes)
         {
             return
                 type.IsGenericType
                 && type.GetGenericTypeDefinition() == typeof(Nullable<>)
-                && type.GetGenericArguments()[0].IsNonNullablePrimitivish();
+                && type.GetGenericArguments()[0].IsNonNullablePrimitivish(primitivishTypes);
         }
     }
 }
