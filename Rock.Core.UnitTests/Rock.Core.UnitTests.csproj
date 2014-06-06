@@ -53,6 +53,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AssemblyInitialization\ModuleInitializerTests.cs" />
+    <Compile Include="Utilities\AttributeLocatorTests.cs" />
     <Compile Include="Collections\AsKeyedExtensionTests.cs" />
     <Compile Include="Collections\ConcatExtensionsTests.cs" />
     <Compile Include="Collections\FunctionalKeyedCollectionTests.cs" />
