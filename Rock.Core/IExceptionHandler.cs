@@ -1,9 +1,10 @@
 ﻿using System;
+using System.Threading.Tasks;
 
 namespace Rock
 {
     public interface IExceptionHandler
     {
-        void HandleException(Exception ex);
+        Task HandleException(Exception ex);
     }
 }
