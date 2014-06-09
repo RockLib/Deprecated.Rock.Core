@@ -28,6 +28,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <DocumentationFile>bin\Release\Rock.Core.xml</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
@@ -55,6 +56,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="IExceptionHandler.cs" />
+    <Compile Include="NullExceptionHandler.cs" />
     <Compile Include="Utilities\AttributeLocator.cs" />
     <Compile Include="Defaults\Implementation\Default.cs" />
     <Compile Include="Defaults\Implementation\Default.ExtraPrimitivishTypes.cs" />
