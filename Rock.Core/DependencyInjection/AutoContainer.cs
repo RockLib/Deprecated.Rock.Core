@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using Rock.Defaults;
 using Rock.Defaults.Implementation;
 using Rock.DependencyInjection.Heuristics;
 
@@ -32,6 +33,7 @@ namespace Rock.DependencyInjection
         {
         }
 
+        [UsesDefaultValue(typeof(Default), "ConstructorSelector")]
         public AutoContainer(params object[] instances)
             : this(Default.ConstructorSelector, instances)
         {

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Rock.Defaults;
 using Rock.Defaults.Implementation;
 
 namespace Rock.Extensions
@@ -17,6 +18,7 @@ namespace Rock.Extensions
             typeof(TimeSpan)
         };
 
+        [UsesDefaultValue(typeof(Default), "ExtraPrimitivishTypes")]
         public static bool IsPrimitivish(this Type type, IEnumerable<Type> extraPrimitivishTypes = null)
         {
             var primitivishTypeList = _defaultPrimitivishTypes.Concat(extraPrimitivishTypes ?? Default.ExtraPrimitivishTypes).ToList();
