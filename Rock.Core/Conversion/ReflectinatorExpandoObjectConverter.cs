@@ -5,15 +5,18 @@ using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
 using Reflectinator;
+using Rock.Defaults;
+using Rock.Defaults.Implementation;
 using Rock.Extensions;
 
 namespace Rock.Conversion
 {
     public class ReflectinatorExpandoObjectConverter : IConverter<ExpandoObject>
     {
-        private readonly ConcurrentDictionary<Type, Func<object, ExpandoObject>> _createFunctionCache =
-            new ConcurrentDictionary<Type, Func<object, ExpandoObject>>();
+        private readonly ConcurrentDictionary<Type, Func<object, ExpandoObject>> _createExpandoObjectFunctions = new ConcurrentDictionary<Type, Func<object, ExpandoObject>>();
+        private readonly ConcurrentDictionary<Type, Func<object, object>> _getPropertyValueFunctions = new ConcurrentDictionary<Type, Func<object, object>>();
 
+        [UsesDefaultValue(typeof(Default), "ExtraPrimitivishTypes")]
         public ExpandoObject Convert(object obj)
         {
             if (obj == null)
@@ -21,7 +24,7 @@ namespace Rock.Conversion
                 return null;
             }
 
-            var createExpandoObject = _createFunctionCache.GetOrAdd(obj.GetType(), GetCreateExpandoObjectFunction);
+            var createExpandoObject = _createExpandoObjectFunctions.GetOrAdd(obj.GetType(), GetCreateExpandoObjectFunction);
 
             return createExpandoObject(obj);
         }
@@ -77,7 +80,7 @@ namespace Rock.Conversion
 
             foreach (var sourceItem in sourceDictionary)
             {
-                targetDictionary[sourceItem.Key] = GetValueForExpandoObject(sourceItem.Value);
+                targetDictionary[sourceItem.Key] = GetPropertyValue(sourceItem.Value);
             }
 
             return expando;
@@ -122,7 +125,7 @@ namespace Rock.Conversion
                         while (sourceItems.MoveNext())
                         {
                             var sourceItem = sourceItems.Current;
-                            targetDictionary[(string)getKey(sourceItem)] = GetValueForExpandoObject(getValue(sourceItem));
+                            targetDictionary[(string)getKey(sourceItem)] = GetPropertyValue(getValue(sourceItem));
                         }
 
                         return expando;
@@ -146,7 +149,7 @@ namespace Rock.Conversion
 
                     foreach (var property in properties)
                     {
-                        targetDictionary[property.Name] = GetValueForExpandoObject(property.Get(obj));
+                        targetDictionary[property.Name] = GetPropertyValue(property.Get(obj));
                     }
 
                     return expando;
@@ -157,19 +160,26 @@ namespace Rock.Conversion
         /// Returns an object suitable for setting the value of a "property" of an ExpandoObject. The return value for 
         /// this function will either be the object itself or an ExpandoObject that represents the object.
         /// </summary>
-        private object GetValueForExpandoObject(object obj)
+        private object GetPropertyValue(object obj)
         {
             if (obj == null)
             {
                 return null;
             }
 
-            if (obj.GetType().IsPrimitivish())
+            var getPropertyValue = _getPropertyValueFunctions.GetOrAdd(obj.GetType(), GetGetPropertyValueFunction);
+
+            return getPropertyValue(obj);
+        }
+
+        private Func<object, object> GetGetPropertyValueFunction(Type t)
+        {
+            if (t.IsPrimitivish())
             {
-                return obj;
+                return o => o;
             }
 
-            return Convert(obj);
+            return _createExpandoObjectFunctions.GetOrAdd(t, GetCreateExpandoObjectFunction);
         }
     }
 }
