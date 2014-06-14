@@ -2,7 +2,7 @@
 
 namespace Rock.Defaults
 {
-    [AttributeUsage(AttributeTargets.Constructor | AttributeTargets.Method | AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
+    [AttributeUsage(AttributeTargets.Constructor | AttributeTargets.Method | AttributeTargets.Property, AllowMultiple = true, Inherited = true)]
     public class UsesDefaultValueAttribute : Attribute
     {
         private readonly Type _defaultType;
