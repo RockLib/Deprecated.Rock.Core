@@ -49,6 +49,7 @@
     <Compile Include="AssemblyInitialization\ModuleInitializerTests.cs" />
     <Compile Include="Extensions\ReflectinatorExpandoObjectConverterTests.cs" />
     <Compile Include="Extensions\ToExpandoObjectExtensionTests.cs" />
+    <Compile Include="NullExceptionHandlerTests.cs" />
     <Compile Include="Serialization\DataContractSerializerSerializerTests.cs" />
     <Compile Include="Utilities\AttributeLocatorTests.cs" />
     <Compile Include="Collections\AsKeyedExtensionTests.cs" />
