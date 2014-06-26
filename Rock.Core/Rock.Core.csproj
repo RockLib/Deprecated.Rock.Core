@@ -31,10 +31,6 @@
     <DocumentationFile>bin\Release\Rock.Core.xml</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Newtonsoft.Json.6.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
-    </Reference>
     <Reference Include="Reflectinator">
       <HintPath>..\packages\Reflectinator.0.0.8\lib\net40\Reflectinator.dll</HintPath>
     </Reference>
@@ -50,14 +46,13 @@
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
-    <Reference Include="XSerializer, Version=0.1.0.0, Culture=neutral, PublicKeyToken=9ab97cfaa8f0c80a, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\XSerializer.0.1.11\lib\net40\XSerializer.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="IExceptionHandler.cs" />
     <Compile Include="NullExceptionHandler.cs" />
+    <Compile Include="Serialization\DataContractJsonSerializerSerializer.cs" />
+    <Compile Include="Serialization\DataContractSerializerSerializer.cs" />
+    <Compile Include="Serialization\XmlSerializerSerializer.cs" />
     <Compile Include="Utilities\AttributeLocator.cs" />
     <Compile Include="Defaults\Implementation\Default.cs" />
     <Compile Include="Defaults\Implementation\Default.ExtraPrimitivishTypes.cs" />
@@ -124,13 +119,11 @@
     <Compile Include="Conversion\ReflectinatorExpandoObjectConverter.cs" />
     <Compile Include="Serialization\BinaryFormatterSerializer.cs" />
     <Compile Include="Serialization\ISerializer.cs" />
-    <Compile Include="Serialization\NewtonsoftJsonSerializer.cs" />
     <Compile Include="Serialization\ToBinaryExtension.cs" />
     <Compile Include="Serialization\SerializerExtensions.cs" />
     <Compile Include="Serialization\ToJsonExtension.cs" />
     <Compile Include="Conversion\ToExpandoObjectExtension.cs" />
     <Compile Include="Serialization\ToXmlExtension.cs" />
-    <Compile Include="Serialization\XSerializerSerializer.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

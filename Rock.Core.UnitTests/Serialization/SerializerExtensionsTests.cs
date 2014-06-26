@@ -205,7 +205,7 @@ namespace SerializerExtensionsTests
             var result = _serializer.DeserializeFromString<Foo>(fooString, encoding);
 
             // The interface method
-            var expectedResult = (Foo)_serializer.DeserializeFromString(fooString, typeof(Foo), encoding);
+            var expectedResult = (Foo)_serializer.DeserializeFromString(fooString, typeof(Foo));
 
             Assert.That(result.Bar, Is.EqualTo(expectedResult.Bar));
         }

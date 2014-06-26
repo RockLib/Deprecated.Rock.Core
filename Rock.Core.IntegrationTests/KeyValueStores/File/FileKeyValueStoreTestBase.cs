@@ -9,7 +9,7 @@ namespace Rock.Core.IntegrationTests.KeyValueStores
     public abstract class FileKeyValueStoreTestBase
     {
         protected static readonly string KeyValueStorePath = Path.Combine(Environment.GetEnvironmentVariable("Temp"), "Rock", "FileKeyValueStoreTest");
-        protected static readonly ISerializer Serializer = new NewtonsoftJsonSerializer();
+        protected static readonly ISerializer Serializer = new DataContractJsonSerializerSerializer();
         private static readonly DirectoryInfo _directoryInfo = new DirectoryInfo(KeyValueStorePath);
 
         private Lazy<FileKeyValueStore> _keyValueStore;

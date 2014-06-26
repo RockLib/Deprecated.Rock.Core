@@ -2,9 +2,9 @@
 using Rock.Serialization;
 
 // ReSharper disable once CheckNamespace
-namespace NewtonsoftJsonSerializerTests
+namespace XmlSerializerSerializerTests
 {
-    public class UponRoundTripSerialization : UponRoundTripSerializationBase<NewtonsoftJsonSerializer, Foo>
+    public class UponRoundTripSerialization : UponRoundTripSerializationBase<XmlSerializerSerializer, Foo>
     {
     }
 

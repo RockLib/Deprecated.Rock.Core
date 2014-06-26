@@ -5,7 +5,7 @@ namespace Rock.Defaults.Implementation
 {
     public static partial class Default
     {
-        private static readonly DefaultHelper<ISerializer> _jsonSerializer = new DefaultHelper<ISerializer>(() => new NewtonsoftJsonSerializer());
+        private static readonly DefaultHelper<ISerializer> _jsonSerializer = new DefaultHelper<ISerializer>(() => new DataContractJsonSerializerSerializer());
 
         public static ISerializer JsonSerializer
         {

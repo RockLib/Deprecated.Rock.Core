@@ -2,7 +2,7 @@ using Rock.Serialization;
 
 namespace DefaultHelperTests.Implementation
 {
-    public class Default_JsonSerializerTests : DefaultTestBase<ISerializer, NewtonsoftJsonSerializer>
+    public class Default_JsonSerializerTests : DefaultTestBase<ISerializer, DataContractJsonSerializerSerializer>
     {
         protected override string PropertyName
         {

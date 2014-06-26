@@ -5,7 +5,7 @@ namespace Rock.Defaults.Implementation
 {
     public static partial class Default
     {
-        private static readonly DefaultHelper<ISerializer> _xmlSerializer = new DefaultHelper<ISerializer>(() => new XSerializerSerializer());
+        private static readonly DefaultHelper<ISerializer> _xmlSerializer = new DefaultHelper<ISerializer>(() => new XmlSerializerSerializer());
 
         public static ISerializer XmlSerializer
         {

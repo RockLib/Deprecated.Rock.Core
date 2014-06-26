@@ -52,7 +52,7 @@ namespace Rock.Serialization
 
         public static T DeserializeFromString<T>(this ISerializer serializer, string data, Encoding encoding = null)
         {
-            return (T)serializer.DeserializeFromString(data, typeof(T), encoding);
+            return (T)serializer.DeserializeFromString(data, typeof(T));
         }
     }
 }

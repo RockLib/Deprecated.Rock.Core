@@ -36,7 +36,7 @@ namespace Rock.Serialization
             return this.DeserializeFromByteArray(binaryData, type);
         }
 
-        object ISerializer.DeserializeFromString(string data, Type type, Encoding encoding)
+        object ISerializer.DeserializeFromString(string data, Type type)
         {
             return DeserializeFromString(data, type);
         }
