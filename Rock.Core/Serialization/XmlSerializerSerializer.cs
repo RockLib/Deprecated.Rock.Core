@@ -20,7 +20,7 @@ namespace Rock.Serialization
             return serializer.Deserialize(stream);
         }
 
-        public string SerializeToString(object item, Type type, Encoding encoding = null)
+        public string SerializeToString(object item, Type type, Encoding encoding)
         {
             var sb = new StringBuilder();
 
@@ -33,7 +33,7 @@ namespace Rock.Serialization
             return sb.ToString();
         }
 
-        public object DeserializeFromString(string data, Type type)
+        public object DeserializeFromString(string data, Type type, Encoding encoding)
         {
             using (var reader = new StringReader(data))
             {

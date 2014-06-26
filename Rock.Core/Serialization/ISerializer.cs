@@ -10,6 +10,6 @@ namespace Rock.Serialization
         object DeserializeFromStream(Stream stream, Type type);
 
         string SerializeToString(object item, Type type, Encoding encoding = null);
-        object DeserializeFromString(string data, Type type);
+        object DeserializeFromString(string data, Type type, Encoding encoding = null);
     }
 }

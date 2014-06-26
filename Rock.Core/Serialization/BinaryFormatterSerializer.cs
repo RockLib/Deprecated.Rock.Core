@@ -19,26 +19,16 @@ namespace Rock.Serialization
             return binaryFormatter.Deserialize(stream);
         }
 
-        public string SerializeToString(object item, Type type)
+        public string SerializeToString(object item, Type type, Encoding encoding)
         {
             var data = this.SerializeToByteArray(item, type);
             return Convert.ToBase64String(data);
         }
 
-        string ISerializer.SerializeToString(object item, Type type, Encoding encoding)
-        {
-            return SerializeToString(item, type);
-        }
-
-        public object DeserializeFromString(string data, Type type)
+        public object DeserializeFromString(string data, Type type, Encoding encoding)
         {
             var binaryData = Convert.FromBase64String(data);
             return this.DeserializeFromByteArray(binaryData, type);
-        }
-
-        object ISerializer.DeserializeFromString(string data, Type type)
-        {
-            return DeserializeFromString(data, type);
         }
     }
 }

@@ -2,8 +2,6 @@
 using System.IO;
 using System.Runtime.Serialization.Json;
 using System.Text;
-using System.Xml;
-using Rock.IO;
 
 namespace Rock.Serialization
 {
@@ -21,31 +19,23 @@ namespace Rock.Serialization
             return serializer.ReadObject(stream);
         }
 
-        public string SerializeToString(object item, Type type, Encoding encoding = null)
+        public string SerializeToString(object item, Type type, Encoding encoding)
         {
-            var sb = new StringBuilder();
-
-            using (var stringWriter = new EncodedStringWriter(sb, encoding))
+            using (var stream = new MemoryStream())
             {
-                using (var xmlWriter = XmlWriter.Create(stringWriter, new XmlWriterSettings { Encoding = encoding }))
-                {
-                    var serializer = new DataContractJsonSerializer(type);
-                    serializer.WriteObject(xmlWriter, item);
-                }
+                var serializer = new DataContractJsonSerializer(type);
+                serializer.WriteObject(stream, item);
+                stream.Flush();
+                return (encoding ?? Encoding.UTF8).GetString(stream.ToArray());
             }
-
-            return sb.ToString();
         }
 
-        public object DeserializeFromString(string data, Type type)
+        public object DeserializeFromString(string data, Type type, Encoding encoding)
         {
-            using (var stringReader = new StringReader(data))
+            using (var stream = new MemoryStream((encoding ?? Encoding.UTF8).GetBytes(data)))
             {
-                using (var xmlReader = XmlReader.Create(stringReader))
-                {
-                    var serializer = new DataContractJsonSerializer(type);
-                    return serializer.ReadObject(xmlReader);
-                }
+                var serializer = new DataContractJsonSerializer(type);
+                return serializer.ReadObject(stream);
             }
         }
     }
