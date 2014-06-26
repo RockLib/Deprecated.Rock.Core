@@ -9,24 +9,21 @@ namespace Rock.AssemblyInitialization
 {
     public static class ModuleInitializer // Future devs: Do not change the name of this class
     {
-        private static bool _hasRun;
         private static readonly object _locker = new object();
+        private static readonly IList<Type> _knownImplementations = new List<Type>();
+        
+        private static bool _isRunning;
 
         public static void Run() // Future devs: Do not change the signature of this method
         {
-            if (_hasRun)
-            {
-                return;
-            }
-
             lock (_locker)
             {
-                if (_hasRun)
+                if (_isRunning)
                 {
                     return;
                 }
 
-                _hasRun = true;
+                _isRunning = true;
 
                 var conventions = new RegistrationBuilder();
                 conventions
@@ -44,15 +41,19 @@ namespace Rock.AssemblyInitialization
                         var coreLibrariesFirstEntryPointLast = new AssemblyReferenceOrderComparer();
 
                         var frameworkInitializers =
-                            container.GetExports<IFrameworkInitializer>()
-                                     .Select(GetValue)
-                                     .OrderBy(x => x.GetType(), coreLibrariesFirstEntryPointLast);
+                            container
+                                .GetExports<IFrameworkInitializer>()
+                                .Select(export => new { Export = export, Type = export.GetType().GetGenericArguments()[0] })
+                                .OrderBy(x => x.Type, coreLibrariesFirstEntryPointLast)
+                                .Select(x => GetValue(x.Export)).ToList()
+                                .Where(export => _knownImplementations.All(t => t != export.GetType()));
 
                         foreach (var frameworkInitializer in frameworkInitializers)
                         {
                             try
                             {
                                 frameworkInitializer.Initialize();
+                                _knownImplementations.Add(frameworkInitializer.GetType());
                             }
                             catch (Exception ex)
                             {
@@ -63,6 +64,8 @@ namespace Rock.AssemblyInitialization
                         }
                     }
                 }
+
+                _isRunning = false;
             }
         }
 
