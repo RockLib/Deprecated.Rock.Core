@@ -185,8 +185,8 @@ namespace AutoContainerTests
                 {
                     var foo = new Foo(0);
 
-                    var primary = new AutoContainer(foo);
-                    var secondary = new AutoContainer();
+                    IResolver primary = new AutoContainer(foo);
+                    IResolver secondary = new AutoContainer();
 
                     // Sanity checks
                     Assert.That(primary.CanGet(typeof(NeedsAnIFoo)), Is.True);
@@ -204,8 +204,8 @@ namespace AutoContainerTests
                 {
                     var foo = new Foo(0);
 
-                    var primary = new AutoContainer();
-                    var secondary = new AutoContainer(foo);
+                    IResolver primary = new AutoContainer();
+                    IResolver secondary = new AutoContainer(foo);
 
                     // Sanity checks
                     Assert.That(primary.CanGet(typeof(NeedsAnIFoo)), Is.False);
@@ -221,8 +221,8 @@ namespace AutoContainerTests
                 [Test]
                 public void ThatReturnsFalseIfTheCanGetMethodFromBothTheBaseAutoContainerAndSecondaryResolverReturnFalse()
                 {
-                    var primary = new AutoContainer();
-                    var secondary = new AutoContainer();
+                    IResolver primary = new AutoContainer();
+                    IResolver secondary = new AutoContainer();
 
                     // Sanity checks
                     Assert.That(primary.CanGet(typeof(NeedsAnIFoo)), Is.False);
