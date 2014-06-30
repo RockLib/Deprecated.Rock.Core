@@ -31,7 +31,7 @@ namespace SendExtensionsTests
 
                 using (var server = LocalMailServer.StartNew(7777)) // port 7777 defined in app.config
                 {
-                    _mailMessage.Send().Wait();
+                    _mailMessage.SendAsync().Wait();
 
                     mailData = server.GetMailData().Result;
                 }
@@ -46,7 +46,7 @@ namespace SendExtensionsTests
 
                 using (var server = LocalMailServer.StartNew(7777)) // port 7777 defined in app.config
                 {
-                    _mailMessage.Send(DeliveryMethod.Default).Wait();
+                    _mailMessage.SendAsync(DeliveryMethod.Default).Wait();
 
                     mailData = server.GetMailData().Result;
                 }
@@ -61,7 +61,7 @@ namespace SendExtensionsTests
 
                 using (var server = LocalMailServer.StartNew(7778))
                 {
-                    _mailMessage.Send(DeliveryMethod.Network("localhost", 7778)).Wait();
+                    _mailMessage.SendAsync(DeliveryMethod.Network("localhost", 7778)).Wait();
 
                     mailData = server.GetMailData().Result;
                 }
@@ -77,7 +77,7 @@ namespace SendExtensionsTests
 
                 Assert.That(Directory.GetFiles(dir), Is.Empty);
 
-                _mailMessage.Send(DeliveryMethod.SpecifiedPickupDirectory(dir)).Wait();
+                _mailMessage.SendAsync(DeliveryMethod.SpecifiedPickupDirectory(dir)).Wait();
 
                 Assert.That(Directory.GetFiles(dir), Is.Not.Empty);
 

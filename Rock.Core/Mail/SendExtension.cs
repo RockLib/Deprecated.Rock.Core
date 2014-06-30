@@ -5,7 +5,7 @@ namespace Rock.Mail
 {
     public static class SendExtension
     {
-        public static async Task Send(this MailMessage mailMessage, DeliveryMethod deliveryMethod = null)
+        public static async Task SendAsync(this MailMessage mailMessage, DeliveryMethod deliveryMethod = null)
         {
             using (var smtpClient = new SmtpClient())
             {
