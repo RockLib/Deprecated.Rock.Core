@@ -11,20 +11,11 @@ namespace Rock.AssemblyInitialization
     {
         private static readonly object _locker = new object();
         private static readonly IList<Type> _knownImplementations = new List<Type>();
-        
-        private static bool _isRunning;
 
         public static void Run() // Future devs: Do not change the signature of this method
         {
             lock (_locker)
             {
-                if (_isRunning)
-                {
-                    return;
-                }
-
-                _isRunning = true;
-
                 var conventions = new RegistrationBuilder();
                 conventions
                     .ForTypesDerivedFrom<IFrameworkInitializer>()
@@ -64,8 +55,6 @@ namespace Rock.AssemblyInitialization
                         }
                     }
                 }
-
-                _isRunning = false;
             }
         }
 
