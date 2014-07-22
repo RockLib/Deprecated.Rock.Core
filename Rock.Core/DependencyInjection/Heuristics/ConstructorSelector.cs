@@ -41,7 +41,7 @@ namespace Rock.DependencyInjection.Heuristics
             return true;
         }
 
-        private static IEnumerable<VirtualContructor> GetVirtualContructors(ConstructorInfo constructor)
+        private static IEnumerable<VirtualConstructor> GetVirtualContructors(ConstructorInfo constructor)
         {
             var parameters = constructor.GetParameters();
 
@@ -52,7 +52,7 @@ namespace Rock.DependencyInjection.Heuristics
                 GetCombinations(defaultParameters)
                     .OrderByDescending(x => x.Count)
                     .Select(combination =>
-                        new VirtualContructor(constructor, nonDefaultParameters.Concat(combination).ToArray(), defaultParameters.Length));
+                        new VirtualConstructor(constructor, nonDefaultParameters.Concat(combination).ToArray(), defaultParameters.Length));
         }
 
         private static IEnumerable<IList<Type>> GetCombinations(IList<Type> types)
@@ -76,12 +76,12 @@ namespace Rock.DependencyInjection.Heuristics
             }
         }
 
-        private class VirtualContructor
+        private class VirtualConstructor
         {
             private readonly Type[] _parameters;
             private readonly int _defaultParameterCount;
 
-            public VirtualContructor(ConstructorInfo constructor, Type[] parameters, int defaultParameterCount)
+            public VirtualConstructor(ConstructorInfo constructor, Type[] parameters, int defaultParameterCount)
             {
                 Constructor = constructor;
                 _parameters = parameters;
