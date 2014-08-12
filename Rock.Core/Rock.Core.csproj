@@ -50,6 +50,7 @@
   <ItemGroup>
     <Compile Include="IExceptionHandler.cs" />
     <Compile Include="NullExceptionHandler.cs" />
+    <Compile Include="Reflection\GetGetFuncExtension.cs" />
     <Compile Include="Serialization\DataContractJsonSerializerSerializer.cs" />
     <Compile Include="Serialization\DataContractSerializerSerializer.cs" />
     <Compile Include="Serialization\XmlSerializerSerializer.cs" />
