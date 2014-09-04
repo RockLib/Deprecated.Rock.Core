@@ -48,6 +48,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Extensions\IsIDictionryOfTToAnythingExtension.cs" />
     <Compile Include="IExceptionHandler.cs" />
     <Compile Include="NullExceptionHandler.cs" />
     <Compile Include="Serialization\DataContractJsonSerializerSerializer.cs" />
