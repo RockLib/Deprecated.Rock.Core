@@ -47,6 +47,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AssemblyInitialization\ModuleInitializerTests.cs" />
+    <Compile Include="Collections\DeepEqualityComparerTests.cs" />
     <Compile Include="Extensions\IsIDictionryOfTToAnythingExtensionTests.cs" />
     <Compile Include="Extensions\ReflectinatorExpandoObjectConverterTests.cs" />
     <Compile Include="Extensions\ToExpandoObjectExtensionTests.cs" />
@@ -109,9 +110,6 @@
       <Project>{0feb58cd-b15c-4cdc-83d6-7621c1db98c7}</Project>
       <Name>Rock.Core</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Conversion\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="InjectModuleInitializer" AfterTargets="AfterBuild">
