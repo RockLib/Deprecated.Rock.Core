@@ -54,7 +54,7 @@ namespace Rock.Collections
                 return false;
             }
 
-            var equalsFunc = RetrieveEqualsFunc(type, Enumerable.Empty<Type>());
+            var equalsFunc = RetrieveEqualsFunc(type, Type.EmptyTypes);
             return equalsFunc(lhs, rhs);
         }
 
@@ -70,32 +70,31 @@ namespace Rock.Collections
                             return (l, r) => l.Equals(r);
                         }
 
-                        // TODO: Determine if IDictionary or IDictionary<,> need special handling. If so, do that here. Probably.
-
                         if (typeof(IEnumerable).IsAssignableFrom(t))
                         {
+                            var genericIDictionaryType = t.GetClosedGenericType(typeof(IDictionary<,>));
+                            if (genericIDictionaryType != null)
+                            {
+                                var keyType = genericIDictionaryType.GetGenericArguments()[0];
+                                var valueType = genericIDictionaryType.GetGenericArguments()[1];
+                                return CreateAreEqualDictionariesFunc(keyType, valueType, typesCurrentlyUnderConstruction);
+                            }
+
+                            if (typeof(IDictionary).IsAssignableFrom(t))
+                            {
+                                return CreateAreEqualDictionariesFunc();
+                            }
+
                             if (typeof(ICollection).IsAssignableFrom(t))
                             {
                                 return CreateAreEqualCollectionsFunc(t, typesCurrentlyUnderConstruction);
                             }
 
-                            var genericICollectionType =
-                                t.GetInterfaces()
-                                    .FirstOrDefault(i =>
-                                        i.IsGenericType
-                                        && i.GetGenericTypeDefinition() == typeof(ICollection<>));
-
+                            var genericICollectionType = t.GetClosedGenericType(typeof(ICollection<>));
                             if (genericICollectionType != null)
                             {
-                                var createAreEqualGenericCollectionsFuncMethod =
-                                    typeof(DeepEqualityComparer).GetMethod(
-                                        "CreateAreEqualGenericCollectionsFunc",
-                                        BindingFlags.NonPublic | BindingFlags.Instance)
-                                    .MakeGenericMethod(genericICollectionType.GetGenericArguments()[0]);
-
-                                return
-                                    (Func<object, object, bool>)createAreEqualGenericCollectionsFuncMethod
-                                        .Invoke(this, new object[] { t, typesCurrentlyUnderConstruction });
+                                var itemType = genericICollectionType.GetGenericArguments()[0];
+                                return CreateAreEqualCollectionsFunc(t, itemType, typesCurrentlyUnderConstruction);
                             }
 
                             return CreateAreEqualEnumerablesFunc(t, typesCurrentlyUnderConstruction);
@@ -103,6 +102,179 @@ namespace Rock.Collections
 
                         return CreateAreEqualObjectsFunc(t, typesCurrentlyUnderConstruction.Concat(t));
                     });
+        }
+
+        private Func<object, object, bool> CreateAreEqualDictionariesFunc(Type keyType, Type valueType, IEnumerable<Type> typesCurrentlyUnderConstruction)
+        {
+            var keyValuePairType = typeof(KeyValuePair<,>).MakeGenericType(keyType, valueType);
+            var iDictionaryType = typeof(IDictionary<,>).MakeGenericType(keyType, valueType);
+
+            var getEnumerator = GetGetEnumeratorFunc();
+            var getKeyFromKeyValuePair = GetGetKeyFromKeyValuePairFunc(keyValuePairType);
+            var tryGetValue = GetTryGetValueFunc(keyType, valueType, iDictionaryType);
+            var getValueFromKeyValuePair = GetGetValueFromKeyValuePairFunc(keyValuePairType);
+
+            Func<object, object, bool> valueEquals;
+
+            if (valueType.IsSealed
+                && !CanCreateEqualsCycle(valueType, typesCurrentlyUnderConstruction))
+            {
+                valueEquals = GetOptimizedEqualsFunc(valueType, typesCurrentlyUnderConstruction);
+            }
+            else
+            {
+                valueEquals = _this.Equals;
+            }
+
+            return
+                (lhsObject, rhsObject) =>
+                {
+                    var lhsEnumerator = getEnumerator(lhsObject);
+
+                    while (lhsEnumerator.MoveNext())
+                    {
+                        var lhsKey = getKeyFromKeyValuePair(lhsEnumerator.Current);
+
+                        object rhsValue;
+                        if (!tryGetValue(rhsObject, lhsKey, out rhsValue))
+                        {
+                            return false;
+                        }
+
+                        if (!valueEquals(getValueFromKeyValuePair(lhsEnumerator.Current), rhsValue))
+                        {
+                            return false;
+                        }
+                    }
+
+                    return true;
+                };
+        }
+
+        private Func<object, object, bool> CreateAreEqualDictionariesFunc()
+        {
+            return
+                (lhsObject, rhsObject) =>
+                {
+                    var lhs = (IDictionary)lhsObject;
+                    var rhs = (IDictionary)rhsObject;
+
+                    if (lhs.Count != rhs.Count)
+                    {
+                        return false;
+                    }
+
+                    var lhsEnumerator = lhs.GetEnumerator();
+                    while (lhsEnumerator.MoveNext())
+                    {
+                        if (!rhs.Contains(lhsEnumerator.Key))
+                        {
+                            return false;
+                        }
+
+                        var rhsValue = rhs[lhsEnumerator.Key];
+                        if (!_this.Equals(lhsEnumerator.Value, rhsValue))
+                        {
+                            return false;
+                        }
+                    }
+
+                    return true;
+                };
+        }
+
+        private static TryFunc<object, object, object> GetTryGetValueFunc(Type keyType, Type valueType, Type iDictionaryType)
+        {
+            var objParameter = Expression.Parameter(typeof (object), "obj");
+            var argParameter = Expression.Parameter(typeof (object), "arg");
+            var resultParameter = Expression.Parameter(typeof (object).MakeByRefType(), "result");
+
+            var valueVariable = Expression.Variable(valueType, "value");
+            var foundVariable = Expression.Variable(typeof(bool), "found");
+
+            var tryGetValue =
+                Expression.Assign(
+                    foundVariable,
+                    Expression.Call(
+                        Expression.Convert(objParameter, iDictionaryType),
+                        iDictionaryType.GetMethod("TryGetValue"),
+                        Expression.Convert(argParameter, keyType),
+                        valueVariable));
+
+            var ifTrue =
+                Expression.Assign(
+                    resultParameter,
+                    BoxIfNecessary(valueVariable));
+
+            var ifFalse =
+                Expression.Assign(
+                    resultParameter,
+                    BoxIfNecessary(Expression.Default(valueType)));
+
+            var ifThenElse =
+                Expression.IfThenElse(
+                    tryGetValue,
+                    ifTrue,
+                    ifFalse);
+
+            var blockExpression =
+                Expression.Block(
+                    typeof(bool),
+                    new[] { valueVariable, foundVariable },
+                    ifThenElse,
+                    foundVariable);
+
+            var lambda =
+                Expression.Lambda<TryFunc<object, object, object>>(
+                    blockExpression,
+                    objParameter,
+                    argParameter,
+                    resultParameter);
+
+            return lambda.Compile();
+        }
+
+        private static Func<object, IEnumerator> GetGetEnumeratorFunc()
+        {
+            var objParameter = Expression.Parameter(typeof (object), "obj");
+
+            var lambda =
+                Expression.Lambda<Func<object, IEnumerator>>(
+                    Expression.Call(
+                        Expression.Convert(objParameter, typeof(IEnumerable)),
+                        typeof(IEnumerable).GetMethod("GetEnumerator")),
+                    objParameter);
+
+            return lambda.Compile();
+        }
+
+        private static Func<object, object> GetGetKeyFromKeyValuePairFunc(Type keyValuePairType)
+        {
+            var objParameter = Expression.Parameter(typeof (object), "obj");
+
+            var lambda =
+                Expression.Lambda<Func<object, object>>(
+                    BoxIfNecessary(
+                        Expression.Property(
+                            Expression.Convert(objParameter, keyValuePairType),
+                            keyValuePairType.GetProperty("Key"))),
+                    objParameter);
+
+            return lambda.Compile();
+        }
+
+        private static Func<object, object> GetGetValueFromKeyValuePairFunc(Type keyValuePairType)
+        {
+            var objParameter = Expression.Parameter(typeof (object), "obj");
+
+            var lambda =
+                Expression.Lambda<Func<object, object>>(
+                    Expression.Property(
+                        Expression.Convert(objParameter, keyValuePairType),
+                        keyValuePairType.GetProperty("Value")),
+                    objParameter);
+
+            return lambda.Compile();
         }
 
         private Func<object, object, bool> CreateAreEqualCollectionsFunc(Type type, IEnumerable<Type> typesCurrentlyUnderConstruction)
@@ -146,6 +318,22 @@ namespace Rock.Collections
                         }
                     } while (true);
                 };
+        }
+
+        private Func<object, object, bool> CreateAreEqualCollectionsFunc(
+            Type type,
+            Type itemType,
+            IEnumerable<Type> typesCurrentlyUnderConstruction)
+        {
+            var createAreEqualGenericCollectionsFuncMethod =
+                typeof(DeepEqualityComparer).GetMethod(
+                    "CreateAreEqualGenericCollectionsFunc",
+                    BindingFlags.NonPublic | BindingFlags.Instance)
+                    .MakeGenericMethod(itemType);
+
+            return
+                (Func<object, object, bool>)createAreEqualGenericCollectionsFuncMethod
+                    .Invoke(this, new object[] { type, typesCurrentlyUnderConstruction });
         }
 
         // ReSharper disable once UnusedMember.Local
@@ -234,12 +422,7 @@ namespace Rock.Collections
         {
             Func<object, object, bool> equalsFunc = _this.Equals;
 
-            var closedIEnumerable =
-                type.GetInterfaces()
-                    .FirstOrDefault(i =>
-                        i.IsGenericType
-                        && i.GetGenericTypeDefinition() == typeof(IEnumerable<>));
-
+            var closedIEnumerable = type.GetClosedGenericType(typeof(IEnumerable<>));
             if (closedIEnumerable != null)
             {
                 var itemType = closedIEnumerable.GetGenericArguments()[0];
@@ -287,8 +470,7 @@ namespace Rock.Collections
                 areEqualPropertyValuesExpressions.Aggregate(
                     (Expression)null,
                     (accumulatedExpression, currentExpression) =>
-                        accumulatedExpression == null
-                        // Only the first item will have a null accumulatedExpression...
+                        accumulatedExpression == null // Only the first item will have a null accumulatedExpression...
                             ? currentExpression // ...so just return currentExpression when it is the first item.
                             : Expression.AndAlso(accumulatedExpression, currentExpression)); // The rest of the items accumulate with Expression.AndAlso.
 
@@ -320,7 +502,7 @@ namespace Rock.Collections
                         ReferenceEquals(lhs.GetType(), rhs.GetType())
                         && equalsFunc(lhs, rhs);
             }
-            
+
             return
                 (lhs, rhs) =>
                 {
@@ -354,7 +536,7 @@ namespace Rock.Collections
             if (property.PropertyType.IsSealed
                 && !CanCreateEqualsCycle(property.PropertyType, typesCurrentlyUnderConstruction))
             {
-                var equalsFunc = GetOptimizedEqualsFunc(property.PropertyType, Enumerable.Empty<Type>());
+                var equalsFunc = GetOptimizedEqualsFunc(property.PropertyType, Type.EmptyTypes);
                 return
                     Expression.Invoke(
                         Expression.Constant(equalsFunc),
@@ -385,7 +567,7 @@ namespace Rock.Collections
                 return 0;
             }
 
-            var getHashCodeFunc = RetrieveGetHashCodeFunc(instance.GetType(), Enumerable.Empty<Type>());
+            var getHashCodeFunc = RetrieveGetHashCodeFunc(instance.GetType(), Type.EmptyTypes);
             return getHashCodeFunc(instance);
         }
 

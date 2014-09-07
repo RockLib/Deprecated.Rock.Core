@@ -26,6 +26,37 @@ namespace DeepEqualityComparerTests
             Assert.That(DeepEqualityComparer.Instance.Equals(lhs, rhs), Is.EqualTo(expected));
         }
 
+        [Test]
+        public void ReturnsTrueForTheSameReference()
+        {
+            var obj = new object();
+            Assert.That(DeepEqualityComparer.Instance.Equals(obj, obj), Is.True);
+        }
+
+        [Test]
+        public void ReturnsTrueForTwoNulls()
+        {
+            Assert.That(DeepEqualityComparer.Instance.Equals(null, null), Is.True);
+        }
+
+        [Test]
+        public void ReturnsFalseWhenTheLeftIsNullAndTheRightIsNot()
+        {
+            Assert.That(DeepEqualityComparer.Instance.Equals(null, new object()), Is.False);
+        }
+
+        [Test]
+        public void ReturnsFalseWhenTheRightIsNullAndTheLeftIsNot()
+        {
+            Assert.That(DeepEqualityComparer.Instance.Equals(new object(), null), Is.False);
+        }
+
+        [Test]
+        public void ReturnsFalseWhenTheTwoObjectsHaveDifferentTypes()
+        {
+            Assert.That(DeepEqualityComparer.Instance.Equals("abc", 123), Is.False);
+        }
+
         private static IEnumerable<TestCaseData> GetIEnumerableTestCases()
         {
             yield return
@@ -33,7 +64,7 @@ namespace DeepEqualityComparerTests
                     new EnumerableImplementation(5),
                     new EnumerableImplementation(5),
                     true).SetName("EnumerableImplementation with equal values");
-            
+
             yield return
                 new TestCaseData(
                     new EnumerableImplementation(5),
@@ -131,7 +162,7 @@ namespace DeepEqualityComparerTests
                 return GetEnumerator();
             }
         }
-            
+
         [TestCaseSource("GetICollectionTestCases")]
         public void WorksForICollection(object lhs, object rhs, bool expected)
         {
@@ -151,7 +182,7 @@ namespace DeepEqualityComparerTests
                     new CollectionImplementation(5),
                     new CollectionImplementation(4),
                     false).SetName("CollectionImplementation with different values");
-            
+
             yield return
                 new TestCaseData(
                     new CollectionOfIntImplementation(5),
@@ -163,7 +194,7 @@ namespace DeepEqualityComparerTests
                     new CollectionOfIntImplementation(5),
                     new CollectionOfIntImplementation(4),
                     false).SetName("CollectionOfIntImplementation with different values");
-            
+
             yield return
                 new TestCaseData(
                     new CollectionOfBarImplementation(5),
