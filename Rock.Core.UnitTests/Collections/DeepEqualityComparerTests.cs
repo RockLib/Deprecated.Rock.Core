@@ -352,6 +352,26 @@ namespace DeepEqualityComparerTests
             Assert.That(DeepEqualityComparer.Instance.Equals(lhs, rhs), Is.False);
         }
 
+        [Test]
+        public void WhenTheClassImplementsIEquatableThenTheIEquatableEqualsMethodIsCalled()
+        {
+            var lhs = new Plugh(true);
+            var rhs = new Plugh(true);
+
+            Assert.That(DeepEqualityComparer.Instance.Equals(lhs, rhs), Is.True);
+            Assert.That(lhs.WasEqualsCalled || rhs.WasEqualsCalled, Is.True);
+        }
+
+        [Test]
+        public void WhenTheClassOverridesTheEqualsMethodThanTheOverriddenEqualsMethodIsCalled()
+        {
+            var lhs = new Xyzzy(true, -1);
+            var rhs = new Xyzzy(true, -1);
+
+            Assert.That(DeepEqualityComparer.Instance.Equals(lhs, rhs), Is.True);
+            Assert.That(lhs.WasEqualsCalled || rhs.WasEqualsCalled, Is.True);
+        }
+
         private static Hashtable GetHashtable()
         {
             return new Hashtable
@@ -863,6 +883,15 @@ namespace DeepEqualityComparerTests
                             null))));
         }
 
+        [Test]
+        public void WhenTheClassOverridesTheGetHashCodeMethodThanTheOverriddenGetHashCodeMethodIsCalled()
+        {
+            var obj = new Xyzzy(true, -1);
+
+            Assert.That(DeepEqualityComparer.Instance.GetHashCode(obj), Is.EqualTo(-1));
+            Assert.That(obj.WasGetHashCodeCalled, Is.True);
+        }
+
         private static int AccumulateHashCode(int previousHashCode, object currentObject)
         {
             unchecked
@@ -930,6 +959,51 @@ namespace DeepEqualityComparerTests
     {
         public string Value { get; set; }
         public Fred Child { get; set; }
+    }
+
+    public class Plugh : IEquatable<Plugh>
+    {
+        private readonly bool _equals;
+
+        public Plugh(bool @equals)
+        {
+            _equals = @equals;
+        }
+
+        public bool Equals(Plugh other)
+        {
+            WasEqualsCalled = true;
+            return _equals;
+        }
+
+        public bool WasEqualsCalled { get; private set; }
+    }
+
+    public class Xyzzy
+    {
+        private readonly bool _equals;
+        private readonly int _hashCode;
+
+        public Xyzzy(bool @equals, int hashCode)
+        {
+            _equals = @equals;
+            _hashCode = hashCode;
+        }
+
+        public override bool Equals(object obj)
+        {
+            WasEqualsCalled = true;
+            return _equals;
+        }
+
+        public override int GetHashCode()
+        {
+            WasGetHashCodeCalled = true;
+            return _hashCode;
+        }
+
+        public bool WasEqualsCalled { get; private set; }
+        public bool WasGetHashCodeCalled { get; private set; }
     }
 
     public enum MyEnum

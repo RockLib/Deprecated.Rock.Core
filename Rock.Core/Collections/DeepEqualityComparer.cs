@@ -65,7 +65,13 @@ namespace Rock.Collections
                     type,
                     t =>
                     {
-                        if (t.IsPrimitivish())
+                        var equatableType = t.GetClosedGenericType(typeof(IEquatable<>), new[] { t });
+                        if (equatableType != null)
+                        {
+                            return CreateEquatableEqualsFunc(equatableType);
+                        }
+
+                        if (t.IsPrimitivish() || HasOverriddenEqualsMethod(t))
                         {
                             return (l, r) => l.Equals(r);
                         }
@@ -102,6 +108,29 @@ namespace Rock.Collections
 
                         return CreateAreEqualObjectsFunc(t, typesCurrentlyUnderConstruction.Concat(t));
                     });
+        }
+
+        private Func<object, object, bool> CreateEquatableEqualsFunc(Type equatableType)
+        {
+            var lhsParameter = Expression.Parameter(typeof(object), "lhs");
+            var rhsParameter = Expression.Parameter(typeof(object), "rhs");
+
+            var lambda =
+                Expression.Lambda<Func<object, object, bool>>(
+                    Expression.Call(
+                        Expression.Convert(lhsParameter, equatableType),
+                        equatableType.GetMethod("Equals"),
+                        new Expression[] { Expression.Convert(rhsParameter, equatableType.GetGenericArguments()[0]) }),
+                    lhsParameter,
+                    rhsParameter);
+
+            return lambda.Compile();
+        }
+
+        private static bool HasOverriddenEqualsMethod(Type type)
+        {
+            var equalsMethod = type.GetMethod("Equals", new[] {typeof(object)});
+            return equalsMethod.DeclaringType == type;
         }
 
         private Func<object, object, bool> CreateAreEqualDictionariesFunc(Type keyType, Type valueType, IEnumerable<Type> typesCurrentlyUnderConstruction)
@@ -579,7 +608,7 @@ namespace Rock.Collections
                     type,
                     t =>
                     {
-                        if (t.IsPrimitivish())
+                        if (t.IsPrimitivish() || HasOverriddenGetHashCodeMethod(t))
                         {
                             return obj => obj.GetHashCode();
                         }
@@ -591,6 +620,12 @@ namespace Rock.Collections
 
                         return CreateObjectGetHashCodeFunc(t, typesCurrentlyUnderConstruction.Concat(t));
                     });
+        }
+
+        private bool HasOverriddenGetHashCodeMethod(Type type)
+        {
+            var getHashCodeMethod = type.GetMethod("GetHashCode", Type.EmptyTypes);
+            return getHashCodeMethod.DeclaringType == type;
         }
 
         private Func<object, int> CreateGetAggregatedHashCodeFunc(Type type, IEnumerable<Type> typesCurrentlyUnderConstruction)
