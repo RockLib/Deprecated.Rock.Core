@@ -422,45 +422,6 @@ namespace DeepEqualityComparerTests
             return new CollectionOfReferenceType { "a", "b", "c" };
         }
 
-        private class MyCollection : ICollection
-        {
-            private readonly ArrayList _list = new ArrayList();
-            public void Add(object obj) { _list.Add(obj); }
-            public IEnumerator GetEnumerator() { return ((IEnumerable)_list).GetEnumerator(); }
-            public void CopyTo(Array array, int index) { ((ICollection)_list).CopyTo(array, index); }
-            public int Count { get { return _list.Count; } }
-            public object SyncRoot { get { return _list.SyncRoot; } }
-            public bool IsSynchronized { get { return _list.IsSynchronized; } }
-        }
-
-        private class CollectionOfValueType : ICollection<int>
-        {
-            private readonly List<int> _list = new List<int>();
-            public IEnumerator<int> GetEnumerator() { return _list.GetEnumerator(); }
-            IEnumerator IEnumerable.GetEnumerator() { return ((IEnumerable)_list).GetEnumerator(); }
-            public void Add(int item) { _list.Add(item); }
-            public void Clear() { _list.Clear(); }
-            public bool Contains(int item) { return _list.Contains(item); }
-            public void CopyTo(int[] array, int arrayIndex) { _list.CopyTo(array, arrayIndex); }
-            public bool Remove(int item) { return _list.Remove(item); }
-            public int Count { get { return _list.Count; } }
-            public bool IsReadOnly { get { return ((ICollection<int>)_list).IsReadOnly; } }
-        }
-
-        private class CollectionOfReferenceType : ICollection<string>
-        {
-            private readonly List<string> _list = new List<string>();
-            public IEnumerator<string> GetEnumerator() { return _list.GetEnumerator(); }
-            IEnumerator IEnumerable.GetEnumerator() { return ((IEnumerable)_list).GetEnumerator(); }
-            public void Add(string item) { _list.Add(item); }
-            public void Clear() { _list.Clear(); }
-            public bool Contains(string item) { return _list.Contains(item); }
-            public void CopyTo(string[] array, int arrayIndex) { _list.CopyTo(array, arrayIndex); }
-            public bool Remove(string item) { return _list.Remove(item); }
-            public int Count { get { return _list.Count; } }
-            public bool IsReadOnly { get { return ((ICollection<string>)_list).IsReadOnly; } }
-        }
-
         private static MyEnumerable GetEnumerable()
         {
             return new MyEnumerable { 1, 2, 3 };
@@ -474,29 +435,6 @@ namespace DeepEqualityComparerTests
         private static EnumerableOfReferenceType GetEnumerableOfReferenceType()
         {
             return new EnumerableOfReferenceType { "a", "b", "c" };
-        }
-
-        private class MyEnumerable : IEnumerable
-        {
-            private readonly ArrayList _list = new ArrayList();
-            public IEnumerator GetEnumerator() { return ((IEnumerable)_list).GetEnumerator(); }
-            public void Add(object item) { _list.Add(item); }
-        }
-
-        private class EnumerableOfValueType : IEnumerable<int>
-        {
-            private readonly List<int> _list = new List<int>();
-            public IEnumerator<int> GetEnumerator() { return _list.GetEnumerator(); }
-            IEnumerator IEnumerable.GetEnumerator() { return ((IEnumerable)_list).GetEnumerator(); }
-            public void Add(int item) { _list.Add(item); }
-        }
-
-        private class EnumerableOfReferenceType : IEnumerable<string>
-        {
-            private readonly List<string> _list = new List<string>();
-            public IEnumerator<string> GetEnumerator() { return _list.GetEnumerator(); }
-            IEnumerator IEnumerable.GetEnumerator() { return ((IEnumerable)_list).GetEnumerator(); }
-            public void Add(string item) { _list.Add(item); }
         }
 
         private static IEnumerable<TestCaseData> GetIEnumerableTestCases()
@@ -836,6 +774,75 @@ namespace DeepEqualityComparerTests
         }
 
         [Test]
+        public void ReturnsZeroForAnEmptyNonGenericEnumerable()
+        {
+            var obj = new Grault { Foos = new MyEnumerable() };
+
+            Assert.That(DeepEqualityComparer.Instance.GetHashCode(obj), Is.EqualTo(0));
+        }
+
+        [Test]
+        public void ReturnsZeroForAnEmptyGenericEnumerableOfValueType()
+        {
+            var obj = new Grault { Bars = new EnumerableOfValueType() };
+
+            Assert.That(DeepEqualityComparer.Instance.GetHashCode(obj), Is.EqualTo(0));
+        }
+
+        [Test]
+        public void ReturnsZeroForAnEmptyGenericEnumerableOfReferenceType()
+        {
+            var obj = new Grault { Bazes = new EnumerableOfReferenceType() };
+
+            Assert.That(DeepEqualityComparer.Instance.GetHashCode(obj), Is.EqualTo(0));
+        }
+
+        [Test]
+        public void ReturnsTheAggregationOfTheHashCodeOfEachOfItsItemsForImplementationsOfNonGenericIEnumerable()
+        {
+            var obj = new MyEnumerable { 1, 2, 3 };
+
+            Assert.That(
+                DeepEqualityComparer.Instance.GetHashCode(obj),
+                Is.EqualTo(
+                    AccumulateHashCode(
+                        AccumulateHashCode(
+                            AccumulateHashCode(0, 1),
+                            2),
+                        3)));
+        }
+
+        [Test]
+        public void ReturnsTheAggregationOfTheHashCodeOfEachOfItsItemsForImplementationsOfGenericIEnumerableOfValueType()
+        {
+            var obj = new EnumerableOfValueType { 1, 2, 3 };
+
+            Assert.That(
+                DeepEqualityComparer.Instance.GetHashCode(obj),
+                Is.EqualTo(
+                    AccumulateHashCode(
+                        AccumulateHashCode(
+                            AccumulateHashCode(0, 1),
+                            2),
+                        3)));
+        }
+
+        [Test]
+        public void ReturnsTheAggregationOfTheHashCodeOfEachOfItsItemsForImplementationsOfGenericIEnumerableOfReferenceType()
+        {
+            var obj = new EnumerableOfReferenceType { "1", "2", "3" };
+
+            Assert.That(
+                DeepEqualityComparer.Instance.GetHashCode(obj),
+                Is.EqualTo(
+                    AccumulateHashCode(
+                        AccumulateHashCode(
+                            AccumulateHashCode(0, "1"),
+                            "2"),
+                        "3")));
+        }
+
+        [Test]
         public void ReturnsZeroForAnObjectWithNoProperties()
         {
             Assert.That(DeepEqualityComparer.Instance.GetHashCode(new Garply()), Is.EqualTo(0));
@@ -899,6 +906,68 @@ namespace DeepEqualityComparerTests
                 return (previousHashCode * 397) ^ (currentObject != null ? currentObject.GetHashCode() : 0);
             }
         }
+    }
+
+    public class MyEnumerable : IEnumerable
+    {
+        private readonly ArrayList _list = new ArrayList();
+        public IEnumerator GetEnumerator() { return ((IEnumerable)_list).GetEnumerator(); }
+        public void Add(object item) { _list.Add(item); }
+    }
+
+    public class EnumerableOfValueType : IEnumerable<int>
+    {
+        private readonly List<int> _list = new List<int>();
+        public IEnumerator<int> GetEnumerator() { return _list.GetEnumerator(); }
+        IEnumerator IEnumerable.GetEnumerator() { return ((IEnumerable)_list).GetEnumerator(); }
+        public void Add(int item) { _list.Add(item); }
+    }
+
+    public class EnumerableOfReferenceType : IEnumerable<string>
+    {
+        private readonly List<string> _list = new List<string>();
+        public IEnumerator<string> GetEnumerator() { return _list.GetEnumerator(); }
+        IEnumerator IEnumerable.GetEnumerator() { return ((IEnumerable)_list).GetEnumerator(); }
+        public void Add(string item) { _list.Add(item); }
+    }
+
+    public class MyCollection : ICollection
+    {
+        private readonly ArrayList _list = new ArrayList();
+        public void Add(object obj) { _list.Add(obj); }
+        public IEnumerator GetEnumerator() { return ((IEnumerable)_list).GetEnumerator(); }
+        public void CopyTo(Array array, int index) { ((ICollection)_list).CopyTo(array, index); }
+        public int Count { get { return _list.Count; } }
+        public object SyncRoot { get { return _list.SyncRoot; } }
+        public bool IsSynchronized { get { return _list.IsSynchronized; } }
+    }
+
+    public class CollectionOfValueType : ICollection<int>
+    {
+        private readonly List<int> _list = new List<int>();
+        public IEnumerator<int> GetEnumerator() { return _list.GetEnumerator(); }
+        IEnumerator IEnumerable.GetEnumerator() { return ((IEnumerable)_list).GetEnumerator(); }
+        public void Add(int item) { _list.Add(item); }
+        public void Clear() { _list.Clear(); }
+        public bool Contains(int item) { return _list.Contains(item); }
+        public void CopyTo(int[] array, int arrayIndex) { _list.CopyTo(array, arrayIndex); }
+        public bool Remove(int item) { return _list.Remove(item); }
+        public int Count { get { return _list.Count; } }
+        public bool IsReadOnly { get { return ((ICollection<int>)_list).IsReadOnly; } }
+    }
+
+    public class CollectionOfReferenceType : ICollection<string>
+    {
+        private readonly List<string> _list = new List<string>();
+        public IEnumerator<string> GetEnumerator() { return _list.GetEnumerator(); }
+        IEnumerator IEnumerable.GetEnumerator() { return ((IEnumerable)_list).GetEnumerator(); }
+        public void Add(string item) { _list.Add(item); }
+        public void Clear() { _list.Clear(); }
+        public bool Contains(string item) { return _list.Contains(item); }
+        public void CopyTo(string[] array, int arrayIndex) { _list.CopyTo(array, arrayIndex); }
+        public bool Remove(string item) { return _list.Remove(item); }
+        public int Count { get { return _list.Count; } }
+        public bool IsReadOnly { get { return ((ICollection<string>)_list).IsReadOnly; } }
     }
 
     public class Foo

@@ -130,7 +130,7 @@ namespace Rock.Collections
         private static bool HasOverriddenEqualsMethod(Type type)
         {
             var equalsMethod = type.GetMethod("Equals", new[] {typeof(object)});
-            return equalsMethod.DeclaringType == type;
+            return equalsMethod != null && equalsMethod.DeclaringType == type;
         }
 
         private Func<object, object, bool> CreateAreEqualDictionariesFunc(Type keyType, Type valueType, IEnumerable<Type> typesCurrentlyUnderConstruction)
@@ -622,22 +622,17 @@ namespace Rock.Collections
                     });
         }
 
-        private bool HasOverriddenGetHashCodeMethod(Type type)
+        private static bool HasOverriddenGetHashCodeMethod(Type type)
         {
             var getHashCodeMethod = type.GetMethod("GetHashCode", Type.EmptyTypes);
-            return getHashCodeMethod.DeclaringType == type;
+            return getHashCodeMethod != null && getHashCodeMethod.DeclaringType == type;
         }
 
         private Func<object, int> CreateGetAggregatedHashCodeFunc(Type type, IEnumerable<Type> typesCurrentlyUnderConstruction)
         {
             Func<object, int> getHashCodeFunc = _this.GetHashCode;
 
-            var closedIEnumerable =
-                type.GetInterfaces()
-                    .FirstOrDefault(i =>
-                        i.IsGenericType
-                        && i.GetGenericTypeDefinition() == typeof(IEnumerable<>));
-
+            var closedIEnumerable = type.GetClosedGenericType(typeof(IEnumerable<>));
             if (closedIEnumerable != null)
             {
                 var itemType = closedIEnumerable.GetGenericArguments()[0];
