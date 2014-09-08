@@ -51,6 +51,16 @@ namespace DeepEqualityComparerTests
             Assert.That(DeepEqualityComparer.Instance.Equals(new object(), null), Is.False);
         }
 
+        [TestCase("a", null)]
+        [TestCase(null, "a")]
+        public void ReturnsFalseWhenOnePropertyValueIsNullAndTheOtherIsNotNullForPropertiesOfASealedReferenceType(string lhsValue, string rhsValue)
+        {
+            var lhs = new Bar { Value = lhsValue };
+            var rhs = new Bar { Value = rhsValue };
+
+            Assert.That(DeepEqualityComparer.Instance.Equals(lhs, rhs), Is.False);
+        }
+
         [Test]
         public void ReturnsFalseWhenTheTwoObjectsHaveDifferentTypes()
         {
@@ -70,7 +80,16 @@ namespace DeepEqualityComparerTests
         }
 
         [Test]
-        public void WorksForPropertyOfTypeIDictionary()
+        public void ReturnsTrueForObjectsWithNoProperties()
+        {
+            var lhs = new Garply();
+            var rhs = new Garply();
+
+            Assert.That(DeepEqualityComparer.Instance.Equals(lhs, rhs), Is.True);
+        }
+
+        [Test]
+        public void ReturnsTrueWhenAppropriateForPropertyOfTypeIDictionary()
         {
             var lhs = new Qux { Bazes = GetHashtable() };
             var rhs = new Qux { Bazes = GetHashtable() };
@@ -79,7 +98,38 @@ namespace DeepEqualityComparerTests
         }
 
         [Test]
-        public void WorksForPropertyOfTypeGenericIDictionaryWithValueTypeKeyAndValue()
+        public void ReturnsFalseWhenAValueForAKeyIsDifferentForPropertyOfTypeIDictionary()
+        {
+            var lhs = new Qux { Bazes = GetHashtable() };
+            var rhs = new Qux { Bazes = GetHashtable() };
+            rhs.Bazes["b"] = 0;
+
+            Assert.That(DeepEqualityComparer.Instance.Equals(lhs, rhs), Is.False);
+        }
+
+        [Test]
+        public void ReturnsFalseWhenKeysAreDifferentForPropertyOfTypeIDictionary()
+        {
+            var lhs = new Qux { Bazes = GetHashtable() };
+            var rhs = new Qux { Bazes = GetHashtable() };
+            lhs.Bazes.Add("c", 3);
+            rhs.Bazes.Add("d", 3);
+
+            Assert.That(DeepEqualityComparer.Instance.Equals(lhs, rhs), Is.False);
+        }
+
+        [Test]
+        public void ReturnsFalseWhenCountIsDifferentForPropertyOfTypeIDictionary()
+        {
+            var lhs = new Qux { Bazes = GetHashtable() };
+            var rhs = new Qux { Bazes = GetHashtable() };
+            lhs.Bazes.Add("c", 3);
+
+            Assert.That(DeepEqualityComparer.Instance.Equals(lhs, rhs), Is.False);
+        }
+
+        [Test]
+        public void ReturnsTrueWhenAppropriateForPropertyOfTypeGenericIDictionaryWithValueTypeKeyAndValue()
         {
             var lhs = new Qux { Foos = GetValueTypeDictionary() };
             var rhs = new Qux { Foos = GetValueTypeDictionary() };
@@ -88,12 +138,218 @@ namespace DeepEqualityComparerTests
         }
 
         [Test]
-        public void WorksForPropertyOfTypeGenericIDictionaryWithReferenceTypeKeyAndValue()
+        public void ReturnsFalseWhenAValueForAKeyIsDifferentForPropertyOfTypeGenericIDictionaryWithValueTypeKeyAndValue()
+        {
+            var lhs = new Qux { Foos = GetValueTypeDictionary() };
+            var rhs = new Qux { Foos = GetValueTypeDictionary() };
+            rhs.Foos[2] = MyEnum.Foo;
+
+            Assert.That(DeepEqualityComparer.Instance.Equals(lhs, rhs), Is.False);
+        }
+
+        [Test]
+        public void ReturnsFalseWhenKeysAreDifferentForPropertyOfTypeGenericIDictionaryWithValueTypeKeyAndValue()
+        {
+            var lhs = new Qux { Foos = GetValueTypeDictionary() };
+            var rhs = new Qux { Foos = GetValueTypeDictionary() };
+            lhs.Foos.Add(3, MyEnum.Bar);
+            rhs.Foos.Add(4, MyEnum.Bar);
+
+            Assert.That(DeepEqualityComparer.Instance.Equals(lhs, rhs), Is.False);
+        }
+
+        [Test]
+        public void ReturnsFalseWhenCountIsDifferentForPropertyOfTypeGenericIDictionaryWithValueTypeKeyAndValue()
+        {
+            var lhs = new Qux { Foos = GetValueTypeDictionary() };
+            var rhs = new Qux { Foos = GetValueTypeDictionary() };
+            lhs.Foos.Add(3, MyEnum.Bar);
+
+            Assert.That(DeepEqualityComparer.Instance.Equals(lhs, rhs), Is.False);
+        }
+
+        [Test]
+        public void ReturnsTrueWhenAppropriateForPropertyOfTypeGenericIDictionaryWithReferenceTypeKeyAndValue()
         {
             var lhs = new Qux { Bars = GetReferenceTypeDictionary() };
             var rhs = new Qux { Bars = GetReferenceTypeDictionary() };
 
             Assert.That(DeepEqualityComparer.Instance.Equals(lhs, rhs), Is.True);
+        }
+
+        [Test]
+        public void ReturnsFalseWhenAValueForAKeyIsDifferentForPropertyOfTypeGenericIDictionaryWithReferenceTypeKeyAndValue()
+        {
+            var lhs = new Qux { Bars = GetReferenceTypeDictionary() };
+            var rhs = new Qux { Bars = GetReferenceTypeDictionary() };
+            rhs.Bars["b"].Value = "0";
+
+            Assert.That(DeepEqualityComparer.Instance.Equals(lhs, rhs), Is.False);
+        }
+
+        [Test]
+        public void ReturnsFalseWhenKeysAreDifferentForPropertyOfTypeGenericIDictionaryWithReferenceTypeKeyAndValue()
+        {
+            var lhs = new Qux { Bars = GetReferenceTypeDictionary() };
+            var rhs = new Qux { Bars = GetReferenceTypeDictionary() };
+            lhs.Bars.Add("c", new Bar { Value = "2" });
+            lhs.Bars.Add("d", new Bar { Value = "2" });
+
+            Assert.That(DeepEqualityComparer.Instance.Equals(lhs, rhs), Is.False);
+        }
+
+        [Test]
+        public void ReturnsFalseWhenCountIsDifferentForPropertyOfTypeGenericIDictionaryWithReferenceTypeKeyAndValue()
+        {
+            var lhs = new Qux { Bars = GetReferenceTypeDictionary() };
+            var rhs = new Qux { Bars = GetReferenceTypeDictionary() };
+            lhs.Bars.Add("c", new Bar { Value = "2" });
+
+            Assert.That(DeepEqualityComparer.Instance.Equals(lhs, rhs), Is.False);
+        }
+
+        [Test]
+        public void ReturnsTrueWhenAppropriateForPropertyOfTypeICollection()
+        {
+            var lhs = new Corge { Foos = GetCollection() };
+            var rhs = new Corge { Foos = GetCollection() };
+
+            Assert.That(DeepEqualityComparer.Instance.Equals(lhs, rhs), Is.True);
+        }
+
+        [Test]
+        public void ReturnsFalseWhenValuesAreDifferentForPropertyOfTypeICollection()
+        {
+            var lhsCollection = GetCollection();
+            var rhsCollection = GetCollection();
+
+            lhsCollection.Add(4);
+            rhsCollection.Add(5);
+
+            var lhs = new Corge { Foos = lhsCollection };
+            var rhs = new Corge { Foos = rhsCollection };
+
+            Assert.That(DeepEqualityComparer.Instance.Equals(lhs, rhs), Is.False);
+        }
+
+        [Test]
+        public void ReturnsTrueWhenAppropriateForPropertyOfTypeGenericICollectionOfValueType()
+        {
+            var lhs = new Corge { Bars = GetCollectionOfValueType() };
+            var rhs = new Corge { Bars = GetCollectionOfValueType() };
+
+            Assert.That(DeepEqualityComparer.Instance.Equals(lhs, rhs), Is.True);
+        }
+
+        [Test]
+        public void ReturnsFalseWhenKeysAreDifferentForPropertyOfTypeGenericICollectionOfValueType()
+        {
+            var lhsCollection = GetCollectionOfValueType();
+            var rhsCollection = GetCollectionOfValueType();
+
+            lhsCollection.Add(4);
+            rhsCollection.Add(5);
+
+            var lhs = new Corge { Bars = lhsCollection };
+            var rhs = new Corge { Bars = rhsCollection };
+
+            Assert.That(DeepEqualityComparer.Instance.Equals(lhs, rhs), Is.False);
+        }
+
+        [Test]
+        public void ReturnsTrueWhenAppropriateForPropertyOfTypeGenericICollectionOfReferenceType()
+        {
+            var lhs = new Corge { Bazes = GetCollectionOfReferenceType() };
+            var rhs = new Corge { Bazes = GetCollectionOfReferenceType() };
+
+            Assert.That(DeepEqualityComparer.Instance.Equals(lhs, rhs), Is.True);
+        }
+
+        [Test]
+        public void ReturnsFalseWhenKeysAreDifferentForPropertyOfTypeGenericICollectionOfReferenceType()
+        {
+            var lhsCollection = GetCollectionOfReferenceType();
+            var rhsCollection = GetCollectionOfReferenceType();
+
+            lhsCollection.Add("c");
+            rhsCollection.Add("d");
+
+            var lhs = new Corge { Bazes = lhsCollection };
+            var rhs = new Corge { Bazes = rhsCollection };
+
+            Assert.That(DeepEqualityComparer.Instance.Equals(lhs, rhs), Is.False);
+        }
+
+        [Test]
+        public void ReturnsTrueWhenAppropriateForPropertyOfTypeIEnumerable()
+        {
+            var lhs = new Grault { Foos = GetEnumerable() };
+            var rhs = new Grault { Foos = GetEnumerable() };
+
+            Assert.That(DeepEqualityComparer.Instance.Equals(lhs, rhs), Is.True);
+        }
+
+        [Test]
+        public void ReturnsFalseWhenValuesAreDifferentForPropertyOfTypeIEnumerable()
+        {
+            var lhsEnumerable = GetEnumerable();
+            var rhsEnumerable = GetEnumerable();
+
+            lhsEnumerable.Add(4);
+            rhsEnumerable.Add(5);
+
+            var lhs = new Grault { Foos = lhsEnumerable };
+            var rhs = new Grault { Foos = rhsEnumerable };
+
+            Assert.That(DeepEqualityComparer.Instance.Equals(lhs, rhs), Is.False);
+        }
+
+        [Test]
+        public void ReturnsTrueWhenAppropriateForPropertyOfTypeGenericIEnumerableOfValueType()
+        {
+            var lhs = new Grault { Bars = GetEnumerableOfValueType() };
+            var rhs = new Grault { Bars = GetEnumerableOfValueType() };
+
+            Assert.That(DeepEqualityComparer.Instance.Equals(lhs, rhs), Is.True);
+        }
+
+        [Test]
+        public void ReturnsFalseWhenKeysAreDifferentForPropertyOfTypeGenericIEnumerableOfValueType()
+        {
+            var lhsEnumerable = GetEnumerableOfValueType();
+            var rhsEnumerable = GetEnumerableOfValueType();
+
+            lhsEnumerable.Add(4);
+            rhsEnumerable.Add(5);
+
+            var lhs = new Grault { Bars = lhsEnumerable };
+            var rhs = new Grault { Bars = rhsEnumerable };
+
+            Assert.That(DeepEqualityComparer.Instance.Equals(lhs, rhs), Is.False);
+        }
+
+        [Test]
+        public void ReturnsTrueWhenAppropriateForPropertyOfTypeGenericIEnumerableOfReferenceType()
+        {
+            var lhs = new Grault { Bazes = GetEnumerableOfReferenceType() };
+            var rhs = new Grault { Bazes = GetEnumerableOfReferenceType() };
+
+            Assert.That(DeepEqualityComparer.Instance.Equals(lhs, rhs), Is.True);
+        }
+
+        [Test]
+        public void ReturnsFalseWhenKeysAreDifferentForPropertyOfTypeGenericIEnumerableOfReferenceType()
+        {
+            var lhsEnumerable = GetEnumerableOfReferenceType();
+            var rhsEnumerable = GetEnumerableOfReferenceType();
+
+            lhsEnumerable.Add("c");
+            rhsEnumerable.Add("d");
+
+            var lhs = new Grault { Bazes = lhsEnumerable };
+            var rhs = new Grault { Bazes = rhsEnumerable };
+
+            Assert.That(DeepEqualityComparer.Instance.Equals(lhs, rhs), Is.False);
         }
 
         private static Hashtable GetHashtable()
@@ -118,8 +374,8 @@ namespace DeepEqualityComparerTests
         {
             return new ReferenceTypeDictionary
             {
-                { "a", new Bar { Value = 1 } },
-                { "b", new Bar { Value = 2 } },
+                { "a", new Bar { Value = "1" } },
+                { "b", new Bar { Value = "2" } },
             };
         }
 
@@ -129,6 +385,98 @@ namespace DeepEqualityComparerTests
 
         private class ReferenceTypeDictionary : Dictionary<string, Bar>
         {
+        }
+
+        private static MyCollection GetCollection()
+        {
+            return new MyCollection { 1, 2, 3 };
+        }
+
+        private static CollectionOfValueType GetCollectionOfValueType()
+        {
+            return new CollectionOfValueType { 1, 2, 3 };
+        }
+
+        private static CollectionOfReferenceType GetCollectionOfReferenceType()
+        {
+            return new CollectionOfReferenceType { "a", "b", "c" };
+        }
+
+        private class MyCollection : ICollection
+        {
+            private readonly ArrayList _list = new ArrayList();
+            public void Add(object obj) { _list.Add(obj); }
+            public IEnumerator GetEnumerator() { return ((IEnumerable)_list).GetEnumerator(); }
+            public void CopyTo(Array array, int index) { ((ICollection)_list).CopyTo(array, index); }
+            public int Count { get { return _list.Count; } }
+            public object SyncRoot { get { return _list.SyncRoot; } }
+            public bool IsSynchronized { get { return _list.IsSynchronized; } }
+        }
+
+        private class CollectionOfValueType : ICollection<int>
+        {
+            private readonly List<int> _list = new List<int>();
+            public IEnumerator<int> GetEnumerator() { return _list.GetEnumerator(); }
+            IEnumerator IEnumerable.GetEnumerator() { return ((IEnumerable)_list).GetEnumerator(); }
+            public void Add(int item) { _list.Add(item); }
+            public void Clear() { _list.Clear(); }
+            public bool Contains(int item) { return _list.Contains(item); }
+            public void CopyTo(int[] array, int arrayIndex) { _list.CopyTo(array, arrayIndex); }
+            public bool Remove(int item) { return _list.Remove(item); }
+            public int Count { get { return _list.Count; } }
+            public bool IsReadOnly { get { return ((ICollection<int>)_list).IsReadOnly; } }
+        }
+
+        private class CollectionOfReferenceType : ICollection<string>
+        {
+            private readonly List<string> _list = new List<string>();
+            public IEnumerator<string> GetEnumerator() { return _list.GetEnumerator(); }
+            IEnumerator IEnumerable.GetEnumerator() { return ((IEnumerable)_list).GetEnumerator(); }
+            public void Add(string item) { _list.Add(item); }
+            public void Clear() { _list.Clear(); }
+            public bool Contains(string item) { return _list.Contains(item); }
+            public void CopyTo(string[] array, int arrayIndex) { _list.CopyTo(array, arrayIndex); }
+            public bool Remove(string item) { return _list.Remove(item); }
+            public int Count { get { return _list.Count; } }
+            public bool IsReadOnly { get { return ((ICollection<string>)_list).IsReadOnly; } }
+        }
+
+        private static MyEnumerable GetEnumerable()
+        {
+            return new MyEnumerable { 1, 2, 3 };
+        }
+
+        private static EnumerableOfValueType GetEnumerableOfValueType()
+        {
+            return new EnumerableOfValueType { 1, 2, 3 };
+        }
+
+        private static EnumerableOfReferenceType GetEnumerableOfReferenceType()
+        {
+            return new EnumerableOfReferenceType { "a", "b", "c" };
+        }
+
+        private class MyEnumerable : IEnumerable
+        {
+            private readonly ArrayList _list = new ArrayList();
+            public IEnumerator GetEnumerator() { return ((IEnumerable)_list).GetEnumerator(); }
+            public void Add(object item) { _list.Add(item); }
+        }
+
+        private class EnumerableOfValueType : IEnumerable<int>
+        {
+            private readonly List<int> _list = new List<int>();
+            public IEnumerator<int> GetEnumerator() { return _list.GetEnumerator(); }
+            IEnumerator IEnumerable.GetEnumerator() { return ((IEnumerable)_list).GetEnumerator(); }
+            public void Add(int item) { _list.Add(item); }
+        }
+
+        private class EnumerableOfReferenceType : IEnumerable<string>
+        {
+            private readonly List<string> _list = new List<string>();
+            public IEnumerator<string> GetEnumerator() { return _list.GetEnumerator(); }
+            IEnumerator IEnumerable.GetEnumerator() { return ((IEnumerable)_list).GetEnumerator(); }
+            public void Add(string item) { _list.Add(item); }
         }
 
         private static IEnumerable<TestCaseData> GetIEnumerableTestCases()
@@ -228,7 +576,7 @@ namespace DeepEqualityComparerTests
 
             public IEnumerator<Bar> GetEnumerator()
             {
-                return Enumerable.Range(1, _itemCount).Select(i => new Bar { Value = i }).ToList().GetEnumerator();
+                return Enumerable.Range(1, _itemCount).Select(i => new Bar { Value = i.ToString() }).ToList().GetEnumerator();
             }
 
             IEnumerator IEnumerable.GetEnumerator()
@@ -307,7 +655,7 @@ namespace DeepEqualityComparerTests
         private class CollectionOfBarImplementation : ICollection<Bar>
         {
             private readonly List<Bar> _list;
-            public CollectionOfBarImplementation(int count) { _list = new List<Bar>(Enumerable.Range(1, count).Select(i => new Bar { Value = i })); }
+            public CollectionOfBarImplementation(int count) { _list = new List<Bar>(Enumerable.Range(1, count).Select(i => new Bar { Value = i.ToString() })); }
             public IEnumerator<Bar> GetEnumerator() { return _list.GetEnumerator(); }
             IEnumerator IEnumerable.GetEnumerator() { return ((IEnumerable)_list).GetEnumerator(); }
             public void Add(Bar item) { _list.Add(item); }
@@ -356,7 +704,7 @@ namespace DeepEqualityComparerTests
         {
             return new Bar
             {
-                Value = 123
+                Value = "123"
             };
         }
 
@@ -364,7 +712,7 @@ namespace DeepEqualityComparerTests
         {
             return new Bar
             {
-                Value = 789
+                Value = "789"
             };
         }
 
@@ -416,9 +764,9 @@ namespace DeepEqualityComparerTests
                 },
                 Bars = new Dictionary<int, Bar>
                 {
-                    { 1, new Bar { Value = 1 } },
-                    { 2, new Bar { Value = 2 } },
-                    { 3, new Bar { Value = 3 } }
+                    { 1, new Bar { Value = "1" } },
+                    { 2, new Bar { Value = "2" } },
+                    { 3, new Bar { Value = "3" } }
                 }
             };
         }
@@ -443,9 +791,9 @@ namespace DeepEqualityComparerTests
                 },
                 Bars = new Dictionary<int, Bar>
                 {
-                    { 1, new Bar { Value = 1 } },
-                    { 2, new Bar { Value = 2 } },
-                    { 3, new Bar { Value = 4 } }
+                    { 1, new Bar { Value = "1" } },
+                    { 2, new Bar { Value = "2" } },
+                    { 3, new Bar { Value = "4" } }
                 }
             };
         }
@@ -463,7 +811,7 @@ namespace DeepEqualityComparerTests
 
         public class Bar
         {
-            public int Value { get; set; }
+            public string Value { get; set; }
         }
 
         public class Baz
@@ -477,6 +825,24 @@ namespace DeepEqualityComparerTests
             public IDictionary<int, MyEnum> Foos { get; set; } 
             public IDictionary<string, Bar> Bars { get; set; }
             public IDictionary Bazes { get; set; }
+        }
+
+        public class Corge
+        {
+            public ICollection Foos { get; set; } 
+            public ICollection<int> Bars { get; set; }
+            public ICollection<string> Bazes { get; set; }
+        }
+
+        public class Grault
+        {
+            public IEnumerable Foos { get; set; }
+            public IEnumerable<int> Bars { get; set; }
+            public IEnumerable<string> Bazes { get; set; }
+        }
+
+        public class Garply
+        {
         }
 
         public enum MyEnum
