@@ -57,6 +57,80 @@ namespace DeepEqualityComparerTests
             Assert.That(DeepEqualityComparer.Instance.Equals("abc", 123), Is.False);
         }
 
+        [TestCaseSource("GetICollectionTestCases")]
+        public void WorksForICollection(object lhs, object rhs, bool expected)
+        {
+            Assert.That(DeepEqualityComparer.Instance.Equals(lhs, rhs), Is.EqualTo(expected));
+        }
+
+        [TestCaseSource("GetArbitraryObjectTestCases")]
+        public void WorksForArbitraryObjects(object lhs, object rhs, bool expected)
+        {
+            Assert.That(DeepEqualityComparer.Instance.Equals(lhs, rhs), Is.EqualTo(expected));
+        }
+
+        [Test]
+        public void WorksForPropertyOfTypeIDictionary()
+        {
+            var lhs = new Qux { Bazes = GetHashtable() };
+            var rhs = new Qux { Bazes = GetHashtable() };
+
+            Assert.That(DeepEqualityComparer.Instance.Equals(lhs, rhs), Is.True);
+        }
+
+        [Test]
+        public void WorksForPropertyOfTypeGenericIDictionaryWithValueTypeKeyAndValue()
+        {
+            var lhs = new Qux { Foos = GetValueTypeDictionary() };
+            var rhs = new Qux { Foos = GetValueTypeDictionary() };
+
+            Assert.That(DeepEqualityComparer.Instance.Equals(lhs, rhs), Is.True);
+        }
+
+        [Test]
+        public void WorksForPropertyOfTypeGenericIDictionaryWithReferenceTypeKeyAndValue()
+        {
+            var lhs = new Qux { Bars = GetReferenceTypeDictionary() };
+            var rhs = new Qux { Bars = GetReferenceTypeDictionary() };
+
+            Assert.That(DeepEqualityComparer.Instance.Equals(lhs, rhs), Is.True);
+        }
+
+        private static Hashtable GetHashtable()
+        {
+            return new Hashtable
+            {
+                { "a", 1 },
+                { "b", 2 },
+            };
+        }
+
+        private static ValueTypeDictionary GetValueTypeDictionary()
+        {
+            return new ValueTypeDictionary
+            {
+                { 1, MyEnum.Bar },
+                { 2, MyEnum.Baz },
+            };
+        }
+
+        private static ReferenceTypeDictionary GetReferenceTypeDictionary()
+        {
+            return new ReferenceTypeDictionary
+            {
+                { "a", new Bar { Value = 1 } },
+                { "b", new Bar { Value = 2 } },
+            };
+        }
+
+        private class ValueTypeDictionary : Dictionary<int, MyEnum>
+        {
+        }
+
+        private class ReferenceTypeDictionary : Dictionary<string, Bar>
+        {
+        }
+
         private static IEnumerable<TestCaseData> GetIEnumerableTestCases()
         {
             yield return
@@ -163,12 +237,6 @@ namespace DeepEqualityComparerTests
             }
         }
 
-        [TestCaseSource("GetICollectionTestCases")]
-        public void WorksForICollection(object lhs, object rhs, bool expected)
-        {
-            Assert.That(DeepEqualityComparer.Instance.Equals(lhs, rhs), Is.EqualTo(expected));
-        }
-
         private static IEnumerable<TestCaseData> GetICollectionTestCases()
         {
             yield return
@@ -249,12 +317,6 @@ namespace DeepEqualityComparerTests
             public bool Remove(Bar item) { return _list.Remove(item); }
             public int Count { get { return _list.Count; } }
             public bool IsReadOnly { get { return ((ICollection<Bar>)_list).IsReadOnly; } }
-        }
-
-        [TestCaseSource("GetArbitraryObjectTestCases")]
-        public void WorksForArbitraryObjects(object lhs, object rhs, bool expected)
-        {
-            Assert.That(DeepEqualityComparer.Instance.Equals(lhs, rhs), Is.EqualTo(expected));
         }
 
         private static IEnumerable<TestCaseData> GetArbitraryObjectTestCases()
@@ -408,6 +470,13 @@ namespace DeepEqualityComparerTests
         {
             public IEnumerable<Foo> Foos { get; set; }
             public IDictionary<int, Bar> Bars { get; set; }
+        }
+
+        public class Qux
+        {
+            public IDictionary<int, MyEnum> Foos { get; set; } 
+            public IDictionary<string, Bar> Bars { get; set; }
+            public IDictionary Bazes { get; set; }
         }
 
         public enum MyEnum

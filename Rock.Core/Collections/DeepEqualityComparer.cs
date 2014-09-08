@@ -269,9 +269,10 @@ namespace Rock.Collections
 
             var lambda =
                 Expression.Lambda<Func<object, object>>(
-                    Expression.Property(
-                        Expression.Convert(objParameter, keyValuePairType),
-                        keyValuePairType.GetProperty("Value")),
+                    BoxIfNecessary(
+                        Expression.Property(
+                            Expression.Convert(objParameter, keyValuePairType),
+                            keyValuePairType.GetProperty("Value"))),
                     objParameter);
 
             return lambda.Compile();
