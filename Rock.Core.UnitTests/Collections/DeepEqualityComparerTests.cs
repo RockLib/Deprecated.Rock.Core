@@ -797,57 +797,143 @@ namespace DeepEqualityComparerTests
                 }
             };
         }
+    }
 
-        public class Foo
+    public class TheGetHashCodeMethod
+    {
+        [TestCase(1)]
+        [TestCase("a")]
+        [TestCase(MyEnum.Foo)]
+        public void ReturnsTheValueOfTheObjectsGetHashCodeMethodForValues(object obj)
         {
-            public int Int32 { get; set; }
-            public string String { get; set; }
-            public MyEnum MyEnum { get; set; }
-            public IEnumerable Enumerable { get; set; }
-            public IEnumerable<int> EnumerableOfT { get; set; }
-            public ICollection Collection { get; set; }
-            public ICollection<int> CollectionOfT { get; set; }
+            Assert.That(DeepEqualityComparer.Instance.GetHashCode(obj), Is.EqualTo(obj.GetHashCode()));
         }
 
-        public class Bar
+        [Test]
+        public void ReturnsZeroForNull()
         {
-            public string Value { get; set; }
+            Assert.That(DeepEqualityComparer.Instance.GetHashCode(null), Is.EqualTo(0));
         }
 
-        public class Baz
+        [Test]
+        public void ReturnsZeroForAnObjectWithNoProperties()
         {
-            public IEnumerable<Foo> Foos { get; set; }
-            public IDictionary<int, Bar> Bars { get; set; }
+            Assert.That(DeepEqualityComparer.Instance.GetHashCode(new Garply()), Is.EqualTo(0));
         }
 
-        public class Qux
+        [Test]
+        public void ReturnsTheAggregationOfTheHashCodeOfEachOfItsProperties()
         {
-            public IDictionary<int, MyEnum> Foos { get; set; } 
-            public IDictionary<string, Bar> Bars { get; set; }
-            public IDictionary Bazes { get; set; }
+            var obj = new Waldo
+            {
+                Foo = "abc",
+                Bar = 123,
+                Baz = MyEnum.Baz
+            };
+
+            Assert.That(
+                DeepEqualityComparer.Instance.GetHashCode(obj),
+                Is.EqualTo(
+                    AccumulateHashCode(
+                        AccumulateHashCode(
+                            AccumulateHashCode(0, "abc"),
+                            123),
+                        MyEnum.Baz)));
         }
 
-        public class Corge
+        [Test]
+        public void ReturnsTheAggregationOfTheHashCodeOfEachOfItsPropertiesWhenTheTypeHasACycle()
         {
-            public ICollection Foos { get; set; } 
-            public ICollection<int> Bars { get; set; }
-            public ICollection<string> Bazes { get; set; }
+            var obj = new Fred
+            {
+                Value = "abc",
+                Child = new Fred
+                {
+                    Value = "xyz"
+                }
+            };
+
+            Assert.That(
+                DeepEqualityComparer.Instance.GetHashCode(obj),
+                Is.EqualTo(
+                    AccumulateHashCode(
+                        AccumulateHashCode(0, "abc"),
+                        AccumulateHashCode(
+                            AccumulateHashCode(0, "xyz"),
+                            null))));
         }
 
-        public class Grault
+        private static int AccumulateHashCode(int previousHashCode, object currentObject)
         {
-            public IEnumerable Foos { get; set; }
-            public IEnumerable<int> Bars { get; set; }
-            public IEnumerable<string> Bazes { get; set; }
+            unchecked
+            {
+                return (previousHashCode * 397) ^ (currentObject != null ? currentObject.GetHashCode() : 0);
+            }
         }
+    }
 
-        public class Garply
-        {
-        }
+    public class Foo
+    {
+        public int Int32 { get; set; }
+        public string String { get; set; }
+        public MyEnum MyEnum { get; set; }
+        public IEnumerable Enumerable { get; set; }
+        public IEnumerable<int> EnumerableOfT { get; set; }
+        public ICollection Collection { get; set; }
+        public ICollection<int> CollectionOfT { get; set; }
+    }
 
-        public enum MyEnum
-        {
-            Foo, Bar, Baz
-        }
+    public class Bar
+    {
+        public string Value { get; set; }
+    }
+
+    public class Baz
+    {
+        public IEnumerable<Foo> Foos { get; set; }
+        public IDictionary<int, Bar> Bars { get; set; }
+    }
+
+    public class Qux
+    {
+        public IDictionary<int, MyEnum> Foos { get; set; }
+        public IDictionary<string, Bar> Bars { get; set; }
+        public IDictionary Bazes { get; set; }
+    }
+
+    public class Corge
+    {
+        public ICollection Foos { get; set; }
+        public ICollection<int> Bars { get; set; }
+        public ICollection<string> Bazes { get; set; }
+    }
+
+    public class Grault
+    {
+        public IEnumerable Foos { get; set; }
+        public IEnumerable<int> Bars { get; set; }
+        public IEnumerable<string> Bazes { get; set; }
+    }
+
+    public class Garply
+    {
+    }
+
+    public class Waldo
+    {
+        public string Foo { get; set; }
+        public int Bar { get; set; }
+        public MyEnum Baz { get; set; }
+    }
+
+    public class Fred
+    {
+        public string Value { get; set; }
+        public Fred Child { get; set; }
+    }
+
+    public enum MyEnum
+    {
+        Foo, Bar, Baz
     }
 }
