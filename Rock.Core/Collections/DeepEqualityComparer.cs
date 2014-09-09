@@ -11,9 +11,9 @@ namespace Rock.Collections
 {
     public class DeepEqualityComparer : IEqualityComparer
     {
-        private static readonly ConcurrentDictionary<StringComparison, DeepEqualityComparerImplementation> _equalityComparerImplementations = new ConcurrentDictionary<StringComparison, DeepEqualityComparerImplementation>(); 
+        private static readonly ConcurrentDictionary<StringComparison, Implementation> _implementations = new ConcurrentDictionary<StringComparison, Implementation>(); 
 
-        private readonly IEqualityComparer _equalityComparerImplementation;
+        private readonly IEqualityComparer _implementation;
 
         public DeepEqualityComparer()
             : this(null)
@@ -27,20 +27,20 @@ namespace Rock.Collections
                     ? configuration.StringComparison
                     : StringComparison.Ordinal;
 
-            _equalityComparerImplementation =
-                _equalityComparerImplementations.GetOrAdd(
+            _implementation =
+                _implementations.GetOrAdd(
                     stringComparison,
-                    comparison => new DeepEqualityComparerImplementation(GetStringComparer(comparison)));
+                    comparison => new Implementation(GetStringComparer(comparison)));
         }
 
         public new bool Equals(object x, object y)
         {
-            return _equalityComparerImplementation.Equals(x, y);
+            return _implementation.Equals(x, y);
         }
 
         public int GetHashCode(object obj)
         {
-            return _equalityComparerImplementation.GetHashCode(obj);
+            return _implementation.GetHashCode(obj);
         }
 
         private static StringComparer GetStringComparer(StringComparison stringComparison)
@@ -65,7 +65,7 @@ namespace Rock.Collections
         }
 
         // ReSharper disable PossibleMultipleEnumeration
-        private class DeepEqualityComparerImplementation : IEqualityComparer
+        private class Implementation : IEqualityComparer
         {
             private readonly ConcurrentDictionary<Type, Func<object, object, bool>> _equalsFuncs = new ConcurrentDictionary<Type, Func<object, object, bool>>();
             private readonly ConcurrentDictionary<Type, Func<object, int>> _getHashCodeFuncs = new ConcurrentDictionary<Type, Func<object, int>>();
@@ -73,7 +73,7 @@ namespace Rock.Collections
             private readonly StringComparer _stringComparer;
             private readonly IEqualityComparer _this;
 
-            public DeepEqualityComparerImplementation(StringComparer stringComparer)
+            public Implementation(StringComparer stringComparer)
             {
                 _stringComparer = stringComparer;
                 _this = this;
@@ -391,7 +391,7 @@ namespace Rock.Collections
                 IEnumerable<Type> typesCurrentlyUnderConstruction)
             {
                 var createAreEqualGenericCollectionsFuncMethod =
-                    typeof(DeepEqualityComparerImplementation).GetMethod(
+                    typeof(Implementation).GetMethod(
                         "CreateAreEqualGenericCollectionsFunc",
                         BindingFlags.NonPublic | BindingFlags.Instance)
                         .MakeGenericMethod(itemType);
@@ -831,7 +831,7 @@ namespace Rock.Collections
                         Expression.Convert(parameterExpression, type));
 
                 var accumulateHashCodeMethod =
-                    typeof(DeepEqualityComparerImplementation)
+                    typeof(Implementation)
                         .GetMethod("AccumulateHashCode", BindingFlags.Static | BindingFlags.NonPublic, null, new[] { typeof(int), typeof(object), typeof(Func<object, int>) }, null);
 
                 var getAggregatedHashCodeExpression =

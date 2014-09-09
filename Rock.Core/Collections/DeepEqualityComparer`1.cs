@@ -17,12 +17,12 @@ namespace Rock.Collections
             _equalityComparer = new DeepEqualityComparer(configuration);
         }
 
-        bool IEqualityComparer<T>.Equals(T lhs, T rhs)
+        public bool Equals(T lhs, T rhs)
         {
             return _equalityComparer.Equals(lhs, rhs);
         }
 
-        int IEqualityComparer<T>.GetHashCode(T instance)
+        public int GetHashCode(T instance)
         {
             return _equalityComparer.GetHashCode(instance);
         }
