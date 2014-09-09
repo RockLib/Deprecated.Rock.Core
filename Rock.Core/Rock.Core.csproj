@@ -49,6 +49,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Collections\DeepEqualityComparerConfiguration.cs" />
+    <Compile Include="Collections\DefaultMemberLocator.cs" />
     <Compile Include="TryFunc.cs" />
     <Compile Include="Collections\DeepEqualityComparer`1.cs" />
     <Compile Include="Collections\DeepEqualityComparer.cs" />

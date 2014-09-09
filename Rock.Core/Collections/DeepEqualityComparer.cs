@@ -11,26 +11,28 @@ namespace Rock.Collections
 {
     public class DeepEqualityComparer : IEqualityComparer
     {
-        private static readonly ConcurrentDictionary<StringComparison, Implementation> _implementations = new ConcurrentDictionary<StringComparison, Implementation>(); 
+        private const StringComparison _defaultStringComparison = StringComparison.Ordinal;
+        private static readonly IMemberLocator _defaultMemberLocator = new DefaultMemberLocator();
+        private static readonly IConfiguration _defaultConfiguration = new DeepEqualityComparerConfiguration { StringComparison = _defaultStringComparison, MemberLocator = _defaultMemberLocator };
+
+        private static readonly ConcurrentDictionary<ImplementationKey, Implementation> _implementations = new ConcurrentDictionary<ImplementationKey, Implementation>(); 
 
         private readonly IEqualityComparer _implementation;
 
         public DeepEqualityComparer()
-            : this(null)
+            : this(_defaultConfiguration)
         {
         }
 
         public DeepEqualityComparer(IConfiguration configuration)
         {
-            var stringComparison =
-                configuration != null
-                    ? configuration.StringComparison
-                    : StringComparison.Ordinal;
+            configuration = configuration ?? _defaultConfiguration;
+            var memberLocator = configuration.MemberLocator ?? _defaultMemberLocator;
 
             _implementation =
                 _implementations.GetOrAdd(
-                    stringComparison,
-                    comparison => new Implementation(GetStringComparer(comparison)));
+                    new ImplementationKey(configuration.StringComparison, memberLocator),
+                    key => new Implementation(GetStringComparer(configuration.StringComparison), memberLocator));
         }
 
         public new bool Equals(object x, object y)
@@ -71,11 +73,13 @@ namespace Rock.Collections
             private readonly ConcurrentDictionary<Type, Func<object, int>> _getHashCodeFuncs = new ConcurrentDictionary<Type, Func<object, int>>();
 
             private readonly StringComparer _stringComparer;
+            private readonly IMemberLocator _memberLocator;
             private readonly IEqualityComparer _this;
 
-            public Implementation(StringComparer stringComparer)
+            public Implementation(StringComparer stringComparer, IMemberLocator memberLocator)
             {
                 _stringComparer = stringComparer;
+                _memberLocator = memberLocator;
                 _this = this;
             }
 
@@ -504,7 +508,7 @@ namespace Rock.Collections
 
             private Func<object, object, bool> CreateAreEqualObjectsFunc(Type type, IEnumerable<Type> typesCurrentlyUnderConstruction)
             {
-                var properties = GetReadableProperties(type);
+                var properties = _memberLocator.GetFieldsAndProperties(type).ToList();
 
                 if (!properties.Any())
                 {
@@ -588,20 +592,20 @@ namespace Rock.Collections
             }
 
             private Expression GetAreEqualPropertyValuesExpression(
-                PropertyInfo property,
+                PropertyOrField property,
                 Expression lhsParameterExpression,
                 Expression rhsParameterExpression,
                 IEnumerable<Type> typesCurrentlyUnderConstruction)
             {
                 var lhsPropertyValueExpression =
-                    BoxIfNecessary(Expression.Property(lhsParameterExpression, property));
+                    BoxIfNecessary(Expression.PropertyOrField(lhsParameterExpression, property.Name));
                 var rhsPropertyValueExpression =
-                    BoxIfNecessary(Expression.Property(rhsParameterExpression, property));
+                    BoxIfNecessary(Expression.PropertyOrField(rhsParameterExpression, property.Name));
 
-                if (property.PropertyType.IsSealed
-                    && !CanCreateEqualsCycle(property.PropertyType, typesCurrentlyUnderConstruction))
+                if (property.PropertyOrFieldType.IsSealed
+                    && !CanCreateEqualsCycle(property.PropertyOrFieldType, typesCurrentlyUnderConstruction))
                 {
-                    var equalsFunc = GetOptimizedEqualsFunc(property.PropertyType, Type.EmptyTypes);
+                    var equalsFunc = GetOptimizedEqualsFunc(property.PropertyOrFieldType, Type.EmptyTypes);
                     return
                         Expression.Invoke(
                             Expression.Constant(equalsFunc),
@@ -827,7 +831,7 @@ namespace Rock.Collections
 
                 var hashCodeSeed = type.GetHashCode();
 
-                var properties = GetReadableProperties(type);
+                var properties = _memberLocator.GetFieldsAndProperties(type).ToList();
 
                 if (!properties.Any())
                 {
@@ -850,7 +854,7 @@ namespace Rock.Collections
                         .Select(property => new
                         {
                             Property = property,
-                            GetHashCodeFunc = GetTopLevelGetHashCodeFunc(property.PropertyType, typesCurrentlyUnderConstruction)
+                            GetHashCodeFunc = GetTopLevelGetHashCodeFunc(property.PropertyOrFieldType, typesCurrentlyUnderConstruction)
                         })
                         .Aggregate(
                             (Expression)Expression.Constant(hashCodeSeed),
@@ -858,7 +862,7 @@ namespace Rock.Collections
                                 Expression.Call(
                                     accumulateHashCodeMethod,
                                     currentHashCodeExpression,
-                                    BoxIfNecessary(Expression.Property(instanceVariableExpression, item.Property)),
+                                    BoxIfNecessary(Expression.PropertyOrField(instanceVariableExpression, item.Property.Name)),
                                     Expression.Constant(item.GetHashCodeFunc)));
 
                 var block =
@@ -908,22 +912,80 @@ namespace Rock.Collections
             {
                 return (currentHashCode * 397) ^ (obj != null ? getHashCode(obj) : 0);
             }
-
-            private static List<PropertyInfo> GetReadableProperties(Type type)
-            {
-                return type.GetProperties()
-                    .Where(p =>
-                        p.CanRead
-                        && p.GetGetMethod() != null
-                        && p.GetGetMethod().IsPublic)
-                    .ToList();
-            }
         }
         // ReSharper restore PossibleMultipleEnumeration
+
+        private class ImplementationKey
+        {
+            private readonly StringComparison _stringComparison;
+            private readonly IMemberLocator _memberLocator;
+            private readonly int _hashCode;
+
+            public ImplementationKey(StringComparison stringComparison, IMemberLocator memberLocator)
+            {
+                _stringComparison = stringComparison;
+                _memberLocator = memberLocator;
+                _hashCode = ((int)stringComparison * 397) ^ memberLocator.GetHashCode();
+            }
+
+            public override int GetHashCode()
+            {
+                return _hashCode;
+            }
+
+            public override bool Equals(object obj)
+            {
+                var other = (ImplementationKey)obj;
+                return
+                    _stringComparison == other._stringComparison
+                    && _memberLocator.Equals(other._memberLocator);
+            }
+        }
+
+        public class PropertyOrField
+        {
+            private readonly Type _propertyOrFieldType;
+            private readonly string _name;
+
+            public PropertyOrField(MemberInfo propertyOrField)
+            {
+                if (propertyOrField == null)
+                {
+                    throw new ArgumentNullException("propertyOrField");
+                }
+
+                if (!(propertyOrField is FieldInfo || propertyOrField is PropertyInfo))
+                {
+                    throw new ArgumentException("MemberInfo must be either a PropertyInfo or a FieldInfo.", "propertyOrField");
+                }
+
+                _propertyOrFieldType =
+                    propertyOrField is PropertyInfo
+                        ? ((PropertyInfo)propertyOrField).PropertyType
+                        : ((FieldInfo)propertyOrField).FieldType;
+                _name = propertyOrField.Name;
+            }
+
+            public Type PropertyOrFieldType
+            {
+                get { return _propertyOrFieldType; }
+            }
+
+            public string Name
+            {
+                get { return _name; }
+            }
+        }
+
+        public interface IMemberLocator
+        {
+            IEnumerable<PropertyOrField> GetFieldsAndProperties(Type type);
+        }
 
         public interface IConfiguration
         {
             StringComparison StringComparison { get; }
+            IMemberLocator MemberLocator { get; }
         }
     }
 }

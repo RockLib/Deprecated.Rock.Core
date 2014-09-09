@@ -30,6 +30,26 @@ namespace DeepEqualityComparerTests
             Assert.That(_deepEqualityComparer.Equals(lhs, rhs), Is.EqualTo(expected));
         }
 
+        [TestCase("abc", 123, true)]
+        [TestCase("abc", 321, false)]
+        [TestCase("xyz", 123, false)]
+        public void WorksForFields(string rhsFoo, int rhsBar, bool expected)
+        {
+            var lhs = new Thud
+            {
+                Foo = "abc",
+                Bar = 123
+            };
+
+            var rhs = new Thud
+            {
+                Foo = rhsFoo,
+                Bar = rhsBar
+            };
+
+            Assert.That(_deepEqualityComparer.Equals(lhs, rhs), Is.EqualTo(expected));
+        }
+
         [TestCaseSource("GetIEnumerableTestCases")]
         public void WorksForIEnumerable(object lhs, object rhs, bool expected)
         {
@@ -985,6 +1005,23 @@ namespace DeepEqualityComparerTests
         }
 
         [Test]
+        public void ReturnsTheAggregationOfTheHashCodeOfEachOfItsFields()
+        {
+            var obj = new Thud
+            {
+                Foo = "abc",
+                Bar = 123
+            };
+
+            Assert.That(
+                _deepEqualityComparer.GetHashCode(obj),
+                Is.EqualTo(
+                    AccumulateHashCode(
+                        AccumulateHashCode(typeof(Thud).GetHashCode(), "abc"),
+                        123)));
+        }
+
+        [Test]
         public void ReturnsTheAggregationOfTheHashCodeOfEachOfItsPropertiesWhenTheTypeHasACycle()
         {
             var obj = new Fred
@@ -1231,6 +1268,12 @@ namespace DeepEqualityComparerTests
 
         public bool WasEqualsCalled { get; private set; }
         public bool WasGetHashCodeCalled { get; private set; }
+    }
+
+    public class Thud
+    {
+        public string Foo;
+        public int Bar;
     }
 
     public enum MyEnum
