@@ -774,6 +774,103 @@ namespace DeepEqualityComparerTests
         }
 
         [Test]
+        public void ReturnsZeroForAnEmptyNonGenericDictionary()
+        {
+            var obj = new Hashtable();
+
+            Assert.That(DeepEqualityComparer.Instance.GetHashCode(obj), Is.EqualTo(0));
+        }
+
+        [Test]
+        public void ReturnsZeroForAnEmptyGenericDictionaryOfValueType()
+        {
+            var obj = new DictionaryOfValueType();
+
+            Assert.That(DeepEqualityComparer.Instance.GetHashCode(obj), Is.EqualTo(0));
+        }
+
+        [Test]
+        public void ReturnsZeroForAnEmptyGenericDictionaryOfReferenceType()
+        {
+            var obj = new DictionaryOfReferenceType();
+
+            Assert.That(DeepEqualityComparer.Instance.GetHashCode(obj), Is.EqualTo(0));
+        }
+
+        [Test]
+        public void ReturnsTheAggregationOfTheHashCodeOfEachOfItsItemsForImplementationsOfNonGenericIDictionary()
+        {
+            var obj = new Hashtable
+            {
+                { 1, 1.5 },
+                { 2, 2.5 }
+            };
+
+            var expected =
+                AccumulateHashCode(AccumulateHashCode(0, 1), 1.5)
+                + AccumulateHashCode(AccumulateHashCode(0, 2), 2.5);
+
+            Assert.That(
+                DeepEqualityComparer.Instance.GetHashCode(obj),
+                Is.EqualTo(expected));
+        }
+
+        [Test]
+        public void ReturnsTheAggregationOfTheHashCodeOfEachOfItsItemsForImplementationsOfGenericIDictionaryOfValueType()
+        {
+            var obj = new DictionaryOfValueType
+            {
+                { 1, 1.5 },
+                { 2, 2.5 }
+            };
+
+            var expected =
+                AccumulateHashCode(AccumulateHashCode(0, 1), 1.5)
+                + AccumulateHashCode(AccumulateHashCode(0, 2), 2.5);
+
+            Assert.That(
+                DeepEqualityComparer.Instance.GetHashCode(obj),
+                Is.EqualTo(expected));
+        }
+
+        [Test]
+        public void ReturnsTheAggregationOfTheHashCodeOfEachOfItsItemsForImplementationsOfGenericIDictionaryOfReferenceType()
+        {
+            var obj = new DictionaryOfReferenceType
+            {
+                { "a", new Bar { Value = "A" } },
+                { "b", new Bar { Value = "B" } }
+            };
+
+            var expected =
+                AccumulateHashCode(AccumulateHashCode(0, "a"), "A")
+                + AccumulateHashCode(AccumulateHashCode(0, "b"), "B");
+
+            Assert.That(
+                DeepEqualityComparer.Instance.GetHashCode(obj),
+                Is.EqualTo(expected));
+        }
+
+        [Test]
+        public void ForImplementationsOfIDictionaryTheItemOrderIsUnimportant()
+        {
+            var obj1 = new DictionaryOfReferenceType
+            {
+                { "a", new Bar { Value = "A" } },
+                { "b", new Bar { Value = "B" } }
+            };
+            var obj2 = new DictionaryOfReferenceType
+            {
+                { "b", new Bar { Value = "B" } },
+                { "a", new Bar { Value = "A" } }
+            };
+
+            Assert.That(
+                DeepEqualityComparer.Instance.GetHashCode(obj1),
+                Is.EqualTo(DeepEqualityComparer.Instance.GetHashCode(obj2)));
+        }
+
+        [Test]
         public void ReturnsZeroForAnEmptyNonGenericEnumerable()
         {
             var obj = new Grault { Foos = new MyEnumerable() };
@@ -968,6 +1065,48 @@ namespace DeepEqualityComparerTests
         public bool Remove(string item) { return _list.Remove(item); }
         public int Count { get { return _list.Count; } }
         public bool IsReadOnly { get { return ((ICollection<string>)_list).IsReadOnly; } }
+    }
+
+    public class DictionaryOfValueType : IDictionary<int, double>
+    {
+        private readonly Dictionary<int, double> _dictionary = new Dictionary<int, double>();
+        public IEnumerator<KeyValuePair<int, double>> GetEnumerator() { return _dictionary.GetEnumerator(); }
+        IEnumerator IEnumerable.GetEnumerator() { return ((IEnumerable) _dictionary).GetEnumerator(); }
+        public void Add(KeyValuePair<int, double> item) { ((IDictionary<int, double>)_dictionary).Add(item); }
+        public void Clear() { _dictionary.Clear(); }
+        public bool Contains(KeyValuePair<int, double> item) { return _dictionary.Contains(item); }
+        public void CopyTo(KeyValuePair<int, double>[] array, int arrayIndex) { ((IDictionary<int, double>)_dictionary).CopyTo(array, arrayIndex); }
+        public bool Remove(KeyValuePair<int, double> item) { return ((IDictionary<int, double>)_dictionary).Remove(item); }
+        public int Count { get { return _dictionary.Count; } }
+        public bool IsReadOnly { get { return ((IDictionary<int, double>)_dictionary).IsReadOnly; } }
+        public bool ContainsKey(int key) { return _dictionary.ContainsKey(key); }
+        public void Add(int key, double value) { _dictionary.Add(key, value); }
+        public bool Remove(int key) { return _dictionary.Remove(key); }
+        public bool TryGetValue(int key, out double value) { return _dictionary.TryGetValue(key, out value); }
+        public double this[int key] { get { return _dictionary[key]; } set { _dictionary[key] = value; } }
+        public ICollection<int> Keys { get { return _dictionary.Keys; } }
+        public ICollection<double> Values { get { return _dictionary.Values; } }
+    }
+
+    public class DictionaryOfReferenceType : IDictionary<string, Bar>
+    {
+        private readonly Dictionary<string, Bar> _dictionary = new Dictionary<string, Bar>();
+        public IEnumerator<KeyValuePair<string, Bar>> GetEnumerator() { return _dictionary.GetEnumerator(); }
+        IEnumerator IEnumerable.GetEnumerator() { return ((IEnumerable)_dictionary).GetEnumerator(); }
+        public void Add(KeyValuePair<string, Bar> item) { ((IDictionary<string, Bar>)_dictionary).Add(item); }
+        public void Clear() { _dictionary.Clear(); }
+        public bool Contains(KeyValuePair<string, Bar> item) { return _dictionary.Contains(item); }
+        public void CopyTo(KeyValuePair<string, Bar>[] array, int arrayIndex) { ((IDictionary<string, Bar>)_dictionary).CopyTo(array, arrayIndex); }
+        public bool Remove(KeyValuePair<string, Bar> item) { return ((IDictionary<string, Bar>)_dictionary).Remove(item); }
+        public int Count { get { return _dictionary.Count; } }
+        public bool IsReadOnly { get { return ((IDictionary<string, double>)_dictionary).IsReadOnly; } }
+        public bool ContainsKey(string key) { return _dictionary.ContainsKey(key); }
+        public void Add(string key, Bar value) { _dictionary.Add(key, value); }
+        public bool Remove(string key) { return _dictionary.Remove(key); }
+        public bool TryGetValue(string key, out Bar value) { return _dictionary.TryGetValue(key, out value); }
+        public Bar this[string key] { get { return _dictionary[key]; } set { _dictionary[key] = value; } }
+        public ICollection<string> Keys { get { return _dictionary.Keys; } }
+        public ICollection<Bar> Values { get { return _dictionary.Values; } }
     }
 
     public class Foo

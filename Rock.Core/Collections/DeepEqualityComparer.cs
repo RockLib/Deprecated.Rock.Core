@@ -139,9 +139,9 @@ namespace Rock.Collections
             var iDictionaryType = typeof(IDictionary<,>).MakeGenericType(keyType, valueType);
 
             var getEnumerator = GetGetEnumeratorFunc();
-            var getKeyFromKeyValuePair = GetGetKeyFromKeyValuePairFunc(keyValuePairType);
+            var getKeyFromKeyValuePair = GetPropertyAccessorFunc(keyValuePairType, "Key");
             var tryGetValue = GetTryGetValueFunc(keyType, valueType, iDictionaryType);
-            var getValueFromKeyValuePair = GetGetValueFromKeyValuePairFunc(keyValuePairType);
+            var getValueFromKeyValuePair = GetPropertyAccessorFunc(keyValuePairType, "Value");
 
             Func<object, object, bool> valueEquals;
 
@@ -214,9 +214,9 @@ namespace Rock.Collections
 
         private static TryFunc<object, object, object> GetTryGetValueFunc(Type keyType, Type valueType, Type iDictionaryType)
         {
-            var objParameter = Expression.Parameter(typeof (object), "obj");
-            var argParameter = Expression.Parameter(typeof (object), "arg");
-            var resultParameter = Expression.Parameter(typeof (object).MakeByRefType(), "result");
+            var objParameter = Expression.Parameter(typeof(object), "obj");
+            var argParameter = Expression.Parameter(typeof(object), "arg");
+            var resultParameter = Expression.Parameter(typeof(object).MakeByRefType(), "result");
 
             var valueVariable = Expression.Variable(valueType, "value");
             var foundVariable = Expression.Variable(typeof(bool), "found");
@@ -265,7 +265,7 @@ namespace Rock.Collections
 
         private static Func<object, IEnumerator> GetGetEnumeratorFunc()
         {
-            var objParameter = Expression.Parameter(typeof (object), "obj");
+            var objParameter = Expression.Parameter(typeof(object), "obj");
 
             var lambda =
                 Expression.Lambda<Func<object, IEnumerator>>(
@@ -277,31 +277,16 @@ namespace Rock.Collections
             return lambda.Compile();
         }
 
-        private static Func<object, object> GetGetKeyFromKeyValuePairFunc(Type keyValuePairType)
+        private static Func<object, object> GetPropertyAccessorFunc(Type type, string propertyName)
         {
-            var objParameter = Expression.Parameter(typeof (object), "obj");
+            var objParameter = Expression.Parameter(typeof(object), "obj");
 
             var lambda =
                 Expression.Lambda<Func<object, object>>(
                     BoxIfNecessary(
                         Expression.Property(
-                            Expression.Convert(objParameter, keyValuePairType),
-                            keyValuePairType.GetProperty("Key"))),
-                    objParameter);
-
-            return lambda.Compile();
-        }
-
-        private static Func<object, object> GetGetValueFromKeyValuePairFunc(Type keyValuePairType)
-        {
-            var objParameter = Expression.Parameter(typeof (object), "obj");
-
-            var lambda =
-                Expression.Lambda<Func<object, object>>(
-                    BoxIfNecessary(
-                        Expression.Property(
-                            Expression.Convert(objParameter, keyValuePairType),
-                            keyValuePairType.GetProperty("Value"))),
+                            Expression.Convert(objParameter, type),
+                            type.GetProperty(propertyName))),
                     objParameter);
 
             return lambda.Compile();
@@ -613,12 +598,131 @@ namespace Rock.Collections
                             return obj => obj.GetHashCode();
                         }
 
+                        var iDictionaryType =
+                            t.GetClosedGenericType(typeof(IDictionary<,>))
+                            ?? (typeof(IDictionary).IsAssignableFrom(t)
+                                ? typeof(IDictionary)
+                                : null);
+
+                        if (iDictionaryType != null)
+                        {
+                            return CreateGetDictionaryHashCodeFunc(t, iDictionaryType, typesCurrentlyUnderConstruction);
+                        }
+
                         if (typeof(IEnumerable).IsAssignableFrom(t))
                         {
-                            return CreateGetAggregatedHashCodeFunc(t, typesCurrentlyUnderConstruction);
+                            return CreateGetEnumerableHashCodeFunc(t, typesCurrentlyUnderConstruction);
                         }
 
                         return CreateObjectGetHashCodeFunc(t, typesCurrentlyUnderConstruction.Concat(t));
+                    });
+        }
+
+        private Func<object, int> CreateGetDictionaryHashCodeFunc(Type type, Type iDictionaryType, IEnumerable<Type> typesCurrentlyUnderConstruction)
+        {
+            Func<object, int> getKeyHashCodeFunc = _this.GetHashCode;
+            Func<object, int> getValueHashCodeFunc = _this.GetHashCode;
+
+            Type dictionaryItemType;
+
+            var needsNullCheck = true;
+
+            var closedIDictionary = type.GetClosedGenericType(typeof(IDictionary<,>));
+            if (closedIDictionary != null)
+            {
+                var keyType = closedIDictionary.GetGenericArguments()[0];
+                var valueType = closedIDictionary.GetGenericArguments()[1];
+
+                needsNullCheck = !valueType.IsValueType;
+
+                if (keyType.IsSealed)
+                {
+                    getKeyHashCodeFunc = GetTopLevelGetHashCodeFunc(keyType, typesCurrentlyUnderConstruction);
+                }
+
+                if (valueType.IsSealed)
+                {
+                    getValueHashCodeFunc = GetTopLevelGetHashCodeFunc(valueType, typesCurrentlyUnderConstruction);
+                }
+
+                dictionaryItemType = typeof(KeyValuePair<,>).MakeGenericType(keyType, valueType);
+            }
+            else
+            {
+                dictionaryItemType = typeof(DictionaryEntry);
+            }
+
+            var getKeyFunc = GetPropertyAccessorFunc(dictionaryItemType, "Key");
+            var getValueFunc = GetPropertyAccessorFunc(dictionaryItemType, "Value");
+
+            Func<int, object, int> accumulateHashCodes;
+
+            if (needsNullCheck)
+            {
+                accumulateHashCodes =
+                    (hashCode, kvp) =>
+                    {
+                        unchecked
+                        {
+                            return
+                                hashCode +
+                                ((getKeyHashCodeFunc(getKeyFunc(kvp)) * 397)
+                                    ^ (getValueFunc(kvp) != null ? getValueHashCodeFunc(getValueFunc(kvp)) : 0));
+                        }
+                    };
+            }
+            else
+            {
+                accumulateHashCodes =
+                    (hashCode, kvp) =>
+                    {
+                        unchecked
+                        {
+                            return
+                                hashCode +
+                                ((getKeyHashCodeFunc(getKeyFunc(kvp)) * 397)
+                                    ^ getValueHashCodeFunc(getValueFunc(kvp)));
+                        }
+                    };
+            }
+
+            var objParameter = Expression.Parameter(typeof(object), "obj");
+
+            var castMethod = typeof(Enumerable).GetMethod("Cast").MakeGenericMethod(typeof(object));
+            var dictionaryItemCollection = Expression.Call(castMethod, Expression.Convert(objParameter, iDictionaryType));
+
+            var lambda =
+                Expression.Lambda<Func<object, int>>(
+                    Expression.Call(
+                        GetAggregateMethod().MakeGenericMethod(typeof(object), typeof(int)),
+                        dictionaryItemCollection,
+                        Expression.Constant(0),
+                        Expression.Constant(accumulateHashCodes)),
+                    objParameter);
+
+            return lambda.Compile();
+        }
+
+        private static MethodInfo GetAggregateMethod()
+        {
+            return typeof(Enumerable).GetMethods(BindingFlags.Public | BindingFlags.Static)
+                .Single(
+                    m =>
+                    {
+                        ParameterInfo[] parameters;
+                        Type[] genericArguments;
+
+                        if (m.Name != "Aggregate"
+                            || (parameters = m.GetParameters()).Length != 3
+                            || (genericArguments = m.GetGenericArguments()).Length != 2)
+                        {
+                            return false;
+                        }
+
+                        return
+                            parameters[0].ParameterType == typeof(IEnumerable<>).MakeGenericType(genericArguments[0])
+                            && parameters[1].ParameterType == genericArguments[1]
+                            && parameters[2].ParameterType == typeof(Func<,,>).MakeGenericType(genericArguments[1], genericArguments[0], genericArguments[1]);
                     });
         }
 
@@ -628,7 +732,7 @@ namespace Rock.Collections
             return getHashCodeMethod != null && getHashCodeMethod.DeclaringType == type;
         }
 
-        private Func<object, int> CreateGetAggregatedHashCodeFunc(Type type, IEnumerable<Type> typesCurrentlyUnderConstruction)
+        private Func<object, int> CreateGetEnumerableHashCodeFunc(Type type, IEnumerable<Type> typesCurrentlyUnderConstruction)
         {
             Func<object, int> getHashCodeFunc = _this.GetHashCode;
 
