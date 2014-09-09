@@ -48,6 +48,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Collections\DeepEqualityComparerConfiguration.cs" />
+    <Compile Include="Collections\DefaultMemberLocator.cs" />
+    <Compile Include="TryFunc.cs" />
     <Compile Include="Collections\DeepEqualityComparer`1.cs" />
     <Compile Include="Collections\DeepEqualityComparer.cs" />
     <Compile Include="Extensions\GetClosedGenericTypeExtension.cs" />

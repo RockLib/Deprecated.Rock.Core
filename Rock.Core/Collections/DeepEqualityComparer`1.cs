@@ -1,28 +1,30 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
 
 namespace Rock.Collections
 {
     public sealed class DeepEqualityComparer<T> : IEqualityComparer<T>
     {
-        private static readonly IEqualityComparer<T> _instance = new DeepEqualityComparer<T>();
+        private readonly IEqualityComparer _equalityComparer;
 
-        private DeepEqualityComparer()
+        public DeepEqualityComparer()
         {
+            _equalityComparer = new DeepEqualityComparer();
         }
 
-        public static IEqualityComparer<T> Instance
+        public DeepEqualityComparer(DeepEqualityComparer.IConfiguration configuration)
         {
-            get { return _instance; }
+            _equalityComparer = new DeepEqualityComparer(configuration);
         }
 
-        bool IEqualityComparer<T>.Equals(T lhs, T rhs)
+        public bool Equals(T lhs, T rhs)
         {
-            return DeepEqualityComparer.Instance.Equals(lhs, rhs);
+            return _equalityComparer.Equals(lhs, rhs);
         }
 
-        int IEqualityComparer<T>.GetHashCode(T instance)
+        public int GetHashCode(T instance)
         {
-            return DeepEqualityComparer.Instance.GetHashCode(instance);
+            return _equalityComparer.GetHashCode(instance);
         }
     }
 }
