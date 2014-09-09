@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using NUnit.Framework;
 using Rock.Extensions;
 using _a;
@@ -7,6 +8,70 @@ namespace TheGetClosedGenericTypeExtensionClass
 {
     namespace TheGetClosedGenericTypeMethod
     {
+        public class ThrowsAnArgumentException
+        {
+            [Test]
+            public void WhenTheTargetTypeParameterIsNull()
+            {
+                Assert.That(
+                    () => ((Type)null).GetClosedGenericType(typeof(IEnumerable<>)),
+                    Throws.TypeOf<ArgumentNullException>());
+            }
+
+            [Test]
+            public void WhenTheTargetTypeParameterIsAGenericTypeDefinition()
+            {
+                Assert.That(
+                    () => typeof(IEnumerable<>).GetClosedGenericType(typeof(IEnumerable<>)),
+                    Throws.ArgumentException);
+            }
+
+            [Test]
+            public void WhenTheOpenGenericTypeParameterIsNull()
+            {
+                Assert.That(
+                    () => typeof(List<int>).GetClosedGenericType(null),
+                    Throws.TypeOf<ArgumentNullException>());
+            }
+
+            [Test]
+            public void WhenTheOpenGenericTypeParameterIsNotAGenericTypeDefinition()
+            {
+                Assert.That(
+                    () => typeof(List<int>).GetClosedGenericType(typeof(IEnumerable<int>)),
+                    Throws.ArgumentException);
+            }
+
+            [Test]
+            public void WhenTheNumberOfTypeArgumentsIsNotEqualToTheNumberOfGenericArguments()
+            {
+                Assert.That(
+                    () => typeof(Dictionary<string, int>).GetClosedGenericType(typeof(IDictionary<,>), new[] { typeof(int) }),
+                    Throws.ArgumentException);
+            }
+        }
+
+        public class ReturnsNull
+        {
+            [Test]
+            public void GivenNoMatchAndTheOpenGenericTypeIsAnInterface()
+            {
+                Assert.That(typeof(int).GetClosedGenericType(typeof(IFoo<>)), Is.Null);
+            }
+
+            [Test]
+            public void GivenNoMatchAndTheOpenGenericTypeIsAnAbstractClass()
+            {
+                Assert.That(typeof(int).GetClosedGenericType(typeof(FooBase<>)), Is.Null);
+            }
+
+            [Test]
+            public void GivenNoMatchAndTheOpenGenericTypeIsAConcreteClass()
+            {
+                Assert.That(typeof(int).GetClosedGenericType(typeof(Foo<>)), Is.Null);
+            }
+        }
+
         namespace GivenTheTargetIsAnyClosedGenericType
         {
             public class WhenTheOpenGenericTypeIsTheTypeDefinitionOfTheTargetType

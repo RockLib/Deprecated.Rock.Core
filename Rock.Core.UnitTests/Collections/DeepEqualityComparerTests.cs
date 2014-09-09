@@ -1061,6 +1061,46 @@ namespace DeepEqualityComparerTests
         }
     }
 
+    public class TheGenericDeepEqualityComparer
+    {
+        [Test]
+        public void DoesTheSameThingAsTheNonGenericDeepEqualityComparer()
+        {
+            var nonGenericDeepEqualityComparer = new DeepEqualityComparer();
+            var genericDeepEqualityComparer = new DeepEqualityComparer<Dictionary<Waldo, IEnumerable<int>>>();
+
+            var obj = new Dictionary<Waldo, IEnumerable<int>>
+            {
+                { new Waldo { Foo = "a", Bar = 1, Baz = MyEnum.Foo }, new[] { 1, 2, 3 } },
+                { new Waldo { Foo = "b", Bar = 2, Baz = MyEnum.Bar }, new[] { 4, 5, 6 } }
+            };
+
+            var compare1 = new Dictionary<Waldo, IEnumerable<int>>
+            {
+                { new Waldo { Foo = "a", Bar = 1, Baz = MyEnum.Foo }, new[] { 1, 2, 3 } },
+                { new Waldo { Foo = "b", Bar = 2, Baz = MyEnum.Bar }, new[] { 4, 5, 6 } }
+            };
+
+            var compare2 = new Dictionary<Waldo, IEnumerable<int>>
+            {
+                { new Waldo { Foo = "a", Bar = 1, Baz = MyEnum.Foo }, new[] { 1, 2, 3 } },
+                { new Waldo { Foo = "b", Bar = 2, Baz = MyEnum.Bar }, new[] { 4, 5, 7 } }
+            };
+
+            Assert.That(
+                genericDeepEqualityComparer.Equals(obj, compare1),
+                Is.EqualTo(nonGenericDeepEqualityComparer.Equals(obj, compare1)));
+
+            Assert.That(
+                genericDeepEqualityComparer.Equals(obj, compare2),
+                Is.EqualTo(nonGenericDeepEqualityComparer.Equals(obj, compare2)));
+
+            Assert.That(
+                genericDeepEqualityComparer.GetHashCode(obj),
+                Is.EqualTo(nonGenericDeepEqualityComparer.GetHashCode(obj)));
+        }
+    }
+
     public class MyEnumerable : IEnumerable
     {
         private readonly ArrayList _list = new ArrayList();
