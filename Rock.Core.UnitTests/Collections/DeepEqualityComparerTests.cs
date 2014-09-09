@@ -9,6 +9,8 @@ namespace DeepEqualityComparerTests
 {
     public class TheEqualsMethod
     {
+        private static readonly IEqualityComparer _deepEqualityComparer = new DeepEqualityComparer();
+
         [TestCase(1, 1, true)]
         [TestCase(1, 2, false)]
         [TestCase("a", "a", true)]
@@ -17,38 +19,38 @@ namespace DeepEqualityComparerTests
         [TestCase(MyEnum.Foo, MyEnum.Bar, false)]
         public void WorksForValues(object lhs, object rhs, bool expected)
         {
-            Assert.That(DeepEqualityComparer.Instance.Equals(lhs, rhs), Is.EqualTo(expected));
+            Assert.That(_deepEqualityComparer.Equals(lhs, rhs), Is.EqualTo(expected));
         }
 
         [TestCaseSource("GetIEnumerableTestCases")]
         public void WorksForIEnumerable(object lhs, object rhs, bool expected)
         {
-            Assert.That(DeepEqualityComparer.Instance.Equals(lhs, rhs), Is.EqualTo(expected));
+            Assert.That(_deepEqualityComparer.Equals(lhs, rhs), Is.EqualTo(expected));
         }
 
         [Test]
         public void ReturnsTrueForTheSameReference()
         {
             var obj = new object();
-            Assert.That(DeepEqualityComparer.Instance.Equals(obj, obj), Is.True);
+            Assert.That(_deepEqualityComparer.Equals(obj, obj), Is.True);
         }
 
         [Test]
         public void ReturnsTrueForTwoNulls()
         {
-            Assert.That(DeepEqualityComparer.Instance.Equals(null, null), Is.True);
+            Assert.That(_deepEqualityComparer.Equals(null, null), Is.True);
         }
 
         [Test]
         public void ReturnsFalseWhenTheLeftIsNullAndTheRightIsNot()
         {
-            Assert.That(DeepEqualityComparer.Instance.Equals(null, new object()), Is.False);
+            Assert.That(_deepEqualityComparer.Equals(null, new object()), Is.False);
         }
 
         [Test]
         public void ReturnsFalseWhenTheRightIsNullAndTheLeftIsNot()
         {
-            Assert.That(DeepEqualityComparer.Instance.Equals(new object(), null), Is.False);
+            Assert.That(_deepEqualityComparer.Equals(new object(), null), Is.False);
         }
 
         [TestCase("a", null)]
@@ -58,25 +60,25 @@ namespace DeepEqualityComparerTests
             var lhs = new Bar { Value = lhsValue };
             var rhs = new Bar { Value = rhsValue };
 
-            Assert.That(DeepEqualityComparer.Instance.Equals(lhs, rhs), Is.False);
+            Assert.That(_deepEqualityComparer.Equals(lhs, rhs), Is.False);
         }
 
         [Test]
         public void ReturnsFalseWhenTheTwoObjectsHaveDifferentTypes()
         {
-            Assert.That(DeepEqualityComparer.Instance.Equals("abc", 123), Is.False);
+            Assert.That(_deepEqualityComparer.Equals("abc", 123), Is.False);
         }
 
         [TestCaseSource("GetICollectionTestCases")]
         public void WorksForICollection(object lhs, object rhs, bool expected)
         {
-            Assert.That(DeepEqualityComparer.Instance.Equals(lhs, rhs), Is.EqualTo(expected));
+            Assert.That(_deepEqualityComparer.Equals(lhs, rhs), Is.EqualTo(expected));
         }
 
         [TestCaseSource("GetArbitraryObjectTestCases")]
         public void WorksForArbitraryObjects(object lhs, object rhs, bool expected)
         {
-            Assert.That(DeepEqualityComparer.Instance.Equals(lhs, rhs), Is.EqualTo(expected));
+            Assert.That(_deepEqualityComparer.Equals(lhs, rhs), Is.EqualTo(expected));
         }
 
         [Test]
@@ -85,7 +87,7 @@ namespace DeepEqualityComparerTests
             var lhs = new Garply();
             var rhs = new Garply();
 
-            Assert.That(DeepEqualityComparer.Instance.Equals(lhs, rhs), Is.True);
+            Assert.That(_deepEqualityComparer.Equals(lhs, rhs), Is.True);
         }
 
         [Test]
@@ -94,7 +96,7 @@ namespace DeepEqualityComparerTests
             var lhs = new Qux { Bazes = GetHashtable() };
             var rhs = new Qux { Bazes = GetHashtable() };
 
-            Assert.That(DeepEqualityComparer.Instance.Equals(lhs, rhs), Is.True);
+            Assert.That(_deepEqualityComparer.Equals(lhs, rhs), Is.True);
         }
 
         [Test]
@@ -104,7 +106,7 @@ namespace DeepEqualityComparerTests
             var rhs = new Qux { Bazes = GetHashtable() };
             rhs.Bazes["b"] = 0;
 
-            Assert.That(DeepEqualityComparer.Instance.Equals(lhs, rhs), Is.False);
+            Assert.That(_deepEqualityComparer.Equals(lhs, rhs), Is.False);
         }
 
         [Test]
@@ -115,7 +117,7 @@ namespace DeepEqualityComparerTests
             lhs.Bazes.Add("c", 3);
             rhs.Bazes.Add("d", 3);
 
-            Assert.That(DeepEqualityComparer.Instance.Equals(lhs, rhs), Is.False);
+            Assert.That(_deepEqualityComparer.Equals(lhs, rhs), Is.False);
         }
 
         [Test]
@@ -125,7 +127,7 @@ namespace DeepEqualityComparerTests
             var rhs = new Qux { Bazes = GetHashtable() };
             lhs.Bazes.Add("c", 3);
 
-            Assert.That(DeepEqualityComparer.Instance.Equals(lhs, rhs), Is.False);
+            Assert.That(_deepEqualityComparer.Equals(lhs, rhs), Is.False);
         }
 
         [Test]
@@ -134,7 +136,7 @@ namespace DeepEqualityComparerTests
             var lhs = new Qux { Foos = GetValueTypeDictionary() };
             var rhs = new Qux { Foos = GetValueTypeDictionary() };
 
-            Assert.That(DeepEqualityComparer.Instance.Equals(lhs, rhs), Is.True);
+            Assert.That(_deepEqualityComparer.Equals(lhs, rhs), Is.True);
         }
 
         [Test]
@@ -144,7 +146,7 @@ namespace DeepEqualityComparerTests
             var rhs = new Qux { Foos = GetValueTypeDictionary() };
             rhs.Foos[2] = MyEnum.Foo;
 
-            Assert.That(DeepEqualityComparer.Instance.Equals(lhs, rhs), Is.False);
+            Assert.That(_deepEqualityComparer.Equals(lhs, rhs), Is.False);
         }
 
         [Test]
@@ -155,7 +157,7 @@ namespace DeepEqualityComparerTests
             lhs.Foos.Add(3, MyEnum.Bar);
             rhs.Foos.Add(4, MyEnum.Bar);
 
-            Assert.That(DeepEqualityComparer.Instance.Equals(lhs, rhs), Is.False);
+            Assert.That(_deepEqualityComparer.Equals(lhs, rhs), Is.False);
         }
 
         [Test]
@@ -165,7 +167,7 @@ namespace DeepEqualityComparerTests
             var rhs = new Qux { Foos = GetValueTypeDictionary() };
             lhs.Foos.Add(3, MyEnum.Bar);
 
-            Assert.That(DeepEqualityComparer.Instance.Equals(lhs, rhs), Is.False);
+            Assert.That(_deepEqualityComparer.Equals(lhs, rhs), Is.False);
         }
 
         [Test]
@@ -174,7 +176,7 @@ namespace DeepEqualityComparerTests
             var lhs = new Qux { Bars = GetReferenceTypeDictionary() };
             var rhs = new Qux { Bars = GetReferenceTypeDictionary() };
 
-            Assert.That(DeepEqualityComparer.Instance.Equals(lhs, rhs), Is.True);
+            Assert.That(_deepEqualityComparer.Equals(lhs, rhs), Is.True);
         }
 
         [Test]
@@ -184,7 +186,7 @@ namespace DeepEqualityComparerTests
             var rhs = new Qux { Bars = GetReferenceTypeDictionary() };
             rhs.Bars["b"].Value = "0";
 
-            Assert.That(DeepEqualityComparer.Instance.Equals(lhs, rhs), Is.False);
+            Assert.That(_deepEqualityComparer.Equals(lhs, rhs), Is.False);
         }
 
         [Test]
@@ -195,7 +197,7 @@ namespace DeepEqualityComparerTests
             lhs.Bars.Add("c", new Bar { Value = "2" });
             lhs.Bars.Add("d", new Bar { Value = "2" });
 
-            Assert.That(DeepEqualityComparer.Instance.Equals(lhs, rhs), Is.False);
+            Assert.That(_deepEqualityComparer.Equals(lhs, rhs), Is.False);
         }
 
         [Test]
@@ -205,7 +207,7 @@ namespace DeepEqualityComparerTests
             var rhs = new Qux { Bars = GetReferenceTypeDictionary() };
             lhs.Bars.Add("c", new Bar { Value = "2" });
 
-            Assert.That(DeepEqualityComparer.Instance.Equals(lhs, rhs), Is.False);
+            Assert.That(_deepEqualityComparer.Equals(lhs, rhs), Is.False);
         }
 
         [Test]
@@ -214,7 +216,7 @@ namespace DeepEqualityComparerTests
             var lhs = new Corge { Foos = GetCollection() };
             var rhs = new Corge { Foos = GetCollection() };
 
-            Assert.That(DeepEqualityComparer.Instance.Equals(lhs, rhs), Is.True);
+            Assert.That(_deepEqualityComparer.Equals(lhs, rhs), Is.True);
         }
 
         [Test]
@@ -229,7 +231,7 @@ namespace DeepEqualityComparerTests
             var lhs = new Corge { Foos = lhsCollection };
             var rhs = new Corge { Foos = rhsCollection };
 
-            Assert.That(DeepEqualityComparer.Instance.Equals(lhs, rhs), Is.False);
+            Assert.That(_deepEqualityComparer.Equals(lhs, rhs), Is.False);
         }
 
         [Test]
@@ -238,7 +240,7 @@ namespace DeepEqualityComparerTests
             var lhs = new Corge { Bars = GetCollectionOfValueType() };
             var rhs = new Corge { Bars = GetCollectionOfValueType() };
 
-            Assert.That(DeepEqualityComparer.Instance.Equals(lhs, rhs), Is.True);
+            Assert.That(_deepEqualityComparer.Equals(lhs, rhs), Is.True);
         }
 
         [Test]
@@ -253,7 +255,7 @@ namespace DeepEqualityComparerTests
             var lhs = new Corge { Bars = lhsCollection };
             var rhs = new Corge { Bars = rhsCollection };
 
-            Assert.That(DeepEqualityComparer.Instance.Equals(lhs, rhs), Is.False);
+            Assert.That(_deepEqualityComparer.Equals(lhs, rhs), Is.False);
         }
 
         [Test]
@@ -262,7 +264,7 @@ namespace DeepEqualityComparerTests
             var lhs = new Corge { Bazes = GetCollectionOfReferenceType() };
             var rhs = new Corge { Bazes = GetCollectionOfReferenceType() };
 
-            Assert.That(DeepEqualityComparer.Instance.Equals(lhs, rhs), Is.True);
+            Assert.That(_deepEqualityComparer.Equals(lhs, rhs), Is.True);
         }
 
         [Test]
@@ -277,7 +279,7 @@ namespace DeepEqualityComparerTests
             var lhs = new Corge { Bazes = lhsCollection };
             var rhs = new Corge { Bazes = rhsCollection };
 
-            Assert.That(DeepEqualityComparer.Instance.Equals(lhs, rhs), Is.False);
+            Assert.That(_deepEqualityComparer.Equals(lhs, rhs), Is.False);
         }
 
         [Test]
@@ -286,7 +288,7 @@ namespace DeepEqualityComparerTests
             var lhs = new Grault { Foos = GetEnumerable() };
             var rhs = new Grault { Foos = GetEnumerable() };
 
-            Assert.That(DeepEqualityComparer.Instance.Equals(lhs, rhs), Is.True);
+            Assert.That(_deepEqualityComparer.Equals(lhs, rhs), Is.True);
         }
 
         [Test]
@@ -301,7 +303,7 @@ namespace DeepEqualityComparerTests
             var lhs = new Grault { Foos = lhsEnumerable };
             var rhs = new Grault { Foos = rhsEnumerable };
 
-            Assert.That(DeepEqualityComparer.Instance.Equals(lhs, rhs), Is.False);
+            Assert.That(_deepEqualityComparer.Equals(lhs, rhs), Is.False);
         }
 
         [Test]
@@ -310,7 +312,7 @@ namespace DeepEqualityComparerTests
             var lhs = new Grault { Bars = GetEnumerableOfValueType() };
             var rhs = new Grault { Bars = GetEnumerableOfValueType() };
 
-            Assert.That(DeepEqualityComparer.Instance.Equals(lhs, rhs), Is.True);
+            Assert.That(_deepEqualityComparer.Equals(lhs, rhs), Is.True);
         }
 
         [Test]
@@ -325,7 +327,7 @@ namespace DeepEqualityComparerTests
             var lhs = new Grault { Bars = lhsEnumerable };
             var rhs = new Grault { Bars = rhsEnumerable };
 
-            Assert.That(DeepEqualityComparer.Instance.Equals(lhs, rhs), Is.False);
+            Assert.That(_deepEqualityComparer.Equals(lhs, rhs), Is.False);
         }
 
         [Test]
@@ -334,7 +336,7 @@ namespace DeepEqualityComparerTests
             var lhs = new Grault { Bazes = GetEnumerableOfReferenceType() };
             var rhs = new Grault { Bazes = GetEnumerableOfReferenceType() };
 
-            Assert.That(DeepEqualityComparer.Instance.Equals(lhs, rhs), Is.True);
+            Assert.That(_deepEqualityComparer.Equals(lhs, rhs), Is.True);
         }
 
         [Test]
@@ -349,7 +351,7 @@ namespace DeepEqualityComparerTests
             var lhs = new Grault { Bazes = lhsEnumerable };
             var rhs = new Grault { Bazes = rhsEnumerable };
 
-            Assert.That(DeepEqualityComparer.Instance.Equals(lhs, rhs), Is.False);
+            Assert.That(_deepEqualityComparer.Equals(lhs, rhs), Is.False);
         }
 
         [Test]
@@ -358,7 +360,7 @@ namespace DeepEqualityComparerTests
             var lhs = new Plugh(true);
             var rhs = new Plugh(true);
 
-            Assert.That(DeepEqualityComparer.Instance.Equals(lhs, rhs), Is.True);
+            Assert.That(_deepEqualityComparer.Equals(lhs, rhs), Is.True);
             Assert.That(lhs.WasEqualsCalled || rhs.WasEqualsCalled, Is.True);
         }
 
@@ -368,7 +370,7 @@ namespace DeepEqualityComparerTests
             var lhs = new Xyzzy(true, -1);
             var rhs = new Xyzzy(true, -1);
 
-            Assert.That(DeepEqualityComparer.Instance.Equals(lhs, rhs), Is.True);
+            Assert.That(_deepEqualityComparer.Equals(lhs, rhs), Is.True);
             Assert.That(lhs.WasEqualsCalled || rhs.WasEqualsCalled, Is.True);
         }
 
@@ -759,18 +761,20 @@ namespace DeepEqualityComparerTests
 
     public class TheGetHashCodeMethod
     {
+        private static readonly IEqualityComparer _deepEqualityComparer = new DeepEqualityComparer();
+
         [TestCase(1)]
         [TestCase("a")]
         [TestCase(MyEnum.Foo)]
         public void ReturnsTheValueOfTheObjectsGetHashCodeMethodForValues(object obj)
         {
-            Assert.That(DeepEqualityComparer.Instance.GetHashCode(obj), Is.EqualTo(obj.GetHashCode()));
+            Assert.That(_deepEqualityComparer.GetHashCode(obj), Is.EqualTo(obj.GetHashCode()));
         }
 
         [Test]
         public void ReturnsZeroForNull()
         {
-            Assert.That(DeepEqualityComparer.Instance.GetHashCode(null), Is.EqualTo(0));
+            Assert.That(_deepEqualityComparer.GetHashCode(null), Is.EqualTo(0));
         }
 
         [Test]
@@ -778,7 +782,7 @@ namespace DeepEqualityComparerTests
         {
             var obj = new Hashtable();
 
-            Assert.That(DeepEqualityComparer.Instance.GetHashCode(obj), Is.EqualTo(0));
+            Assert.That(_deepEqualityComparer.GetHashCode(obj), Is.EqualTo(0));
         }
 
         [Test]
@@ -786,7 +790,7 @@ namespace DeepEqualityComparerTests
         {
             var obj = new DictionaryOfValueType();
 
-            Assert.That(DeepEqualityComparer.Instance.GetHashCode(obj), Is.EqualTo(0));
+            Assert.That(_deepEqualityComparer.GetHashCode(obj), Is.EqualTo(0));
         }
 
         [Test]
@@ -794,7 +798,7 @@ namespace DeepEqualityComparerTests
         {
             var obj = new DictionaryOfReferenceType();
 
-            Assert.That(DeepEqualityComparer.Instance.GetHashCode(obj), Is.EqualTo(0));
+            Assert.That(_deepEqualityComparer.GetHashCode(obj), Is.EqualTo(0));
         }
 
         [Test]
@@ -811,7 +815,7 @@ namespace DeepEqualityComparerTests
                 + AccumulateHashCode(AccumulateHashCode(0, 2), 2.5);
 
             Assert.That(
-                DeepEqualityComparer.Instance.GetHashCode(obj),
+                _deepEqualityComparer.GetHashCode(obj),
                 Is.EqualTo(expected));
         }
 
@@ -829,7 +833,7 @@ namespace DeepEqualityComparerTests
                 + AccumulateHashCode(AccumulateHashCode(0, 2), 2.5);
 
             Assert.That(
-                DeepEqualityComparer.Instance.GetHashCode(obj),
+                _deepEqualityComparer.GetHashCode(obj),
                 Is.EqualTo(expected));
         }
 
@@ -847,7 +851,7 @@ namespace DeepEqualityComparerTests
                 + AccumulateHashCode(AccumulateHashCode(0, "b"), "B");
 
             Assert.That(
-                DeepEqualityComparer.Instance.GetHashCode(obj),
+                _deepEqualityComparer.GetHashCode(obj),
                 Is.EqualTo(expected));
         }
 
@@ -866,8 +870,8 @@ namespace DeepEqualityComparerTests
             };
 
             Assert.That(
-                DeepEqualityComparer.Instance.GetHashCode(obj1),
-                Is.EqualTo(DeepEqualityComparer.Instance.GetHashCode(obj2)));
+                _deepEqualityComparer.GetHashCode(obj1),
+                Is.EqualTo(_deepEqualityComparer.GetHashCode(obj2)));
         }
 
         [Test]
@@ -875,7 +879,7 @@ namespace DeepEqualityComparerTests
         {
             var obj = new Grault { Foos = new MyEnumerable() };
 
-            Assert.That(DeepEqualityComparer.Instance.GetHashCode(obj), Is.EqualTo(0));
+            Assert.That(_deepEqualityComparer.GetHashCode(obj), Is.EqualTo(0));
         }
 
         [Test]
@@ -883,7 +887,7 @@ namespace DeepEqualityComparerTests
         {
             var obj = new Grault { Bars = new EnumerableOfValueType() };
 
-            Assert.That(DeepEqualityComparer.Instance.GetHashCode(obj), Is.EqualTo(0));
+            Assert.That(_deepEqualityComparer.GetHashCode(obj), Is.EqualTo(0));
         }
 
         [Test]
@@ -891,7 +895,7 @@ namespace DeepEqualityComparerTests
         {
             var obj = new Grault { Bazes = new EnumerableOfReferenceType() };
 
-            Assert.That(DeepEqualityComparer.Instance.GetHashCode(obj), Is.EqualTo(0));
+            Assert.That(_deepEqualityComparer.GetHashCode(obj), Is.EqualTo(0));
         }
 
         [Test]
@@ -900,7 +904,7 @@ namespace DeepEqualityComparerTests
             var obj = new MyEnumerable { 1, 2, 3 };
 
             Assert.That(
-                DeepEqualityComparer.Instance.GetHashCode(obj),
+                _deepEqualityComparer.GetHashCode(obj),
                 Is.EqualTo(
                     AccumulateHashCode(
                         AccumulateHashCode(
@@ -915,7 +919,7 @@ namespace DeepEqualityComparerTests
             var obj = new EnumerableOfValueType { 1, 2, 3 };
 
             Assert.That(
-                DeepEqualityComparer.Instance.GetHashCode(obj),
+                _deepEqualityComparer.GetHashCode(obj),
                 Is.EqualTo(
                     AccumulateHashCode(
                         AccumulateHashCode(
@@ -930,7 +934,7 @@ namespace DeepEqualityComparerTests
             var obj = new EnumerableOfReferenceType { "1", "2", "3" };
 
             Assert.That(
-                DeepEqualityComparer.Instance.GetHashCode(obj),
+                _deepEqualityComparer.GetHashCode(obj),
                 Is.EqualTo(
                     AccumulateHashCode(
                         AccumulateHashCode(
@@ -942,7 +946,7 @@ namespace DeepEqualityComparerTests
         [Test]
         public void ReturnsZeroForAnObjectWithNoProperties()
         {
-            Assert.That(DeepEqualityComparer.Instance.GetHashCode(new Garply()), Is.EqualTo(0));
+            Assert.That(_deepEqualityComparer.GetHashCode(new Garply()), Is.EqualTo(0));
         }
 
         [Test]
@@ -956,7 +960,7 @@ namespace DeepEqualityComparerTests
             };
 
             Assert.That(
-                DeepEqualityComparer.Instance.GetHashCode(obj),
+                _deepEqualityComparer.GetHashCode(obj),
                 Is.EqualTo(
                     AccumulateHashCode(
                         AccumulateHashCode(
@@ -978,7 +982,7 @@ namespace DeepEqualityComparerTests
             };
 
             Assert.That(
-                DeepEqualityComparer.Instance.GetHashCode(obj),
+                _deepEqualityComparer.GetHashCode(obj),
                 Is.EqualTo(
                     AccumulateHashCode(
                         AccumulateHashCode(0, "abc"),
@@ -992,7 +996,7 @@ namespace DeepEqualityComparerTests
         {
             var obj = new Xyzzy(true, -1);
 
-            Assert.That(DeepEqualityComparer.Instance.GetHashCode(obj), Is.EqualTo(-1));
+            Assert.That(_deepEqualityComparer.GetHashCode(obj), Is.EqualTo(-1));
             Assert.That(obj.WasGetHashCodeCalled, Is.True);
         }
 
