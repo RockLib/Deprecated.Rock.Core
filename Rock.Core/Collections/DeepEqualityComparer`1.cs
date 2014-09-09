@@ -5,7 +5,17 @@ namespace Rock.Collections
 {
     public sealed class DeepEqualityComparer<T> : IEqualityComparer<T>
     {
-        private readonly IEqualityComparer _equalityComparer = new DeepEqualityComparer();
+        private readonly IEqualityComparer _equalityComparer;
+
+        public DeepEqualityComparer()
+        {
+            _equalityComparer = new DeepEqualityComparer();
+        }
+
+        public DeepEqualityComparer(DeepEqualityComparer.IConfiguration configuration)
+        {
+            _equalityComparer = new DeepEqualityComparer(configuration);
+        }
 
         bool IEqualityComparer<T>.Equals(T lhs, T rhs)
         {

@@ -9,10 +9,29 @@ using Rock.Extensions;
 
 namespace Rock.Collections
 {
-    // ReSharper disable PossibleMultipleEnumeration
     public class DeepEqualityComparer : IEqualityComparer
     {
-        private static readonly IEqualityComparer _equalityComparerImplementation = new DeepEqualityComparerImplementation();
+        private static readonly ConcurrentDictionary<StringComparison, DeepEqualityComparerImplementation> _equalityComparerImplementations = new ConcurrentDictionary<StringComparison, DeepEqualityComparerImplementation>(); 
+
+        private readonly IEqualityComparer _equalityComparerImplementation;
+
+        public DeepEqualityComparer()
+            : this(null)
+        {
+        }
+
+        public DeepEqualityComparer(IConfiguration configuration)
+        {
+            var stringComparison =
+                configuration != null
+                    ? configuration.StringComparison
+                    : StringComparison.Ordinal;
+
+            _equalityComparerImplementation =
+                _equalityComparerImplementations.GetOrAdd(
+                    stringComparison,
+                    comparison => new DeepEqualityComparerImplementation(GetStringComparer(comparison)));
+        }
 
         public new bool Equals(object x, object y)
         {
@@ -23,16 +42,40 @@ namespace Rock.Collections
         {
             return _equalityComparerImplementation.GetHashCode(obj);
         }
-        
+
+        private static StringComparer GetStringComparer(StringComparison stringComparison)
+        {
+            switch (stringComparison)
+            {
+                case StringComparison.CurrentCulture:
+                    return StringComparer.CurrentCulture;
+                case StringComparison.CurrentCultureIgnoreCase:
+                    return StringComparer.CurrentCultureIgnoreCase;
+                case StringComparison.InvariantCulture:
+                    return StringComparer.InvariantCulture;
+                case StringComparison.InvariantCultureIgnoreCase:
+                    return StringComparer.InvariantCultureIgnoreCase;
+                case StringComparison.Ordinal:
+                    return StringComparer.Ordinal;
+                case StringComparison.OrdinalIgnoreCase:
+                    return StringComparer.OrdinalIgnoreCase;
+                default:
+                    throw new ArgumentOutOfRangeException("stringComparison");
+            }
+        }
+
+        // ReSharper disable PossibleMultipleEnumeration
         private class DeepEqualityComparerImplementation : IEqualityComparer
         {
             private readonly ConcurrentDictionary<Type, Func<object, object, bool>> _equalsFuncs = new ConcurrentDictionary<Type, Func<object, object, bool>>();
             private readonly ConcurrentDictionary<Type, Func<object, int>> _getHashCodeFuncs = new ConcurrentDictionary<Type, Func<object, int>>();
 
+            private readonly StringComparer _stringComparer;
             private readonly IEqualityComparer _this;
 
-            public DeepEqualityComparerImplementation()
+            public DeepEqualityComparerImplementation(StringComparer stringComparer)
             {
+                _stringComparer = stringComparer;
                 _this = this;
             }
 
@@ -67,6 +110,11 @@ namespace Rock.Collections
                         type,
                         t =>
                         {
+                            if (t == typeof(string))
+                            {
+                                return _stringComparer.Equals;
+                            }
+
                             var equatableType = t.GetClosedGenericType(typeof(IEquatable<>), new[] { t });
                             if (equatableType != null)
                             {
@@ -595,6 +643,11 @@ namespace Rock.Collections
                         type,
                         t =>
                         {
+                            if (t == typeof(string))
+                            {
+                                return _stringComparer.GetHashCode;
+                            }
+
                             if (t.IsPrimitivish() || HasOverriddenGetHashCodeMethod(t))
                             {
                                 return obj => obj.GetHashCode();
@@ -855,6 +908,11 @@ namespace Rock.Collections
                     .ToList();
             }
         }
+        // ReSharper restore PossibleMultipleEnumeration
+
+        public interface IConfiguration
+        {
+            StringComparison StringComparison { get; }
+        }
     }
-    // ReSharper restore PossibleMultipleEnumeration
 }
