@@ -1,15 +1,23 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using NUnit.Framework;
 using Rock.Collections;
 
+// ReSharper disable once CheckNamespace
 namespace DeepEqualityComparerTests
 {
     public class TheEqualsMethod
     {
-        private static readonly IEqualityComparer _deepEqualityComparer = new DeepEqualityComparer();
+        private IEqualityComparer _deepEqualityComparer;
+
+        [SetUp]
+        public void Setup()
+        {
+            _deepEqualityComparer = new DeepEqualityComparer();
+        }
 
         [TestCase(1, 1, true)]
         [TestCase(1, 2, false)]
@@ -536,7 +544,7 @@ namespace DeepEqualityComparerTests
 
             public IEnumerator<Bar> GetEnumerator()
             {
-                return Enumerable.Range(1, _itemCount).Select(i => new Bar { Value = i.ToString() }).ToList().GetEnumerator();
+                return Enumerable.Range(1, _itemCount).Select(i => new Bar { Value = i.ToString(CultureInfo.CurrentCulture) }).ToList().GetEnumerator();
             }
 
             IEnumerator IEnumerable.GetEnumerator()
@@ -582,8 +590,6 @@ namespace DeepEqualityComparerTests
                     new CollectionOfBarImplementation(5),
                     new CollectionOfBarImplementation(4),
                     false).SetName("CollectionOfBarImplementation with different values");
-
-            // TODO: Add test cases for containers CollectionImplementation and CollectionOfIntImplementation with items of type Bar.
         }
 
         private class CollectionImplementation : ICollection
@@ -615,7 +621,7 @@ namespace DeepEqualityComparerTests
         private class CollectionOfBarImplementation : ICollection<Bar>
         {
             private readonly List<Bar> _list;
-            public CollectionOfBarImplementation(int count) { _list = new List<Bar>(Enumerable.Range(1, count).Select(i => new Bar { Value = i.ToString() })); }
+            public CollectionOfBarImplementation(int count) { _list = new List<Bar>(Enumerable.Range(1, count).Select(i => new Bar { Value = i.ToString(CultureInfo.CurrentCulture) })); }
             public IEnumerator<Bar> GetEnumerator() { return _list.GetEnumerator(); }
             IEnumerator IEnumerable.GetEnumerator() { return ((IEnumerable)_list).GetEnumerator(); }
             public void Add(Bar item) { _list.Add(item); }
@@ -761,7 +767,13 @@ namespace DeepEqualityComparerTests
 
     public class TheGetHashCodeMethod
     {
-        private static readonly IEqualityComparer _deepEqualityComparer = new DeepEqualityComparer();
+        private IEqualityComparer _deepEqualityComparer;
+
+        [SetUp]
+        public void Setup()
+        {
+            _deepEqualityComparer = new DeepEqualityComparer();
+        }
 
         [TestCase(1)]
         [TestCase("a")]
@@ -1103,7 +1115,7 @@ namespace DeepEqualityComparerTests
         public void CopyTo(KeyValuePair<string, Bar>[] array, int arrayIndex) { ((IDictionary<string, Bar>)_dictionary).CopyTo(array, arrayIndex); }
         public bool Remove(KeyValuePair<string, Bar> item) { return ((IDictionary<string, Bar>)_dictionary).Remove(item); }
         public int Count { get { return _dictionary.Count; } }
-        public bool IsReadOnly { get { return ((IDictionary<string, double>)_dictionary).IsReadOnly; } }
+        public bool IsReadOnly { get { return ((IDictionary<string, Bar>)_dictionary).IsReadOnly; } }
         public bool ContainsKey(string key) { return _dictionary.ContainsKey(key); }
         public void Add(string key, Bar value) { _dictionary.Add(key, value); }
         public bool Remove(string key) { return _dictionary.Remove(key); }
