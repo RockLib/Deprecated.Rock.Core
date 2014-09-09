@@ -790,27 +790,27 @@ namespace DeepEqualityComparerTests
         }
 
         [Test]
-        public void ReturnsZeroForAnEmptyNonGenericDictionary()
+        public void ReturnsTheHashCodeOfTheImplementationTypeForAnEmptyNonGenericDictionary()
         {
             var obj = new Hashtable();
 
-            Assert.That(_deepEqualityComparer.GetHashCode(obj), Is.EqualTo(0));
+            Assert.That(_deepEqualityComparer.GetHashCode(obj), Is.EqualTo(typeof(Hashtable).GetHashCode()));
         }
 
         [Test]
-        public void ReturnsZeroForAnEmptyGenericDictionaryOfValueType()
+        public void ReturnsTheHashCodeOfTheImplementationTypeForAnEmptyGenericDictionaryOfValueType()
         {
             var obj = new DictionaryOfValueType();
 
-            Assert.That(_deepEqualityComparer.GetHashCode(obj), Is.EqualTo(0));
+            Assert.That(_deepEqualityComparer.GetHashCode(obj), Is.EqualTo(typeof(DictionaryOfValueType).GetHashCode()));
         }
 
         [Test]
-        public void ReturnsZeroForAnEmptyGenericDictionaryOfReferenceType()
+        public void ReturnsTheHashCodeOfTheImplementationTypeForAnEmptyGenericDictionaryOfReferenceType()
         {
             var obj = new DictionaryOfReferenceType();
 
-            Assert.That(_deepEqualityComparer.GetHashCode(obj), Is.EqualTo(0));
+            Assert.That(_deepEqualityComparer.GetHashCode(obj), Is.EqualTo(typeof(DictionaryOfReferenceType).GetHashCode()));
         }
 
         [Test]
@@ -823,8 +823,9 @@ namespace DeepEqualityComparerTests
             };
 
             var expected =
-                AccumulateHashCode(AccumulateHashCode(0, 1), 1.5)
-                + AccumulateHashCode(AccumulateHashCode(0, 2), 2.5);
+                (typeof(Hashtable).GetHashCode())
+                ^ (AccumulateHashCode(AccumulateHashCode(0, 1), 1.5)
+                   ^ AccumulateHashCode(AccumulateHashCode(0, 2), 2.5));
 
             Assert.That(
                 _deepEqualityComparer.GetHashCode(obj),
@@ -841,8 +842,9 @@ namespace DeepEqualityComparerTests
             };
 
             var expected =
-                AccumulateHashCode(AccumulateHashCode(0, 1), 1.5)
-                + AccumulateHashCode(AccumulateHashCode(0, 2), 2.5);
+                (typeof(DictionaryOfValueType).GetHashCode())
+                ^ (AccumulateHashCode(AccumulateHashCode(0, 1), 1.5)
+                   ^ AccumulateHashCode(AccumulateHashCode(0, 2), 2.5));
 
             Assert.That(
                 _deepEqualityComparer.GetHashCode(obj),
@@ -859,8 +861,9 @@ namespace DeepEqualityComparerTests
             };
 
             var expected =
-                AccumulateHashCode(AccumulateHashCode(0, "a"), "A")
-                + AccumulateHashCode(AccumulateHashCode(0, "b"), "B");
+                (typeof(DictionaryOfReferenceType).GetHashCode())
+                ^ (AccumulateHashCode(AccumulateHashCode(0, "a"), "A")
+                   ^ AccumulateHashCode(AccumulateHashCode(0, "b"), "B"));
 
             Assert.That(
                 _deepEqualityComparer.GetHashCode(obj),
@@ -887,27 +890,27 @@ namespace DeepEqualityComparerTests
         }
 
         [Test]
-        public void ReturnsZeroForAnEmptyNonGenericEnumerable()
+        public void ReturnsTheHashCodeOfTheImplementationTypeForAnEmptyNonGenericEnumerable()
         {
-            var obj = new Grault { Foos = new MyEnumerable() };
+            var obj = new MyEnumerable();
 
-            Assert.That(_deepEqualityComparer.GetHashCode(obj), Is.EqualTo(0));
+            Assert.That(_deepEqualityComparer.GetHashCode(obj), Is.EqualTo(typeof(MyEnumerable).GetHashCode()));
         }
 
         [Test]
-        public void ReturnsZeroForAnEmptyGenericEnumerableOfValueType()
+        public void ReturnsTheHashCodeOfTheImplementationTypeForAnEmptyGenericEnumerableOfValueType()
         {
-            var obj = new Grault { Bars = new EnumerableOfValueType() };
+            var obj = new EnumerableOfValueType();
 
-            Assert.That(_deepEqualityComparer.GetHashCode(obj), Is.EqualTo(0));
+            Assert.That(_deepEqualityComparer.GetHashCode(obj), Is.EqualTo(typeof(EnumerableOfValueType).GetHashCode()));
         }
 
         [Test]
-        public void ReturnsZeroForAnEmptyGenericEnumerableOfReferenceType()
+        public void ReturnsTheHashCodeOfTheImplementationTypeForAnEmptyGenericEnumerableOfReferenceType()
         {
-            var obj = new Grault { Bazes = new EnumerableOfReferenceType() };
+            var obj = new EnumerableOfReferenceType();
 
-            Assert.That(_deepEqualityComparer.GetHashCode(obj), Is.EqualTo(0));
+            Assert.That(_deepEqualityComparer.GetHashCode(obj), Is.EqualTo(typeof(EnumerableOfReferenceType).GetHashCode()));
         }
 
         [Test]
@@ -920,7 +923,7 @@ namespace DeepEqualityComparerTests
                 Is.EqualTo(
                     AccumulateHashCode(
                         AccumulateHashCode(
-                            AccumulateHashCode(0, 1),
+                            AccumulateHashCode(typeof(MyEnumerable).GetHashCode(), 1),
                             2),
                         3)));
         }
@@ -935,7 +938,7 @@ namespace DeepEqualityComparerTests
                 Is.EqualTo(
                     AccumulateHashCode(
                         AccumulateHashCode(
-                            AccumulateHashCode(0, 1),
+                            AccumulateHashCode(typeof(EnumerableOfValueType).GetHashCode(), 1),
                             2),
                         3)));
         }
@@ -950,15 +953,15 @@ namespace DeepEqualityComparerTests
                 Is.EqualTo(
                     AccumulateHashCode(
                         AccumulateHashCode(
-                            AccumulateHashCode(0, "1"),
+                            AccumulateHashCode(typeof(EnumerableOfReferenceType).GetHashCode(), "1"),
                             "2"),
                         "3")));
         }
 
         [Test]
-        public void ReturnsZeroForAnObjectWithNoProperties()
+        public void ReturnsTheHashCodeOfTheObjectTypeForAnObjectWithNoProperties()
         {
-            Assert.That(_deepEqualityComparer.GetHashCode(new Garply()), Is.EqualTo(0));
+            Assert.That(_deepEqualityComparer.GetHashCode(new Garply()), Is.EqualTo(typeof(Garply).GetHashCode()));
         }
 
         [Test]
@@ -976,7 +979,7 @@ namespace DeepEqualityComparerTests
                 Is.EqualTo(
                     AccumulateHashCode(
                         AccumulateHashCode(
-                            AccumulateHashCode(0, "abc"),
+                            AccumulateHashCode(typeof(Waldo).GetHashCode(), "abc"),
                             123),
                         MyEnum.Baz)));
         }
@@ -997,9 +1000,9 @@ namespace DeepEqualityComparerTests
                 _deepEqualityComparer.GetHashCode(obj),
                 Is.EqualTo(
                     AccumulateHashCode(
-                        AccumulateHashCode(0, "abc"),
+                        AccumulateHashCode(typeof(Fred).GetHashCode(), "abc"),
                         AccumulateHashCode(
-                            AccumulateHashCode(0, "xyz"),
+                            AccumulateHashCode(typeof(Fred).GetHashCode(), "xyz"),
                             null))));
         }
 

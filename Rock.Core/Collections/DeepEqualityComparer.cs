@@ -720,7 +720,7 @@ namespace Rock.Collections
                             unchecked
                             {
                                 return
-                                    hashCode +
+                                    hashCode ^
                                     ((getKeyHashCodeFunc(getKeyFunc(kvp)) * 397)
                                         ^ (getValueFunc(kvp) != null ? getValueHashCodeFunc(getValueFunc(kvp)) : 0));
                             }
@@ -734,7 +734,7 @@ namespace Rock.Collections
                             unchecked
                             {
                                 return
-                                    hashCode +
+                                    hashCode ^
                                     ((getKeyHashCodeFunc(getKeyFunc(kvp)) * 397)
                                         ^ getValueHashCodeFunc(getValueFunc(kvp)));
                             }
@@ -744,14 +744,16 @@ namespace Rock.Collections
                 var objParameter = Expression.Parameter(typeof(object), "obj");
 
                 var castMethod = typeof(Enumerable).GetMethod("Cast").MakeGenericMethod(typeof(object));
-                var dictionaryItemCollection = Expression.Call(castMethod, Expression.Convert(objParameter, iDictionaryType));
+                var getDictionaryItemCollection = Expression.Call(castMethod, Expression.Convert(objParameter, iDictionaryType));
+
+                var hashCodeSeed = type.GetHashCode();
 
                 var lambda =
                     Expression.Lambda<Func<object, int>>(
                         Expression.Call(
                             GetAggregateMethod().MakeGenericMethod(typeof(object), typeof(int)),
-                            dictionaryItemCollection,
-                            Expression.Constant(0),
+                            getDictionaryItemCollection,
+                            Expression.Constant(hashCodeSeed),
                             Expression.Constant(accumulateHashCodes)),
                         objParameter);
 
@@ -802,12 +804,19 @@ namespace Rock.Collections
                     }
                 }
 
+                var hashCodeSeed = type.GetHashCode();
+
                 return
                     obj =>
                     {
                         unchecked
                         {
-                            return ((IEnumerable)obj).Cast<object>().Aggregate(0, (hashCode, x) => AccumulateHashCode(hashCode, x, getHashCodeFunc));
+                            return
+                                ((IEnumerable)obj).Cast<object>()
+                                    .Aggregate(
+                                        hashCodeSeed,
+                                        (currentHashCode, nextItem) =>
+                                            AccumulateHashCode(currentHashCode, nextItem, getHashCodeFunc));
                         }
                     };
             }
@@ -816,11 +825,13 @@ namespace Rock.Collections
             {
                 var parameterExpression = Expression.Parameter(typeof(object), "obj");
 
+                var hashCodeSeed = type.GetHashCode();
+
                 var properties = GetReadableProperties(type);
 
                 if (!properties.Any())
                 {
-                    return obj => 0;
+                    return obj => hashCodeSeed;
                 }
 
                 var instanceVariableExpression = Expression.Variable(type, "instance");
@@ -842,7 +853,7 @@ namespace Rock.Collections
                             GetHashCodeFunc = GetTopLevelGetHashCodeFunc(property.PropertyType, typesCurrentlyUnderConstruction)
                         })
                         .Aggregate(
-                            (Expression)Expression.Constant(0),
+                            (Expression)Expression.Constant(hashCodeSeed),
                             (currentHashCodeExpression, item) =>
                                 Expression.Call(
                                     accumulateHashCodeMethod,
