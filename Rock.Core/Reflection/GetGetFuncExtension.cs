@@ -89,11 +89,6 @@ namespace Rock.Reflection
             return expression;
         }
 
-        private static bool IsLessSpecificThan(this Type thisType, Type comparisonType)
-        {
-            return thisType != comparisonType && thisType.IsAssignableFrom(comparisonType);
-        }
-
         private static bool RequiresBoxingWhenConvertingTo(this Type fromType, Type toType)
         {
             return fromType.IsValueType && !toType.IsValueType;
