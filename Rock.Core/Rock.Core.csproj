@@ -53,6 +53,8 @@
     <Compile Include="Defaults\Implementation\Default.HttpClientFactory.cs" />
     <Compile Include="Net\Http\DefaultHttpClientFactory.cs" />
     <Compile Include="Net\Http\IHttpClientFactory.cs" />
+    <Compile Include="Reflection\IsLessSpecificThanExtension.cs" />
+    <Compile Include="Reflection\SlowFactory.cs" />
     <Compile Include="TryFunc.cs" />
     <Compile Include="Collections\DeepEqualityComparer`1.cs" />
     <Compile Include="Collections\DeepEqualityComparer.cs" />
@@ -60,6 +62,7 @@
     <Compile Include="Extensions\IsIDictionryOfTToAnythingExtension.cs" />
     <Compile Include="IExceptionHandler.cs" />
     <Compile Include="NullExceptionHandler.cs" />
+    <Compile Include="Reflection\GetGetFuncExtension.cs" />
     <Compile Include="Serialization\DataContractJsonSerializerSerializer.cs" />
     <Compile Include="Serialization\DataContractSerializerSerializer.cs" />
     <Compile Include="Serialization\XmlSerializerSerializer.cs" />

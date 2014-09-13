@@ -53,6 +53,9 @@
     <Compile Include="Extensions\ReflectinatorExpandoObjectConverterTests.cs" />
     <Compile Include="Extensions\ToExpandoObjectExtensionTests.cs" />
     <Compile Include="NullExceptionHandlerTests.cs" />
+    <Compile Include="Reflection\GetGetFuncExtensionTests.cs" />
+    <Compile Include="Reflection\IsLessSpecificThanExtensionTests.cs" />
+    <Compile Include="Reflection\SlowFactoryTests.cs" />
     <Compile Include="Serialization\DataContractSerializerSerializerTests.cs" />
     <Compile Include="Utilities\AttributeLocatorTests.cs" />
     <Compile Include="Collections\AsKeyedExtensionTests.cs" />
