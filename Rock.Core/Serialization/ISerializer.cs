@@ -1,6 +1,5 @@
 using System;
 using System.IO;
-using System.Text;
 
 namespace Rock.Serialization
 {
@@ -9,7 +8,7 @@ namespace Rock.Serialization
         void SerializeToStream(Stream stream, object item, Type type);
         object DeserializeFromStream(Stream stream, Type type);
 
-        string SerializeToString(object item, Type type, Encoding encoding = null);
-        object DeserializeFromString(string data, Type type, Encoding encoding = null);
+        string SerializeToString(object item, Type type);
+        object DeserializeFromString(string data, Type type);
     }
 }

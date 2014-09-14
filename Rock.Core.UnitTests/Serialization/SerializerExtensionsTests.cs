@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Text;
 using NUnit.Framework;
 using Rock.Serialization;
 
@@ -181,13 +180,11 @@ namespace SerializerExtensionsTests
         [Test]
         public void ReturnsTheStringReturnedByTheNonGenericSerializeToStringInterfaceMethod()
         {
-            var encoding = Encoding.UTF8;
-
             // The extension method under test
-            var result = _serializer.SerializeToString(_foo, encoding);
+            var result = _serializer.SerializeToString(_foo);
 
             // The interface method
-            var expectedResult = _serializer.SerializeToString(_foo, _foo.GetType(), encoding);
+            var expectedResult = _serializer.SerializeToString(_foo, _foo.GetType());
 
             Assert.That(result, Is.EqualTo(expectedResult));
         }
@@ -198,11 +195,10 @@ namespace SerializerExtensionsTests
         [Test]
         public void ReturnsTheObjectReturnedByTheNonGenericDeserializeFromStringInterfaceMethod()
         {
-            var encoding = Encoding.UTF8;
-            var fooString = _serializer.SerializeToString(_foo, _foo.GetType(), encoding);
+            var fooString = _serializer.SerializeToString(_foo, _foo.GetType());
 
             // The extension method under test
-            var result = _serializer.DeserializeFromString<Foo>(fooString, encoding);
+            var result = _serializer.DeserializeFromString<Foo>(fooString);
 
             // The interface method
             var expectedResult = (Foo)_serializer.DeserializeFromString(fooString, typeof(Foo));
