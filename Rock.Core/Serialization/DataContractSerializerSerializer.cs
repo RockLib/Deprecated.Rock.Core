@@ -9,6 +9,18 @@ namespace Rock.Serialization
 {
     public class DataContractSerializerSerializer : ISerializer
     {
+        private readonly Encoding _encoding;
+
+        public DataContractSerializerSerializer()
+            : this(Encoding.UTF8)
+        {
+        }
+
+        public DataContractSerializerSerializer(Encoding encoding)
+        {
+            _encoding = encoding ?? Encoding.UTF8;
+        }
+
         public void SerializeToStream(Stream stream, object item, Type type)
         {
             var serializer = new DataContractSerializer(type);
@@ -21,13 +33,13 @@ namespace Rock.Serialization
             return serializer.ReadObject(stream);
         }
 
-        public string SerializeToString(object item, Type type, Encoding encoding)
+        public string SerializeToString(object item, Type type)
         {
             var sb = new StringBuilder();
 
-            using (var stringWriter = new EncodedStringWriter(sb, encoding))
+            using (var stringWriter = new EncodedStringWriter(sb, _encoding))
             {
-                using (var xmlWriter = XmlWriter.Create(stringWriter, new XmlWriterSettings {Encoding = encoding}))
+                using (var xmlWriter = XmlWriter.Create(stringWriter, new XmlWriterSettings { Encoding = _encoding }))
                 {
                     var serializer = new DataContractSerializer(type);
                     serializer.WriteObject(xmlWriter, item);
@@ -37,7 +49,7 @@ namespace Rock.Serialization
             return sb.ToString();
         }
 
-        public object DeserializeFromString(string data, Type type, Encoding encoding)
+        public object DeserializeFromString(string data, Type type)
         {
             using (var stringReader = new StringReader(data))
             {

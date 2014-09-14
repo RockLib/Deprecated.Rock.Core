@@ -1,6 +1,5 @@
 using System;
 using System.IO;
-using System.Text;
 
 namespace Rock.Serialization
 {
@@ -45,12 +44,12 @@ namespace Rock.Serialization
             return (T)serializer.DeserializeFromByteArray(data, typeof(T));
         }
 
-        public static string SerializeToString<T>(this ISerializer serializer, T item, Encoding encoding = null)
+        public static string SerializeToString<T>(this ISerializer serializer, T item)
         {
-            return serializer.SerializeToString(item, typeof(T), encoding);
+            return serializer.SerializeToString(item, typeof(T));
         }
 
-        public static T DeserializeFromString<T>(this ISerializer serializer, string data, Encoding encoding = null)
+        public static T DeserializeFromString<T>(this ISerializer serializer, string data)
         {
             return (T)serializer.DeserializeFromString(data, typeof(T));
         }

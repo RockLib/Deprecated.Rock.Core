@@ -1,7 +1,6 @@
 ﻿using System;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
-using System.Text;
 
 namespace Rock.Serialization
 {
@@ -19,13 +18,13 @@ namespace Rock.Serialization
             return binaryFormatter.Deserialize(stream);
         }
 
-        public string SerializeToString(object item, Type type, Encoding encoding)
+        public string SerializeToString(object item, Type type)
         {
             var data = this.SerializeToByteArray(item, type);
             return Convert.ToBase64String(data);
         }
 
-        public object DeserializeFromString(string data, Type type, Encoding encoding)
+        public object DeserializeFromString(string data, Type type)
         {
             var binaryData = Convert.FromBase64String(data);
             return this.DeserializeFromByteArray(binaryData, type);
