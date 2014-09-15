@@ -6,7 +6,7 @@ namespace Rock.Defaults.Implementation
 {
     public static partial class Default
     {
-        private static readonly DefaultHelper<IConverter<ExpandoObject>> _expandoObjectConverter = new DefaultHelper<IConverter<ExpandoObject>>(() => new ReflectinatorExpandoObjectConverter());
+        private static readonly DefaultHelper<IConverter<ExpandoObject>> _expandoObjectConverter = new DefaultHelper<IConverter<ExpandoObject>>(() => new ExpandoObjectConverter());
 
         public static IConverter<ExpandoObject> ExpandoObjectConverter
         {

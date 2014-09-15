@@ -3,7 +3,7 @@ using Rock.Conversion;
 
 namespace DefaultHelperTests.Implementation
 {
-    public class Default_ExpandoObjectConverterTests : DefaultTestBase<IConverter<ExpandoObject>, ReflectinatorExpandoObjectConverter>
+    public class Default_ExpandoObjectConverterTests : DefaultTestBase<IConverter<ExpandoObject>, ExpandoObjectConverter>
     {
         protected override string PropertyName
         {

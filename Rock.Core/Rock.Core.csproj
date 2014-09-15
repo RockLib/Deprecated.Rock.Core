@@ -31,9 +31,6 @@
     <DocumentationFile>bin\Release\Rock.Core.xml</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Reflectinator">
-      <HintPath>..\packages\Reflectinator.0.0.8\lib\net40\Reflectinator.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.ComponentModel.Composition.Registration" />
@@ -54,6 +51,8 @@
     <Compile Include="Net\Http\DefaultHttpClientFactory.cs" />
     <Compile Include="Net\Http\IHttpClientFactory.cs" />
     <Compile Include="Reflection\IsLessSpecificThanExtension.cs" />
+    <Compile Include="Reflection\IsPublicExtension.cs" />
+    <Compile Include="Reflection\IsStaticExtension.cs" />
     <Compile Include="Reflection\SlowFactory.cs" />
     <Compile Include="TryFunc.cs" />
     <Compile Include="Collections\DeepEqualityComparer`1.cs" />
@@ -72,7 +71,7 @@
     <Compile Include="Defaults\Implementation\Default.ApplicationInfo.cs" />
     <Compile Include="Defaults\Implementation\Default.BinarySerializer.cs" />
     <Compile Include="Defaults\Implementation\Default.ConstructorSelector.cs" />
-    <Compile Include="Defaults\Implementation\Default.ConvertToExpandoObject.cs" />
+    <Compile Include="Defaults\Implementation\Default.ExpandoObjectConverter.cs" />
     <Compile Include="Defaults\Implementation\Default.EndpointDetector.cs" />
     <Compile Include="Defaults\Implementation\Default.EndpointSelector.cs" />
     <Compile Include="Defaults\Implementation\Default.JsonSerializer.cs" />
@@ -129,7 +128,7 @@
     <Compile Include="Net\IEndpointDetector.cs" />
     <Compile Include="Net\IEndpointSelector.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Conversion\ReflectinatorExpandoObjectConverter.cs" />
+    <Compile Include="Conversion\ExpandoObjectConverter.cs" />
     <Compile Include="Serialization\BinaryFormatterSerializer.cs" />
     <Compile Include="Serialization\ISerializer.cs" />
     <Compile Include="Serialization\ToBinaryExtension.cs" />

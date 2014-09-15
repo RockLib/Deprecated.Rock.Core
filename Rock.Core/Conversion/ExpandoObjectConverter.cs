@@ -4,14 +4,14 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
-using Reflectinator;
 using Rock.Defaults;
 using Rock.Defaults.Implementation;
 using Rock.Extensions;
+using Rock.Reflection;
 
 namespace Rock.Conversion
 {
-    public class ReflectinatorExpandoObjectConverter : IConverter<ExpandoObject>
+    public class ExpandoObjectConverter : IConverter<ExpandoObject>
     {
         private readonly ConcurrentDictionary<Type, Func<object, ExpandoObject>> _createExpandoObjectFunctions = new ConcurrentDictionary<Type, Func<object, ExpandoObject>>();
         private readonly ConcurrentDictionary<Type, Func<object, object>> _getPropertyValueFunctions = new ConcurrentDictionary<Type, Func<object, object>>();
@@ -101,7 +101,10 @@ namespace Rock.Conversion
         private Func<object, ExpandoObject> SetValuesFromIDictionaryOfStringToAnythingItems(Type type)
         {
             var getEnumeratorMethod = typeof(IEnumerable).GetMethod("GetEnumerator");
-            var getSourceItems = Method.GetFuncMethod<IEnumerable, IEnumerator>(getEnumeratorMethod).InvokeDelegate;
+            var getSourceItems =
+                (Func<IEnumerable, IEnumerator>)Delegate.CreateDelegate(
+                    typeof(Func<IEnumerable, IEnumerator>),
+                    getEnumeratorMethod);
 
             var keyValuePairType =
                 typeof(KeyValuePair<,>).MakeGenericType(
@@ -111,8 +114,8 @@ namespace Rock.Conversion
                         .First(EqualsIDictionaryOfStringToAnything)
                         .GetGenericArguments()[1]);
 
-            var getKey = Property.Get(keyValuePairType.GetProperty("Key")).GetFunc;
-            var getValue = Property.Get(keyValuePairType.GetProperty("Value")).GetFunc;
+            var getKey = keyValuePairType.GetProperty("Key").GetGetFunc();
+            var getValue = keyValuePairType.GetProperty("Value").GetGetFunc();
 
             return
                 obj =>
@@ -135,9 +138,9 @@ namespace Rock.Conversion
         private Func<object, ExpandoObject> SetValuesFromProperties(Type type)
         {
             var properties =
-                TypeCrawler.Get(type)
-                    .Properties
-                    .Where(p => p.IsPublic && !p.IsStatic && p.CanRead)
+                type.GetProperties()
+                    .Where(p => p.IsPublic() && !p.IsStatic() && p.CanRead)
+                    .Select(p => new { p.Name, Get = p.GetGetFunc() })
                     .ToList();
 
             return
