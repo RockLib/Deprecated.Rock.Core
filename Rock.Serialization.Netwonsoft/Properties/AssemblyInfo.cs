@@ -5,12 +5,12 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("Rock.Core")]
-[assembly: AssemblyDescription("Core classes and interfaces for Rock Framework.")]
+[assembly: AssemblyTitle("Rock.Serialization.Netwonsoft")]
+[assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Quicken Loans")]
-[assembly: AssemblyProduct("Rock.Core")]
-[assembly: AssemblyCopyright("Copyright © Quicken Loans 2014")]
+[assembly: AssemblyCompany("")]
+[assembly: AssemblyProduct("Rock.Serialization.Netwonsoft")]
+[assembly: AssemblyCopyright("Copyright ©  2014")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("6fb79d22-8ea3-4cb0-a704-8608d679cb95")]
+[assembly: Guid("ee2d8406-d8b5-436c-8d5f-88c6278301a8")]
 
 // Version information for an assembly consists of the following four values:
 //
@@ -32,8 +32,5 @@ using System.Runtime.InteropServices;
 // You can specify all the values or you can default the Build and Revision Numbers 
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("0.9.0.0")]
-[assembly: AssemblyFileVersion("0.0.1")]
-[assembly: AssemblyInformationalVersion("0.0.1-alpha037")]
-
-[assembly: InternalsVisibleTo("Rock.Core.UnitTests")]
+[assembly: AssemblyVersion("1.0.0.0")]
+[assembly: AssemblyFileVersion("1.0.0.0")]

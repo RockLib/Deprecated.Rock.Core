@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rock.Core.ModuleInitializer
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SampleApplication", "SampleApplication\SampleApplication.csproj", "{21577CBE-8AE1-4188-B1E3-81D0700535D1}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rock.Serialization.Netwonsoft", "Rock.Serialization.Netwonsoft\Rock.Serialization.Netwonsoft.csproj", "{DD28538C-219D-4A61-ADE2-A813A7D5B5CE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{21577CBE-8AE1-4188-B1E3-81D0700535D1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{21577CBE-8AE1-4188-B1E3-81D0700535D1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{21577CBE-8AE1-4188-B1E3-81D0700535D1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DD28538C-219D-4A61-ADE2-A813A7D5B5CE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DD28538C-219D-4A61-ADE2-A813A7D5B5CE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DD28538C-219D-4A61-ADE2-A813A7D5B5CE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DD28538C-219D-4A61-ADE2-A813A7D5B5CE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
