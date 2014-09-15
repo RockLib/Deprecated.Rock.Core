@@ -55,6 +55,8 @@
     <Compile Include="NullExceptionHandlerTests.cs" />
     <Compile Include="Reflection\GetGetFuncExtensionTests.cs" />
     <Compile Include="Reflection\IsLessSpecificThanExtensionTests.cs" />
+    <Compile Include="Reflection\IsStaticExtensionTests.cs" />
+    <Compile Include="Reflection\IsPublicExtensionTests.cs" />
     <Compile Include="Reflection\SlowFactoryTests.cs" />
     <Compile Include="Serialization\DataContractSerializerSerializerTests.cs" />
     <Compile Include="Utilities\AttributeLocatorTests.cs" />

@@ -4,17 +4,17 @@ using NUnit.Framework;
 using Rock.Conversion;
 
 // ReSharper disable once CheckNamespace
-namespace ReflectinatorExpandoObjectConverterTests
+namespace ExpandoObjectConverterTests
 {
     public class TheConvertMethod
     {
-        private ReflectinatorExpandoObjectConverter _converter;
+        private ExpandoObjectConverter _converter;
         private object _obj;
 
         [SetUp]
         public void Setup()
         {
-            _converter = new ReflectinatorExpandoObjectConverter();
+            _converter = new ExpandoObjectConverter();
         }
 
         [Test]
