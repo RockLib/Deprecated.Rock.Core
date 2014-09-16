@@ -118,7 +118,7 @@
     <Compile Include="Mail\DeliveryMethod.cs" />
     <Compile Include="Mail\SendExtension.cs" />
     <Compile Include="AssemblyInitialization\ModuleInitializer.cs" />
-    <Compile Include="Conversion\IConverter.cs" />
+    <Compile Include="Conversion\IConvertsTo.cs" />
     <Compile Include="Collections\ConcatExtensions.cs" />
     <Compile Include="Net\EndpointDetector.cs" />
     <Compile Include="Net\EndpointSelector.cs" />

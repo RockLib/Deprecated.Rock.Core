@@ -6,19 +6,19 @@ namespace Rock.Defaults.Implementation
 {
     public static partial class Default
     {
-        private static readonly DefaultHelper<IConverter<ExpandoObject>> _expandoObjectConverter = new DefaultHelper<IConverter<ExpandoObject>>(() => new ExpandoObjectConverter());
+        private static readonly DefaultHelper<IConvertsTo<ExpandoObject>> _expandoObjectConverter = new DefaultHelper<IConvertsTo<ExpandoObject>>(() => new ExpandoObjectConverter());
 
-        public static IConverter<ExpandoObject> ExpandoObjectConverter
+        public static IConvertsTo<ExpandoObject> ExpandoObjectConverter
         {
             get { return _expandoObjectConverter.Current; }
         }
 
-        public static IConverter<ExpandoObject> DefaultExpandoObjectConverter
+        public static IConvertsTo<ExpandoObject> DefaultExpandoObjectConverter
         {
             get { return _expandoObjectConverter.DefaultInstance; }
         }
 
-        public static void SetExpandoObjectConverter(Func<IConverter<ExpandoObject>> getExpandoObjectConverterInstance)
+        public static void SetExpandoObjectConverter(Func<IConvertsTo<ExpandoObject>> getExpandoObjectConverterInstance)
         {
             _expandoObjectConverter.SetCurrent(getExpandoObjectConverterInstance);
         }
