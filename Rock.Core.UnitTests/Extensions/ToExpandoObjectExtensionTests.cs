@@ -16,13 +16,13 @@ namespace ToExpandoObjectExtensionTests
         {
             _mockConverter = new Mock<IConvertsTo<ExpandoObject>>();
 
-            Default.SetExpandoObjectConverter(() => _mockConverter.Object);
+            Default.SetObjectToExpandoObjectConverter(() => _mockConverter.Object);
         }
 
         [TearDown]
         public void TearDown()
         {
-            Default.RestoreDefaultExpandoObjectConverter();
+            Default.RestoreDefaultObjectToExpandoObjectConverter();
         }
 
         [Test]

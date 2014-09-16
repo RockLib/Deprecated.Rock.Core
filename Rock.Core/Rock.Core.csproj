@@ -128,7 +128,7 @@
     <Compile Include="Net\IEndpointDetector.cs" />
     <Compile Include="Net\IEndpointSelector.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Conversion\ExpandoObjectConverter.cs" />
+    <Compile Include="Conversion\ConvertsToExpandoObject.cs" />
     <Compile Include="Serialization\BinaryFormatterSerializer.cs" />
     <Compile Include="Serialization\ISerializer.cs" />
     <Compile Include="Serialization\ToBinaryExtension.cs" />

@@ -50,7 +50,7 @@
     <Compile Include="Collections\DeepEqualityComparerTests.cs" />
     <Compile Include="Extensions\GetClosedGenericTypeExtensionTests.cs" />
     <Compile Include="Extensions\IsIDictionryOfTToAnythingExtensionTests.cs" />
-    <Compile Include="Extensions\ReflectinatorExpandoObjectConverterTests.cs" />
+    <Compile Include="Extensions\ConvertsToExpandoObjectTests.cs" />
     <Compile Include="Extensions\ToExpandoObjectExtensionTests.cs" />
     <Compile Include="NullExceptionHandlerTests.cs" />
     <Compile Include="Reflection\GetGetFuncExtensionTests.cs" />

@@ -6,26 +6,26 @@ namespace Rock.Defaults.Implementation
 {
     public static partial class Default
     {
-        private static readonly DefaultHelper<IConvertsTo<ExpandoObject>> _expandoObjectConverter = new DefaultHelper<IConvertsTo<ExpandoObject>>(() => new ExpandoObjectConverter());
+        private static readonly DefaultHelper<IConvertsTo<ExpandoObject>> _objectToExpandoObjectConverter = new DefaultHelper<IConvertsTo<ExpandoObject>>(() => new ConvertsToExpandoObject());
 
-        public static IConvertsTo<ExpandoObject> ExpandoObjectConverter
+        public static IConvertsTo<ExpandoObject> ObjectToExpandoObjectConverter
         {
-            get { return _expandoObjectConverter.Current; }
+            get { return _objectToExpandoObjectConverter.Current; }
         }
 
-        public static IConvertsTo<ExpandoObject> DefaultExpandoObjectConverter
+        public static IConvertsTo<ExpandoObject> DefaultObjectToExpandoObjectConverter
         {
-            get { return _expandoObjectConverter.DefaultInstance; }
+            get { return _objectToExpandoObjectConverter.DefaultInstance; }
         }
 
-        public static void SetExpandoObjectConverter(Func<IConvertsTo<ExpandoObject>> getExpandoObjectConverterInstance)
+        public static void SetObjectToExpandoObjectConverter(Func<IConvertsTo<ExpandoObject>> getObjectToExpandoObjectConverterInstance)
         {
-            _expandoObjectConverter.SetCurrent(getExpandoObjectConverterInstance);
+            _objectToExpandoObjectConverter.SetCurrent(getObjectToExpandoObjectConverterInstance);
         }
 
-        public static void RestoreDefaultExpandoObjectConverter()
+        public static void RestoreDefaultObjectToExpandoObjectConverter()
         {
-            _expandoObjectConverter.RestoreDefault();
+            _objectToExpandoObjectConverter.RestoreDefault();
         }
     }
 }

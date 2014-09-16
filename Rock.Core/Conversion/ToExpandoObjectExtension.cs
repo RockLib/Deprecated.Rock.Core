@@ -6,10 +6,10 @@ namespace Rock.Conversion
 {
     public static class ToExpandoObjectExtension
     {
-        [UsesDefaultValue(typeof(Default), "ExpandoObjectConverter")]
+        [UsesDefaultValue(typeof(Default), "ObjectToExpandoObjectConverter")]
         public static ExpandoObject ToExpandoObject(this object obj)
         {
-            return Default.ExpandoObjectConverter.Convert(obj);
+            return Default.ObjectToExpandoObjectConverter.Convert(obj);
         }
     }
 }
