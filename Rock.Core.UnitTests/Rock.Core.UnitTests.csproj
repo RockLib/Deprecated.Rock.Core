@@ -48,9 +48,11 @@
   <ItemGroup>
     <Compile Include="AssemblyInitialization\ModuleInitializerTests.cs" />
     <Compile Include="Collections\DeepEqualityComparerTests.cs" />
+    <Compile Include="Conversion\ConvertFuncFactoryTests.cs" />
+    <Compile Include="Conversion\ConvertsToDictionaryOfStringToTValueTests.cs" />
     <Compile Include="Extensions\GetClosedGenericTypeExtensionTests.cs" />
     <Compile Include="Extensions\IsIDictionryOfTToAnythingExtensionTests.cs" />
-    <Compile Include="Extensions\ConvertsToExpandoObjectTests.cs" />
+    <Compile Include="Conversion\ConvertsToExpandoObjectTests.cs" />
     <Compile Include="Extensions\ToExpandoObjectExtensionTests.cs" />
     <Compile Include="NullExceptionHandlerTests.cs" />
     <Compile Include="Reflection\GetGetFuncExtensionTests.cs" />
