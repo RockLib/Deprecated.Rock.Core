@@ -13,10 +13,12 @@ namespace Rock.Collections
                     .Where(p =>
                         p.CanRead
                         && p.GetGetMethod() != null
-                        && p.GetGetMethod().IsPublic)
+                        && p.GetGetMethod().IsPublic
+                        && !p.GetGetMethod().IsStatic)
                     .Select(p => new DeepEqualityComparer.PropertyOrField(p))
                     .Concat(
                         type.GetFields()
+                            .Where(f => !f.IsStatic)
                             .Select(f => new DeepEqualityComparer.PropertyOrField(f)))
                     .ToList();
         }
