@@ -11,7 +11,7 @@ using Rock.Reflection;
 
 namespace Rock.Conversion
 {
-    public class ExpandoObjectConverter : IConverter<ExpandoObject>
+    public class ConvertsToExpandoObject : IConvertsTo<ExpandoObject>
     {
         private readonly ConcurrentDictionary<Type, Func<object, ExpandoObject>> _createExpandoObjectFunctions = new ConcurrentDictionary<Type, Func<object, ExpandoObject>>();
         private readonly ConcurrentDictionary<Type, Func<object, object>> _getPropertyValueFunctions = new ConcurrentDictionary<Type, Func<object, object>>();

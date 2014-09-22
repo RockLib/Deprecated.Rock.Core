@@ -8,13 +8,13 @@ namespace ExpandoObjectConverterTests
 {
     public class TheConvertMethod
     {
-        private ExpandoObjectConverter _converter;
+        private ConvertsToExpandoObject _converter;
         private object _obj;
 
         [SetUp]
         public void Setup()
         {
-            _converter = new ExpandoObjectConverter();
+            _converter = new ConvertsToExpandoObject();
         }
 
         [Test]

@@ -9,20 +9,20 @@ namespace ToExpandoObjectExtensionTests
 {
     public class TheToExpandoObjectExtensionMethod
     {
-        private Mock<IConverter<ExpandoObject>> _mockConverter;
+        private Mock<IConvertsTo<ExpandoObject>> _mockConverter;
 
         [SetUp]
         public void Setup()
         {
-            _mockConverter = new Mock<IConverter<ExpandoObject>>();
+            _mockConverter = new Mock<IConvertsTo<ExpandoObject>>();
 
-            Default.SetExpandoObjectConverter(() => _mockConverter.Object);
+            Default.SetObjectToExpandoObjectConverter(() => _mockConverter.Object);
         }
 
         [TearDown]
         public void TearDown()
         {
-            Default.RestoreDefaultExpandoObjectConverter();
+            Default.RestoreDefaultObjectToExpandoObjectConverter();
         }
 
         [Test]
