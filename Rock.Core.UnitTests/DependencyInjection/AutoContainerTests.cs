@@ -18,9 +18,9 @@ namespace AutoContainerTests
             {
                 try
                 {
-                    var mockConstructorSelector = new Mock<IConstructorSelector>();
+                    var mockConstructorSelector = new Mock<IResolverConstructorSelector>();
 
-                    Default.SetConstructorSelector(() => mockConstructorSelector.Object);
+                    Default.SetResolverConstructorSelector(() => mockConstructorSelector.Object);
 
                     var container = new AutoContainer();
                     container.CanGet(typeof(Foo)); // This method ends up accessing the constructor selector.
@@ -31,7 +31,7 @@ namespace AutoContainerTests
                 }
                 finally
                 {
-                    Default.RestoreDefaultConstructorSelector();
+                    Default.RestoreDefaultResolverConstructorSelector();
                 }
             }
 

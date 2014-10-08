@@ -13,7 +13,7 @@ namespace ConstructorSelectorExtensionsTests
         [Test]
         public void WhenTryGetConstructorReturnsTrueReturnsTheValueOfTheOutParameter()
         {
-            var mockConstructorSelector = new Mock<IConstructorSelector>();
+            var mockConstructorSelector = new Mock<IResolverConstructorSelector>();
 
             // ReSharper disable once RedundantAssignment
             var returnCtor = typeof(object).GetConstructor(Type.EmptyTypes);
@@ -28,7 +28,7 @@ namespace ConstructorSelectorExtensionsTests
         [Test]
         public void WhenTryGetConstructorReturnsFalseThrowsAnException()
         {
-            var mockConstructorSelector = new Mock<IConstructorSelector>();
+            var mockConstructorSelector = new Mock<IResolverConstructorSelector>();
 
             // ReSharper disable once RedundantAssignment
             ConstructorInfo returnCtor = null;
@@ -46,7 +46,7 @@ namespace ConstructorSelectorExtensionsTests
         [TestCase(false)]
         public void ReturnsWhatTheTryGetConstructorMethodFromTheConstructorSelectorReturns(bool whatTheTryGetConstructorMethodReturns)
         {
-            var mockConstructorSelector = new Mock<IConstructorSelector>();
+            var mockConstructorSelector = new Mock<IResolverConstructorSelector>();
 
             // ReSharper disable once RedundantAssignment
             ConstructorInfo returnCtor = null;

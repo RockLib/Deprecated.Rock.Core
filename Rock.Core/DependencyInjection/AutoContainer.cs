@@ -13,11 +13,11 @@ namespace Rock.DependencyInjection
     {
         private readonly Lazy<MethodInfo> _getMethod;
         private readonly ConcurrentDictionary<Type, Func<object>> _bindings;
-        private readonly IConstructorSelector _constructorSelector;
+        private readonly IResolverConstructorSelector _constructorSelector;
 
         private AutoContainer(
             ConcurrentDictionary<Type, Func<object>> bindings,
-            IConstructorSelector constructorSelector)
+            IResolverConstructorSelector constructorSelector)
         {
             _getMethod = new Lazy<MethodInfo>(() => GetType().GetMethod("Get", Type.EmptyTypes));
             _constructorSelector = constructorSelector;
@@ -33,11 +33,11 @@ namespace Rock.DependencyInjection
         }
 
         public AutoContainer(params object[] instances)
-            : this(Default.ConstructorSelector, instances)
+            : this(Default.ResolverConstructorSelector, instances)
         {
         }
 
-        public AutoContainer(IConstructorSelector constructorSelector, IEnumerable<object> instances)
+        public AutoContainer(IResolverConstructorSelector constructorSelector, IEnumerable<object> instances)
             : this(new ConcurrentDictionary<Type, Func<object>>(), constructorSelector)
         {
             foreach (var instance in instances.Where(x => x != null))
