@@ -4,8 +4,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
-using Rock.Defaults;
-using Rock.Defaults.Implementation;
 using Rock.Extensions;
 using Rock.Reflection;
 
@@ -16,7 +14,6 @@ namespace Rock.Conversion
         private readonly ConcurrentDictionary<Type, Func<object, ExpandoObject>> _createExpandoObjectFunctions = new ConcurrentDictionary<Type, Func<object, ExpandoObject>>();
         private readonly ConcurrentDictionary<Type, Func<object, object>> _getPropertyValueFunctions = new ConcurrentDictionary<Type, Func<object, object>>();
 
-        [UsesDefaultValue(typeof(Default), "ExtraPrimitivishTypes")]
         public ExpandoObject Convert(object obj)
         {
             if (obj == null)
