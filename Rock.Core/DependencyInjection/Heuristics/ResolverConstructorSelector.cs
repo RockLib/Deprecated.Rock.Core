@@ -6,7 +6,7 @@ using Rock.Extensions;
 
 namespace Rock.DependencyInjection.Heuristics
 {
-    public class ConstructorSelector : IConstructorSelector
+    public class ResolverConstructorSelector : IResolverConstructorSelector
     {
         public bool TryGetConstructor(Type type, IResolver resolver, out ConstructorInfo constructor)
         {

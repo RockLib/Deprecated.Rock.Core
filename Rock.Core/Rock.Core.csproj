@@ -74,14 +74,14 @@
     <Compile Include="Defaults\Implementation\Default.ExtraPrimitivishTypes.cs" />
     <Compile Include="Defaults\Implementation\Default.ApplicationInfo.cs" />
     <Compile Include="Defaults\Implementation\Default.BinarySerializer.cs" />
-    <Compile Include="Defaults\Implementation\Default.ConstructorSelector.cs" />
+    <Compile Include="Defaults\Implementation\Default.ResolverConstructorSelector.cs" />
     <Compile Include="Defaults\Implementation\Default.ExpandoObjectConverter.cs" />
     <Compile Include="Defaults\Implementation\Default.EndpointDetector.cs" />
     <Compile Include="Defaults\Implementation\Default.EndpointSelector.cs" />
     <Compile Include="Defaults\Implementation\Default.JsonSerializer.cs" />
     <Compile Include="Defaults\Implementation\Default.TempStorage.cs" />
     <Compile Include="Defaults\Implementation\Default.XmlSerializer.cs" />
-    <Compile Include="DependencyInjection\Heuristics\ConstructorSelectorExtensions.cs" />
+    <Compile Include="DependencyInjection\Heuristics\ResolverConstructorSelectorExtensions.cs" />
     <Compile Include="EntryAssemblyApplicationInfo.cs" />
     <Compile Include="AssemblyInitialization\IFrameworkInitializer.cs" />
     <Compile Include="Collections\AsKeyedExtension.cs" />
@@ -91,8 +91,8 @@
     <Compile Include="Defaults\DefaultHelper.cs" />
     <Compile Include="DependencyInjection\AutoContainer.cs" />
     <Compile Include="DependencyInjection\AutoContainer.MergedAutoContainer.cs" />
-    <Compile Include="DependencyInjection\Heuristics\ConstructorSelector.cs" />
-    <Compile Include="DependencyInjection\Heuristics\IConstructorSelector.cs" />
+    <Compile Include="DependencyInjection\Heuristics\ResolverConstructorSelector.cs" />
+    <Compile Include="DependencyInjection\Heuristics\IResolverConstructorSelector.cs" />
     <Compile Include="DependencyInjection\IResolver.cs">
       <SubType>Code</SubType>
     </Compile>

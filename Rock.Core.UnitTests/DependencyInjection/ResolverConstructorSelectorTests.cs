@@ -9,7 +9,7 @@ using Rock.DependencyInjection.Heuristics;
 // ReSharper disable once CheckNamespace
 namespace ConstructorSelectorTests
 {
-    public class ConstructorSelectorTests
+    public class ResolverConstructorSelectorTests
     {
         protected Mock<IResolver> MockResolver { get; private set; }
 
@@ -26,12 +26,12 @@ namespace ConstructorSelectorTests
                 .Returns(true);
         }
 
-        public class TheTryGetConstructorMethod : ConstructorSelectorTests
+        public class TheTryGetConstructorMethod : ResolverConstructorSelectorTests
         {
             [Test]
             public void ReturnsTrueWhenAResolvableConstructorExists()
             {
-                var sut = new ConstructorSelector();
+                var sut = new ResolverConstructorSelector();
 
                 ConstructorInfo dummy;
                 Assert.That(sut.TryGetConstructor(typeof(Class5), MockResolver.Object, out dummy), Is.True);
@@ -40,7 +40,7 @@ namespace ConstructorSelectorTests
             [Test]
             public void SetsTheOutParameterToTheResolvableConstructorWhenOneExists()
             {
-                var sut = new ConstructorSelector();
+                var sut = new ResolverConstructorSelector();
 
                 ConstructorInfo ctor;
                 sut.TryGetConstructor(typeof(Class5), MockResolver.Object, out ctor);
@@ -51,7 +51,7 @@ namespace ConstructorSelectorTests
             [Test]
             public void ReturnsFalseWhenAResolvableConstructorDoesNotExist()
             {
-                var sut = new ConstructorSelector();
+                var sut = new ResolverConstructorSelector();
 
                 ConstructorInfo dummy;
                 Assert.That(sut.TryGetConstructor(typeof(Class1), MockResolver.Object, out dummy), Is.False);
@@ -60,7 +60,7 @@ namespace ConstructorSelectorTests
             [Test]
             public void SetsTheOutParameterToNullWhenNoResolvableConstructorExists()
             {
-                var sut = new ConstructorSelector();
+                var sut = new ResolverConstructorSelector();
 
                 ConstructorInfo ctor;
                 sut.TryGetConstructor(typeof(Class1), MockResolver.Object, out ctor);
@@ -72,7 +72,7 @@ namespace ConstructorSelectorTests
             [TestCase(typeof(IInterface1))]
             public void ReturnsFalseIfTheTypeIsAbstract(Type abstractType)
             {
-                var sut = new ConstructorSelector();
+                var sut = new ResolverConstructorSelector();
 
                 ConstructorInfo ctor;
                 var result = sut.TryGetConstructor(abstractType, MockResolver.Object, out ctor);
@@ -86,7 +86,7 @@ namespace ConstructorSelectorTests
                 SetResolvable(typeof(IInterface1));
                 SetResolvable(typeof(IInterface2));
 
-                var sut = new ConstructorSelector();
+                var sut = new ResolverConstructorSelector();
 
                 ConstructorInfo ctor;
                 sut.TryGetConstructor(typeof(Class1), MockResolver.Object, out ctor);
@@ -101,7 +101,7 @@ namespace ConstructorSelectorTests
                 SetResolvable(typeof(IInterface2));
                 SetResolvable(typeof(IInterface3));
 
-                var sut = new ConstructorSelector();
+                var sut = new ResolverConstructorSelector();
 
                 var ctor = sut.GetConstructor(typeof(Class2), MockResolver.Object);
 
@@ -115,14 +115,14 @@ namespace ConstructorSelectorTests
                 SetResolvable(typeof(IInterface2));
                 SetResolvable(typeof(IInterface3));
 
-                var sut = new ConstructorSelector();
+                var sut = new ResolverConstructorSelector();
 
                 var ctor = sut.GetConstructor(typeof(Class3), MockResolver.Object);
 
                 Assert.That(ctor.GetParameters().Length, Is.EqualTo(1));
             }
 
-            public class GivenTwoResolvableConstructorsWithTheSameNumberOfParameters : ConstructorSelectorTests
+            public class GivenTwoResolvableConstructorsWithTheSameNumberOfParameters : ResolverConstructorSelectorTests
             {
                 [Test]
                 public void IfNoParametersAreDefaultOnEitherReturnsFalse()
@@ -132,7 +132,7 @@ namespace ConstructorSelectorTests
                     SetResolvable(typeof(IInterface3));
                     SetResolvable(typeof(IInterface4));
 
-                    var sut = new ConstructorSelector();
+                    var sut = new ResolverConstructorSelector();
 
                     ConstructorInfo dummy;
                     Assert.That(sut.TryGetConstructor(typeof(Class1), MockResolver.Object, out dummy), Is.False);
@@ -146,7 +146,7 @@ namespace ConstructorSelectorTests
                     SetResolvable(typeof(IInterface3));
                     SetResolvable(typeof(IInterface4));
 
-                    var sut = new ConstructorSelector();
+                    var sut = new ResolverConstructorSelector();
 
                     ConstructorInfo ctor;
                     sut.TryGetConstructor(typeof(Class4), MockResolver.Object, out ctor);
