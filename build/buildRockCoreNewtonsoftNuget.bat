@@ -1,2 +1,2 @@
-msbuild /p:Configuration=Release ..\Rock.Core.Netwonsoft\Rock.Core.Netwonsoft.csproj
-nuget pack ..\Rock.Core.Netwonsoft\Rock.Core.Netwonsoft.csproj -Properties Configuration=Release
+msbuild /p:Configuration=Release ..\Rock.Core.Newtonsoft\Rock.Core.Newtonsoft.csproj
+nuget pack ..\Rock.Core.Newtonsoft\Rock.Core.Newtonsoft.csproj -Properties Configuration=Release

@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("Rock.Core.Netwonsoft")]
+[assembly: AssemblyTitle("Rock.Core.Newtonsoft")]
 [assembly: AssemblyDescription("Core classes that use the JSON.NET (Newtonsoft) serialization library.")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Quicken Loans")]
-[assembly: AssemblyProduct("Rock.Core.Netwonsoft")]
+[assembly: AssemblyProduct("Rock.Core.Newtonsoft")]
 [assembly: AssemblyCopyright("Copyright © Quicken Loans 2014")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
