@@ -11,7 +11,7 @@ namespace XmlSerializerSectionHandlerTests
         [Test]
         public void CanBeLoadedFromConfig()
         {
-            var config = (IConfig)ConfigurationManager.GetSection("GenericXmlSerializerSectionHandler");
+            var config = (MutableConfig)ConfigurationManager.GetSection("GenericXmlSerializerSectionHandler");
 
             Assert.That(config, Is.Not.Null);
             Assert.That(config.Foo, Is.EqualTo(Foo.First));
@@ -25,7 +25,7 @@ namespace XmlSerializerSectionHandlerTests
         [Test]
         public void CanBeLoadedFromConfig()
         {
-            var config = (IConfig)ConfigurationManager.GetSection("NonGenericXmlSerializerSectionHandler");
+            var config = (MutableConfig)ConfigurationManager.GetSection("NonGenericXmlSerializerSectionHandler");
 
             Assert.That(config, Is.Not.Null);
             Assert.That(config.Foo, Is.EqualTo(Foo.Second));
@@ -39,7 +39,7 @@ namespace XmlSerializerSectionHandlerTests
         [Test]
         public void CanBeLoadedFromConfig()
         {
-            var config = (IConfig)ConfigurationManager.GetSection("CustomXmlSerializerSectionHandler");
+            var config = (MutableConfig)ConfigurationManager.GetSection("CustomXmlSerializerSectionHandler");
 
             Assert.That(config, Is.Not.Null);
             Assert.That(config.Foo, Is.EqualTo(Foo.Third));
@@ -53,7 +53,7 @@ namespace XmlSerializerSectionHandlerTests
         [Test]
         public void CanBeLoadedFromConfig()
         {
-            var config = (IConfig)ConfigurationManager.GetSection("GenericXSerializerSectionHandler");
+            var config = (ImmutableConfig)ConfigurationManager.GetSection("GenericXSerializerSectionHandler");
 
             Assert.That(config, Is.Not.Null);
             Assert.That(config.Foo, Is.EqualTo(Foo.Fourth));
@@ -67,7 +67,7 @@ namespace XmlSerializerSectionHandlerTests
         [Test]
         public void CanBeLoadedFromConfig()
         {
-            var config = (IConfig)ConfigurationManager.GetSection("NonGenericXSerializerSectionHandler");
+            var config = (ImmutableConfig)ConfigurationManager.GetSection("NonGenericXSerializerSectionHandler");
 
             Assert.That(config, Is.Not.Null);
             Assert.That(config.Foo, Is.EqualTo(Foo.Fifth));
@@ -81,7 +81,7 @@ namespace XmlSerializerSectionHandlerTests
         [Test]
         public void CanBeLoadedFromConfig()
         {
-            var config = (IConfig)ConfigurationManager.GetSection("CustomXSerializerSectionHandler");
+            var config = (ImmutableConfig)ConfigurationManager.GetSection("CustomXSerializerSectionHandler");
 
             Assert.That(config, Is.Not.Null);
             Assert.That(config.Foo, Is.EqualTo(Foo.Sixth));
@@ -102,29 +102,15 @@ namespace Example
     {
     }
 
-    public interface IConfig
-    {
-        Foo Foo { get; }
-        IBar Bar { get; }
-    }
-
-    public interface IBar
-    {
-        string Baz { get; }
-        int Qux { get; }
-    }
-
-    public class MutableConfig : IConfig
+    public class MutableConfig
     {
         [XmlAttribute]
         public Foo Foo { get; set; }
 
         public MutableBar Bar { get; set; }
-
-        IBar IConfig.Bar { get { return Bar; } }
     }
 
-    public class MutableBar : IBar
+    public class MutableBar
     {
         [XmlAttribute]
         public string Baz { get; set; }
@@ -133,7 +119,7 @@ namespace Example
         public int Qux { get; set; }
     }
 
-    public class ImmutableConfig : IConfig
+    public class ImmutableConfig
     {
         private readonly Foo _foo;
         private readonly ImmutableBar _bar;
@@ -148,11 +134,9 @@ namespace Example
         public Foo Foo { get { return _foo; } }
 
         public ImmutableBar Bar { get { return _bar; } }
-
-        IBar IConfig.Bar { get { return Bar; } }
     }
 
-    public class ImmutableBar : IBar
+    public class ImmutableBar
     {
         private readonly string _baz;
         private readonly int _qux;
