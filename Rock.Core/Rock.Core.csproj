@@ -54,6 +54,7 @@
     <Compile Include="Conversion\ToDictionaryOfStringToStringExtension.cs" />
     <Compile Include="Defaults\Implementation\Default.HttpClientFactory.cs" />
     <Compile Include="Defaults\Implementation\Default.ObjectToDictionaryOfStringToStringConverter.cs" />
+    <Compile Include="Extensions\FormatToStringExtension.cs" />
     <Compile Include="Net\Http\DefaultHttpClientFactory.cs" />
     <Compile Include="Net\Http\IHttpClientFactory.cs" />
     <Compile Include="Reflection\IsLessSpecificThanExtension.cs" />

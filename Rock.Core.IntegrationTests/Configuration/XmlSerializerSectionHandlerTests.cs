@@ -1,11 +1,57 @@
-﻿using System.Configuration;
+﻿using System;
+using System.Configuration;
 using System.Xml.Serialization;
 using Example;
 using NUnit.Framework;
 using Rock.Configuration;
+using Rock.Extensions;
 
 namespace XmlSerializerSectionHandlerTests
 {
+    public class SadPaths
+    {
+        [Test]
+        public void MissingTypeAttribute()
+        {
+            AssertInvalidConfigurationExceptionThrownWhenAccessingSection("Broken1");
+        }
+
+        [Test]
+        public void InvalidTypeAttribute()
+        {
+            AssertInvalidConfigurationExceptionThrownWhenAccessingSection("Broken2");
+        }
+
+        [Test]
+        public void SerializationError()
+        {
+            AssertInvalidConfigurationExceptionThrownWhenAccessingSection("Broken3");
+        }
+
+        private void AssertInvalidConfigurationExceptionThrownWhenAccessingSection(string sectionName)
+        {
+            try
+            {
+                ConfigurationManager.GetSection(sectionName);
+                Assert.Fail("Expected: exception of type InvalidConfigurationException to be throw. Actual: no exception thrown.");
+            }
+            catch (Exception ex)
+            {
+                if (ex.InnerException == null)
+                {
+                    Assert.Fail("Expected: exception witn inner exception of type InvalidConfigurationException to be throw. Actual inner exception: null.");
+                }
+
+                if (!(ex.InnerException is InvalidConfigurationException))
+                {
+                    Assert.Fail("Expected: exception witn inner exception of type InvalidConfigurationException to be throw. Actual inner exception: exception of type '" + ex.InnerException.GetType() + "'.");
+                }
+
+                Console.WriteLine(ex.FormatToString());
+            }
+        }
+    }
+
     public class TheGenericXmlSerializerSectionHandlerClass
     {
         [Test]
