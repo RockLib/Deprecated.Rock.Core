@@ -27,9 +27,11 @@ namespace Rock.Serialization
                         c.Encoding,
                         c.DefaultNamespace,
                         c.Indent,
-                        c.RootElementNameMap.TryGetValue(type, out rootElementName)
-                            ? rootElementName
-                            : null,
+                        c.RootElementNameMap == null
+                            ? null
+                            : c.RootElementNameMap.TryGetValue(type, out rootElementName)
+                                ? rootElementName
+                                : null,
                         c.AlwaysEmitTypes,
                         c.Redact,
                         c.TreatEmptyElementAsString,
