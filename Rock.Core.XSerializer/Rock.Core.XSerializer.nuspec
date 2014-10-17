@@ -6,7 +6,7 @@
         <authors>$author$</authors>
         <owners>$author$</owners>
         <description>$description$</description>
-        <summary>An adapter for the ISerializer interface using XSerializer.XmlSerializer.</summary>
+        <summary>Core classes that use the XSerializer serialization library.</summary>
         <tags>rock core serialization xserializer</tags>
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
     </metadata>

@@ -6,7 +6,7 @@
         <authors>$author$</authors>
         <owners>$author$</owners>
         <description>$description$</description>
-        <summary>An adapter for the ISerializer interface using Newtonsoft.Json.JsonSerializer.</summary>
+        <summary>Core classes that use the JSON.NET (Newtonsoft) serialization library.</summary>
         <tags>rock core serialization newtonsoft</tags>
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
     </metadata>

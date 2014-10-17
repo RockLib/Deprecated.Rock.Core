@@ -13,9 +13,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rock.Core.ModuleInitializer
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SampleApplication", "SampleApplication\SampleApplication.csproj", "{21577CBE-8AE1-4188-B1E3-81D0700535D1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rock.Serialization.Netwonsoft", "Rock.Serialization.Netwonsoft\Rock.Serialization.Netwonsoft.csproj", "{DD28538C-219D-4A61-ADE2-A813A7D5B5CE}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rock.Core.Netwonsoft", "Rock.Core.Netwonsoft\Rock.Core.Netwonsoft.csproj", "{DD28538C-219D-4A61-ADE2-A813A7D5B5CE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rock.Serialization.XSerializer", "Rock.Serialization.XSerializer\Rock.Serialization.XSerializer.csproj", "{E3687CEA-D344-4AE7-817E-DF337541687A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rock.Core.XSerializer", "Rock.Core.XSerializer\Rock.Core.XSerializer.csproj", "{E3687CEA-D344-4AE7-817E-DF337541687A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

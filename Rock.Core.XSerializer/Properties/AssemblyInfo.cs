@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("Rock.Serialization.XSerializer")]
-[assembly: AssemblyDescription("An adapter for the ISerializer interface using XSerializer.XmlSerializer.")]
+[assembly: AssemblyTitle("Rock.Core.XSerializer")]
+[assembly: AssemblyDescription("Core classes that use the XSerializer serialization library.")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Quicken Loans")]
-[assembly: AssemblyProduct("Rock.Serialization.XSerializer")]
+[assembly: AssemblyProduct("Rock.Core.XSerializer")]
 [assembly: AssemblyCopyright("Copyright © Quicken Loans 2014")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
