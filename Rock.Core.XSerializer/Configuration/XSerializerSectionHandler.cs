@@ -17,7 +17,7 @@ namespace Rock.Configuration
         /// <see cref="XmlSerializerSectionHandler.Create"/> method.
         /// </summary>
         /// <param name="section">An xml node that represents configuration object in the *.config file.</param>
-        /// <param name="configType">The type of the object to be returned by the <see cref="Create"/> method.</param>
+        /// <param name="configType">The type of the object to be returned by the <see cref="XmlSerializerSectionHandler.Create"/> method.</param>
         /// <returns>The deserialized object.</returns>
         protected override object Deserialize(XmlNode section, Type configType)
         {
