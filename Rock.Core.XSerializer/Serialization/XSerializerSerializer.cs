@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.IO;
 using XSerializer;
 
@@ -16,29 +15,26 @@ namespace Rock.Serialization
 
         public XSerializerSerializer(IXSerializerSerializerConfiguration configuration)
         {
-            var cache = new ConcurrentDictionary<Type, XmlSerializationOptions>();
+            var c = configuration;
 
             _createOptions =
                 type =>
-                    cache.GetOrAdd(
-                        type,
-                        t =>
-                        {
-                            string rootElementName;
+                {
+                    string rootElementName;
 
-                            return new XmlSerializationOptions(
-                                configuration.Namespaces,
-                                configuration.Encoding,
-                                configuration.DefaultNamespace,
-                                configuration.Indent,
-                                configuration.RootElementNameMap.TryGetValue(t, out rootElementName)
-                                    ? rootElementName
-                                    : null,
-                                configuration.AlwaysEmitTypes,
-                                configuration.Redact,
-                                configuration.TreatEmptyElementAsString,
-                                configuration.EmitNil);
-                        });
+                    return new XmlSerializationOptions(
+                        c.Namespaces,
+                        c.Encoding,
+                        c.DefaultNamespace,
+                        c.Indent,
+                        c.RootElementNameMap.TryGetValue(type, out rootElementName)
+                            ? rootElementName
+                            : null,
+                        c.AlwaysEmitTypes,
+                        c.Redact,
+                        c.TreatEmptyElementAsString,
+                        c.EmitNil);
+                };
         }
 
         public void SerializeToStream(Stream stream, object item, Type type)
