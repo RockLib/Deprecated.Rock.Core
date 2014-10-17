@@ -1,4 +1,6 @@
-﻿using System.Text;
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
 using System.Xml.Serialization;
 
 namespace Rock.Serialization
@@ -9,10 +11,10 @@ namespace Rock.Serialization
         Encoding Encoding { get; }
         string DefaultNamespace { get; }
         bool Indent { get; }
-        string RootElementName { get; }
         bool AlwaysEmitTypes { get; }
         bool Redact { get; }
         bool TreatEmptyElementAsString { get; }
         bool EmitNil { get; }
+        IReadOnlyDictionary<Type, string> RootElementNameMap { get; }
     }
 }
