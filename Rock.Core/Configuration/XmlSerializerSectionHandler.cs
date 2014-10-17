@@ -30,14 +30,14 @@ namespace Rock.Configuration
 
             if (typeName == null)
             {
-                throw new ConfigurationErrorsException(string.Format("A type must be provided for section '{0}'.", section.Name), section);
+                throw new InvalidConfigurationException(string.Format("A type must be provided for section '{0}'.", section.Name), section);
             }
 
             var configType = Type.GetType(typeName);
 
             if (configType == null)
             {
-                throw new ConfigurationErrorsException(string.Format("The specified type, '{0}', is invalid for section '{1}' (use a type's assembly qualified name).", typeName, section.Name), section);
+                throw new InvalidConfigurationException(string.Format("The specified type, '{0}', is invalid for section '{1}' (use the type's assembly qualified name).", typeName, section.Name), section);
             }
 
             return configType;
