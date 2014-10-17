@@ -19,6 +19,7 @@ namespace Rock.Serialization
             var encoding = configuration.Encoding;
             var defaultNamespace = configuration.DefaultNamespace;
             var indent = configuration.Indent;
+            var rootElementName = configuration.RootElementName;
             var alwaysEmitTypes = configuration.AlwaysEmitTypes;
             var redact = configuration.Redact;
             var treatEmptyElementAsString = configuration.TreatEmptyElementAsString;
@@ -30,7 +31,7 @@ namespace Rock.Serialization
                     encoding,
                     defaultNamespace,
                     indent,
-                    null, // rootElementName is not appropriate
+                    rootElementName,
                     alwaysEmitTypes,
                     redact,
                     treatEmptyElementAsString,

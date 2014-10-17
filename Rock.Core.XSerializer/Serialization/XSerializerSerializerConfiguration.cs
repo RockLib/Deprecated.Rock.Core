@@ -16,6 +16,7 @@ namespace Rock.Serialization
         public Encoding Encoding { get; set; }
         public string DefaultNamespace { get; set; }
         public bool Indent { get; set; }
+        public string RootElementName { get; set; }
         public bool AlwaysEmitTypes { get; set; }
         public bool Redact { get; set; }
         public bool TreatEmptyElementAsString { get; set; }
