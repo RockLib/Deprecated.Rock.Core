@@ -7,12 +7,9 @@ namespace Rock.Serialization
 {
     public class XSerializerSerializerConfiguration : IXSerializerSerializerConfiguration
     {
-        private readonly Dictionary<Type, string> _rootElementNameMap = new Dictionary<Type, string>();
-
         public XSerializerSerializerConfiguration()
         {
-            Namespaces = new XmlSerializerNamespaces();
-            Encoding = Encoding.UTF8;
+            RootElementNameMap = new Dictionary<Type, string>();
             Redact = true;
         }
 
@@ -27,24 +24,9 @@ namespace Rock.Serialization
 
         IReadOnlyDictionary<Type, string> IXSerializerSerializerConfiguration.RootElementNameMap
         {
-            get { return _rootElementNameMap; }
+            get { return RootElementNameMap; }
         }
 
-        public IDictionary<Type, string> RootElementNameMap
-        {
-            get { return _rootElementNameMap; }
-            set
-            {
-                _rootElementNameMap.Clear();
-
-                if (value != null)
-                {
-                    foreach (var kvp in value)
-                    {
-                        _rootElementNameMap.Add(kvp.Key, kvp.Value);
-                    }
-                }
-            }
-        }
+        public Dictionary<Type, string> RootElementNameMap { get; set; }
     }
 }
