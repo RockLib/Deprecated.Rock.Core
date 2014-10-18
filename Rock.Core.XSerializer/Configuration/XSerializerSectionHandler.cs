@@ -21,8 +21,15 @@ namespace Rock.Configuration
         /// <returns>The deserialized object.</returns>
         protected override object Deserialize(XmlNode section, Type configType)
         {
-            var serializer = XmlSerializer.Create(configType, o => o.SetRootElementName(section.Name));
-            return serializer.Deserialize(section.OuterXml);
+            try
+            {
+                var serializer = XmlSerializer.Create(configType, o => o.SetRootElementName(section.Name));
+                return serializer.Deserialize(section.OuterXml);
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidConfigurationException(string.Format("Error deserializing '{0}' element as a '{1}' type.", section.Name, configType), ex, section.OuterXml);
+            }
         }
     }
 

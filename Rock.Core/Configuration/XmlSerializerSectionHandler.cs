@@ -28,18 +28,17 @@ namespace Rock.Configuration
         /// <returns>The deserialized object.</returns>
         protected virtual object Deserialize(XmlNode section, Type configType)
         {
-            var serializer = new XmlSerializer(configType, new XmlRootAttribute(section.Name));
-            
-            using (var reader = new StringReader(section.OuterXml))
+            try
             {
-                try
+                using (var reader = new StringReader(section.OuterXml))
                 {
+                    var serializer = new XmlSerializer(configType, new XmlRootAttribute(section.Name));
                     return serializer.Deserialize(reader);
                 }
-                catch (Exception ex)
-                {
-                    throw new InvalidConfigurationException("Error deserializing configuration.", ex, section.OuterXml);
-                }
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidConfigurationException(string.Format("Error deserializing '{0}' element as a '{1}' type.", section.Name, configType), ex, section.OuterXml);
             }
         }
 
@@ -63,7 +62,7 @@ namespace Rock.Configuration
 
             if (configType == null)
             {
-                throw new InvalidConfigurationException(string.Format("The value of the type attribute, '{0}', is invalid for the '{1}' element. Hint: use the type's assembly qualified name.", typeName, section.Name), section.OuterXml);
+                throw new InvalidConfigurationException(string.Format("The value of the 'type' attribute, '{0}', is invalid for the '{1}' element. Hint: use the type's assembly qualified name.", typeName, section.Name), section.OuterXml);
             }
 
             return configType;
