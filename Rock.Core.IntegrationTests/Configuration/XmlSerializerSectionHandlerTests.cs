@@ -11,21 +11,39 @@ namespace XmlSerializerSectionHandlerTests
     public class SadPaths
     {
         [Test]
-        public void MissingTypeAttribute()
+        public void MissingTypeAttributeXmlSerializer()
         {
             AssertInvalidConfigurationExceptionThrownWhenAccessingSection("Broken1");
         }
 
         [Test]
-        public void InvalidTypeAttribute()
+        public void InvalidTypeAttributeXmlSerializer()
         {
             AssertInvalidConfigurationExceptionThrownWhenAccessingSection("Broken2");
         }
 
         [Test]
-        public void SerializationError()
+        public void SerializationErrorXmlSerializer()
         {
             AssertInvalidConfigurationExceptionThrownWhenAccessingSection("Broken3");
+        }
+
+        [Test]
+        public void MissingTypeAttributeXSerializer()
+        {
+            AssertInvalidConfigurationExceptionThrownWhenAccessingSection("Broken4");
+        }
+
+        [Test]
+        public void InvalidTypeAttributeXSerializer()
+        {
+            AssertInvalidConfigurationExceptionThrownWhenAccessingSection("Broken5");
+        }
+
+        [Test]
+        public void SerializationErrorXSerializer()
+        {
+            AssertInvalidConfigurationExceptionThrownWhenAccessingSection("Broken6");
         }
 
         private void AssertInvalidConfigurationExceptionThrownWhenAccessingSection(string sectionName)
