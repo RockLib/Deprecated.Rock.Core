@@ -37,15 +37,21 @@
       <HintPath>..\packages\NUnit.2.6.3\lib\nunit.framework.dll</HintPath>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
+    <Reference Include="XSerializer, Version=0.1.0.0, Culture=neutral, PublicKeyToken=9ab97cfaa8f0c80a, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\XSerializer.0.1.19\lib\net40\XSerializer.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AssemblyInitialization\ModuleInitializer.cs" />
+    <Compile Include="Configuration\XmlSerializerSectionHandlerTests.cs" />
     <Compile Include="EntryAssemblyApplicationInfoTests.cs" />
     <Compile Include="KeyValueStores\File\DirectoryBucketTestBase.cs" />
     <Compile Include="KeyValueStores\File\DirectoryBucketTests.cs" />
@@ -67,6 +73,10 @@
       <Project>{6c71e326-e9b5-407e-889d-443311b0b22b}</Project>
       <Name>Rock.Core.UnitTests</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Rock.Core.XSerializer\Rock.Core.XSerializer.csproj">
+      <Project>{e3687cea-d344-4ae7-817e-df337541687a}</Project>
+      <Name>Rock.Core.XSerializer</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Rock.Core\Rock.Core.csproj">
       <Project>{0feb58cd-b15c-4cdc-83d6-7621c1db98c7}</Project>
       <Name>Rock.Core</Name>
@@ -77,7 +87,9 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config" />
+    <None Include="App.config">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
