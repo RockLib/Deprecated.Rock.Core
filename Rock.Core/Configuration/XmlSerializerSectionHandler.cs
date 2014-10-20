@@ -75,6 +75,7 @@ namespace Rock.Configuration
     /// <see cref="XmlSerializer"/> to deserialize the element.
     /// </summary>
     public class XmlSerializerSectionHandler<TConfiguration> : XmlSerializerSectionHandler
+        where TConfiguration : new()
     {
         /// <summary>
         /// Get the type of the configuration object that will be returned by the
