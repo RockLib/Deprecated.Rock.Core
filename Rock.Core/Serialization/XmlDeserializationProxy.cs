@@ -406,9 +406,11 @@ namespace Rock.Serialization
 
         private static bool TryGetElementValue(XmlElement additionalElement, Type type, out object value)
         {
-            if (!additionalElement.HasChildNodes && !additionalElement.HasAttributes)
+            if (!additionalElement.HasAttributes
+                && (additionalElement.ChildNodes.Count == 0
+                    || additionalElement.ChildNodes.Cast<XmlNode>().All(node => node.NodeType != XmlNodeType.Element)))
             {
-                if (TryConvert(additionalElement.Value, type, out value))
+                if (TryConvert(additionalElement.InnerText, type, out value))
                 {
                     return true;
                 }
@@ -419,22 +421,22 @@ namespace Rock.Serialization
                 try
                 {
                     XmlSerializer serializer;
+                    
+                    var typeName = additionalElement.GetAttribute("type");
+                    var typeFromAttribute = Type.GetType(typeName);
 
-                    if (type.IsInterface || type.IsAbstract)
+                    if (typeFromAttribute != null)
                     {
-                        var typeName = additionalElement.GetAttribute("type");
-                        var typeFromAttribute = Type.GetType(typeName);
-
-                        if (typeFromAttribute == null)
+                        serializer = new XmlSerializer(typeFromAttribute, new XmlRootAttribute(additionalElement.Name));
+                    }
+                    else
+                    {
+                        if (type.IsInterface || type.IsAbstract)
                         {
                             value = null;
                             return false;
                         }
 
-                        serializer = new XmlSerializer(typeFromAttribute, new XmlRootAttribute(additionalElement.Name));
-                    }
-                    else
-                    {
                         serializer = new XmlSerializer(type, new XmlRootAttribute(additionalElement.Name));
                     }
 
@@ -451,19 +453,17 @@ namespace Rock.Serialization
 
         private static bool TryConvert(string stringValue, Type type, out object value)
         {
+            if (type == typeof (string))
+            {
+                value = stringValue;
+                return true;
+            }
+
             var converter = TypeDescriptor.GetConverter(type);
 
             if (converter.CanConvertFrom(typeof(string)))
             {
                 value = converter.ConvertFrom(stringValue);
-                return true;
-            }
-
-            converter = TypeDescriptor.GetConverter(typeof(string));
-
-            if (converter.CanConvertTo(type))
-            {
-                value = converter.ConvertTo(stringValue, type);
                 return true;
             }
 
