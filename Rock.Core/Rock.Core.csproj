@@ -61,6 +61,7 @@
     <Compile Include="Reflection\IsPublicExtension.cs" />
     <Compile Include="Reflection\IsStaticExtension.cs" />
     <Compile Include="Reflection\SlowFactory.cs" />
+    <Compile Include="Serialization\XmlDeserializationProxy.cs" />
     <Compile Include="TryFunc.cs" />
     <Compile Include="Collections\DeepEqualityComparer`1.cs" />
     <Compile Include="Collections\DeepEqualityComparer.cs" />
