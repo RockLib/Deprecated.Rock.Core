@@ -62,6 +62,7 @@
     <Compile Include="Reflection\IsPublicExtensionTests.cs" />
     <Compile Include="Reflection\SlowFactoryTests.cs" />
     <Compile Include="Serialization\DataContractSerializerSerializerTests.cs" />
+    <Compile Include="Serialization\XmlDeserializationProxyTests.cs" />
     <Compile Include="Utilities\AttributeLocatorTests.cs" />
     <Compile Include="Collections\AsKeyedExtensionTests.cs" />
     <Compile Include="Collections\ConcatExtensionsTests.cs" />
