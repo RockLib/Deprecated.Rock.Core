@@ -6,6 +6,10 @@ using System.Reflection;
 
 namespace Rock
 {
+    /// <summary>
+    /// An implementation of <see cref="IApplicationInfo"/> that uses the entry
+    /// assembly's name as the ApplicationId.
+    /// </summary>
     public class EntryAssemblyApplicationInfo : IApplicationInfo
     {
         private static readonly IEnumerable<string> _assembliesToIgnore = new[]
@@ -21,6 +25,9 @@ namespace Rock
 
         private readonly Lazy<string> _appId;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="EntryAssemblyApplicationInfo"/> class.
+        /// </summary>
         public EntryAssemblyApplicationInfo()
         {
             var entryAssembly = new Lazy<Assembly>(GetEntryAssembly);
@@ -52,6 +59,9 @@ namespace Rock
             throw new InvalidOperationException("Unable to determine entry assembly.");
         }
 
+        /// <summary>
+        /// Gets the ID of the current application.
+        /// </summary>
         public string ApplicationId
         {
             get { return _appId.Value; }
