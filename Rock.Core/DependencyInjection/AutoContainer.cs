@@ -193,35 +193,42 @@ namespace Rock.DependencyInjection
             return new MergedAutoContainer(this, secondaryResolver);
         }
 
+        public void SetBinding(Type contractType, Type implementationType)
+        {
+            _bindings.AddOrUpdate(
+                contractType,
+                () => CreateGetInstanceFunc(implementationType),
+                (type, func) => CreateGetInstanceFunc(implementationType));
+        }
+
         /// <summary>
         /// Returns <see cref="_getInstanceFuncNotFound"/> if the type is unresolvable.
         /// </summary>
         private Func<object> GetGetInstanceFunc(Type type)
         {
-            return
-                _bindings.GetOrAdd(
-                    type,
-                    t =>
-                    {
-                        if (t == typeof(object))
-                        {
-                            return null;
-                        }
+            return _bindings.GetOrAdd(type, CreateGetInstanceFunc);
+        }
 
-                        object instance;
-                        if (TryGetInstance(t, out instance))
-                        {
-                            return () => instance;
-                        }
+        private Func<object> CreateGetInstanceFunc(Type type)
+        {
+            if (type == typeof(object))
+            {
+                return () => new object();
+            }
 
-                        ConstructorInfo constructor;
-                        if (_constructorSelector.TryGetConstructor(t, this, out constructor))
-                        {
-                            return GetCreateInstanceFunc(constructor);
-                        }
+            object instance;
+            if (TryGetInstance(type, out instance))
+            {
+                return () => instance;
+            }
 
-                        return _getInstanceFuncNotFound;
-                    });
+            ConstructorInfo constructor;
+            if (_constructorSelector.TryGetConstructor(type, this, out constructor))
+            {
+                return GetCreateInstanceFunc(constructor);
+            }
+
+            return _getInstanceFuncNotFound;
         }
 
         private bool TryGetInstance(Type type, out object instance)
