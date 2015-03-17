@@ -19,6 +19,7 @@ namespace Rock
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AppSettingsApplicationInfo"/> class.
+        /// The key of the application ID setting will be "Rock.ApplicationId.Current".
         /// </summary>
         public AppSettingsApplicationInfo()
             : this(DefaultApplicationIdKey)
