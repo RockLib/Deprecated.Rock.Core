@@ -4,7 +4,7 @@ namespace Rock.Defaults.Implementation
 {
     public static partial class Default
     {
-        private static readonly DefaultHelper<IApplicationInfo> _applicationInfo = new DefaultHelper<IApplicationInfo>(() => new EntryAssemblyApplicationInfo());
+        private static readonly DefaultHelper<IApplicationInfo> _applicationInfo = new DefaultHelper<IApplicationInfo>(() => new DefaultApplicationInfo());
 
         public static IApplicationInfo ApplicationInfo
         {
