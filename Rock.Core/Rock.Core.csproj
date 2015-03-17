@@ -34,6 +34,7 @@
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.ComponentModel.Composition.Registration" />
+    <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Reflection.Context" />
@@ -45,8 +46,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ApplicationId.cs" />
+    <Compile Include="DefaultApplicationInfo.cs" />
     <Compile Include="Collections\DeepEqualityComparerConfiguration.cs" />
     <Compile Include="Collections\DefaultMemberLocator.cs" />
+    <Compile Include="AppSettingsApplicationInfo.cs" />
     <Compile Include="Configuration\InvalidConfigurationException.cs" />
     <Compile Include="Configuration\XmlSerializerSectionHandler.cs" />
     <Compile Include="Conversion\ConvertFuncFactory.cs" />
