@@ -2,7 +2,7 @@
 
 namespace DefaultHelperTests.Implementation
 {
-    public class Default_ApplicationInfoTests : DefaultTestBase<IApplicationInfo, EntryAssemblyApplicationInfo>
+    internal class Default_ApplicationInfoTests : DefaultTestBase<IApplicationInfo, DefaultApplicationInfo>
     {
         protected override string PropertyName
         {

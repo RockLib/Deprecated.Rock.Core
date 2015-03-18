@@ -5,7 +5,7 @@ using Rock.Defaults.Implementation;
 
 namespace DefaultHelperTests.Implementation
 {
-    public abstract class DefaultTestBase<T, TDefault>
+    internal abstract class DefaultTestBase<T, TDefault>
         where T : class
         where TDefault : class, T
     {

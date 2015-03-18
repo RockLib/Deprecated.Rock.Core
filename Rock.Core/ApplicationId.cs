@@ -1,6 +1,4 @@
 ﻿using Rock.Defaults.Implementation;
-using System;
-using System.Configuration;
 
 namespace Rock
 {

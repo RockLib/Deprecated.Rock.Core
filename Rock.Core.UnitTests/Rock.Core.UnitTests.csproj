@@ -46,7 +46,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AssemblyInitialization\ModuleInitializerTests.cs" />
     <Compile Include="Collections\DeepEqualityComparerTests.cs" />
     <Compile Include="Collections\DefaultMemberLocatorTests.cs" />
     <Compile Include="Conversion\ConvertFuncFactoryTests.cs" />
@@ -92,13 +91,11 @@
     <Compile Include="KeyValueStores\Extensions\GetItemsExtensionTests.cs" />
     <Compile Include="KeyValueStores\Extensions\KeyValueStoreExtensionsTestsBase.cs" />
     <Compile Include="KeyValueStores\Extensions\TryGetExtensionsTests.cs" />
-    <Compile Include="AssemblyInitialization\ModuleInitializer.cs" />
     <Compile Include="Mail\DeliveryMethodTests.cs" />
     <Compile Include="Net\EndpointSelectorTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="IO\EncodedStringWriterTests.cs" />
     <Compile Include="IO\TempStorageTests.cs" />
-    <Compile Include="AssemblyInitialization\Rock_Core_UnitTests_FrameworkInitializer.cs" />
     <Compile Include="Serialization\BinaryFormatterSerializerTests.cs" />
     <Compile Include="Serialization\DataContractJsonSerializerSerializerTests.cs" />
     <Compile Include="Serialization\SerializerExtensionsTests.cs" />
@@ -112,19 +109,12 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Rock.Core.ModuleInitializer.UnitTestSupport\Rock.Core.ModuleInitializer.UnitTestSupport.csproj">
-      <Project>{34d6b6ad-5725-469c-af77-eab7dbe61666}</Project>
-      <Name>Rock.Core.ModuleInitializer.UnitTestSupport</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Rock.Core\Rock.Core.csproj">
       <Project>{0feb58cd-b15c-4cdc-83d6-7621c1db98c7}</Project>
       <Name>Rock.Core</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <Target Name="InjectModuleInitializer" AfterTargets="AfterBuild">
-    <Exec Command="..\packages\InjectModuleInitializer.1.3.1\tools\InjectModuleInitializer.exe &quot;$(TargetPath)&quot;" />
-  </Target>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
