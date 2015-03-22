@@ -190,8 +190,13 @@ namespace Rock.Serialization
         /// ]]>
         /// </code>
         /// </remarks>
-        protected XmlDeserializationProxy(Type defaultType)
+        public XmlDeserializationProxy(Type defaultType)
         {
+            if (defaultType == null && !typeof(TTarget).IsAbstract)
+            {
+                _defaultType = typeof(TTarget);
+            }
+
             _defaultType = ThrowIfNotAssignableToT(defaultType);
             _type = new Lazy<Type>(() => _defaultType);
         }
@@ -263,7 +268,7 @@ namespace Rock.Serialization
                 throw new InvalidOperationException("A value for 'type' must provided - no default value exists.");
             }
 
-            var creationScenario = GetCreationScenario();
+            var creationScenario = GetCreationScenario(resolver);
             var args = CreateArgs(creationScenario.Parameters, resolver);
             var instance = creationScenario.Constructor.Invoke(args);
 
@@ -280,14 +285,43 @@ namespace Rock.Serialization
             return (TTarget)instance;
         }
 
-        private CreationScenario GetCreationScenario()
+        private CreationScenario GetCreationScenario(IResolver resolver)
         {
-            return new CreationScenario(GetConstructor(), _type.Value);
+            return new CreationScenario(GetConstructor(resolver), _type.Value);
         }
 
-        private ConstructorInfo GetConstructor()
+        private ConstructorInfo GetConstructor(IResolver resolver)
         {
-            return _type.Value.GetConstructors().OrderByDescending(c => c.GetParameters().Length).First();
+            // The constructor with the most resolvable parameters wins.
+            // If tied, the constructor with fewest parameters wins.
+
+            return
+               (from ctor in _type.Value.GetConstructors()
+                let parameters = ctor.GetParameters()
+                orderby
+                    parameters.Count(p => CanResolveParameterValue(p, resolver)) descending,
+                    parameters.Length ascending
+                select ctor).First();
+        }
+
+        /// <summary>
+        /// Returns true if a value for the parameter exists in the xml or is the resolver
+        /// can reolve the parameter's type.
+        /// </summary>
+        private bool CanResolveParameterValue(ParameterInfo parameter, IResolver resolver)
+        {
+            object dummy;
+            if (TryGetValueForInstance(parameter.Name, parameter.ParameterType, out dummy))
+            {
+                return true;
+            }
+
+            if (resolver != null && resolver.CanGet(parameter.ParameterType))
+            {
+                return true;
+            }
+
+            return false;
         }
 
         private object[] CreateArgs(IEnumerable<ParameterInfo> parameters, IResolver resolver)

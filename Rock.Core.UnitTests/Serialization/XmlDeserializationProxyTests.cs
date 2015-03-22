@@ -276,6 +276,132 @@ namespace XmlDeserializationProxyTests
         }
     }
 
+    public class ConstructorSelectionTests
+    {
+        [Test]
+        public void TheConstructorWithTheMostResolvableParametersWins()
+        {
+            var xml = string.Format(
+@"<C1Container>
+  <C1>
+    <p1 type=""{0}"" />
+    <p2 type=""{1}"" />
+  </C1>
+</C1Container>", typeof(P1).AssemblyQualifiedName, typeof(P2).AssemblyQualifiedName);
+
+            var serializer = new XmlSerializer(typeof(C1Container));
+
+            C1Container container;
+
+            using (var reader = new StringReader(xml))
+            {
+                container = (C1Container)serializer.Deserialize(reader);
+            }
+
+            var c1 = container.C1.CreateInstance();
+
+            Assert.That(c1.Value, Is.EqualTo(2));
+        }
+
+        [Test]
+        public void GivenAnEqualNumberOfResolvableParameters_TheConstructorWithTheFewestParametersWins()
+        {
+            var xml = string.Format(
+@"<C1Container>
+  <C1>
+    <p1 type=""{0}"" />
+  </C1>
+</C1Container>", typeof(P1).AssemblyQualifiedName);
+
+            var serializer = new XmlSerializer(typeof(C1Container));
+
+            C1Container container;
+
+            using (var reader = new StringReader(xml))
+            {
+                container = (C1Container)serializer.Deserialize(reader);
+            }
+
+            var c1 = container.C1.CreateInstance();
+
+            Assert.That(c1.Value, Is.EqualTo(1));
+        }
+    }
+
+    public class C1Container
+    {
+        public C1Proxy C1 { get; set; }
+    }
+
+    public class C1Proxy : XmlDeserializationProxy<IC1>
+    {
+        public C1Proxy()
+            : base(typeof(C1))
+        {   
+        }
+    }
+
+    public interface IC1
+    {
+        int Value { get; }
+    }
+
+    public class C1 : IC1
+    {
+        private readonly int _value;
+
+        public C1(IP1 p1)
+        {
+            _value = 1;
+        }
+
+        public C1(IP1 p1, IP2 p2)
+        {
+            _value = 2;
+        }
+
+        public int Value { get { return _value; } }
+    }
+
+    public class C2
+    {
+        internal readonly int Value;
+
+        public C2(IP1 p1, IP3 p3)
+        {
+            Value = 1;
+        }
+
+        public C2(IP1 p1, IP2 p2)
+        {
+            Value = 2;
+        }
+    }
+
+    public interface IP1
+    {
+    }
+
+    public class P1 : IP1
+    {
+    }
+
+    public interface IP2
+    {
+    }
+
+    public class P2 : IP2
+    {
+    }
+
+    public interface IP3
+    {
+    }
+
+    public class P3 : IP3
+    {
+    }
+
     #region Type Specified
 
     [XmlRoot("FooContainer")]
