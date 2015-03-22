@@ -2,7 +2,7 @@ using Rock.Serialization;
 
 namespace DefaultHelperTests.Implementation
 {
-    public class Default_BinarySerializerTests : DefaultTestBase<ISerializer, BinaryFormatterSerializer>
+    internal class Default_BinarySerializerTests : DefaultTestBase<ISerializer, BinaryFormatterSerializer>
     {
         protected override string PropertyName
         {

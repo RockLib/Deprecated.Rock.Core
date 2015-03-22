@@ -1,15 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
-VisualStudioVersion = 12.0.30110.0
+VisualStudioVersion = 12.0.31101.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rock.Core", "Rock.Core\Rock.Core.csproj", "{0FEB58CD-B15C-4CDC-83D6-7621C1DB98C7}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rock.Core.UnitTests", "Rock.Core.UnitTests\Rock.Core.UnitTests.csproj", "{6C71E326-E9B5-407E-889D-443311B0B22B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rock.Core.IntegrationTests", "Rock.Core.IntegrationTests\Rock.Core.IntegrationTests.csproj", "{B189B018-183A-47B8-A410-BCD9482D62FC}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rock.Core.ModuleInitializer.UnitTestSupport", "Rock.Core.ModuleInitializer.UnitTestSupport\Rock.Core.ModuleInitializer.UnitTestSupport.csproj", "{34D6B6AD-5725-469C-AF77-EAB7DBE61666}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SampleApplication", "SampleApplication\SampleApplication.csproj", "{21577CBE-8AE1-4188-B1E3-81D0700535D1}"
 EndProject
@@ -37,10 +35,6 @@ Global
 		{B189B018-183A-47B8-A410-BCD9482D62FC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B189B018-183A-47B8-A410-BCD9482D62FC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B189B018-183A-47B8-A410-BCD9482D62FC}.Release|Any CPU.Build.0 = Release|Any CPU
-		{34D6B6AD-5725-469C-AF77-EAB7DBE61666}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{34D6B6AD-5725-469C-AF77-EAB7DBE61666}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{34D6B6AD-5725-469C-AF77-EAB7DBE61666}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{34D6B6AD-5725-469C-AF77-EAB7DBE61666}.Release|Any CPU.Build.0 = Release|Any CPU
 		{21577CBE-8AE1-4188-B1E3-81D0700535D1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{21577CBE-8AE1-4188-B1E3-81D0700535D1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{21577CBE-8AE1-4188-B1E3-81D0700535D1}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -58,9 +52,8 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{B189B018-183A-47B8-A410-BCD9482D62FC} = {DC30A831-32A9-4629-BCEE-43490E5D3738}
-		{34D6B6AD-5725-469C-AF77-EAB7DBE61666} = {DC30A831-32A9-4629-BCEE-43490E5D3738}
 		{6C71E326-E9B5-407E-889D-443311B0B22B} = {DC30A831-32A9-4629-BCEE-43490E5D3738}
+		{B189B018-183A-47B8-A410-BCD9482D62FC} = {DC30A831-32A9-4629-BCEE-43490E5D3738}
 		{21577CBE-8AE1-4188-B1E3-81D0700535D1} = {DC30A831-32A9-4629-BCEE-43490E5D3738}
 	EndGlobalSection
 EndGlobal

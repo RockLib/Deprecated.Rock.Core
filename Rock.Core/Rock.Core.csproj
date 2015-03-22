@@ -11,6 +11,7 @@
     <AssemblyName>Rock.Core</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <UseInjectModuleInitializer Condition="'$(UseInjectModuleInitializer)' == ''">true</UseInjectModuleInitializer>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -65,6 +66,10 @@
     <Compile Include="Reflection\IsPublicExtension.cs" />
     <Compile Include="Reflection\IsStaticExtension.cs" />
     <Compile Include="Reflection\SlowFactory.cs" />
+    <Compile Include="Rock.StaticDependencyInjection\CompositionRoot.cs" />
+    <Compile Include="Rock.StaticDependencyInjection\ExportAttribute.cs" />
+    <Compile Include="Rock.StaticDependencyInjection\ModuleInitializer.cs" />
+    <Compile Include="Rock.StaticDependencyInjection\StaticDependencyInjection.Generated.cs" />
     <Compile Include="Serialization\XmlDeserializationProxy.cs" />
     <Compile Include="TryFunc.cs" />
     <Compile Include="Collections\DeepEqualityComparer`1.cs" />
@@ -83,7 +88,7 @@
     <Compile Include="Defaults\Implementation\Default.ApplicationInfo.cs" />
     <Compile Include="Defaults\Implementation\Default.BinarySerializer.cs" />
     <Compile Include="Defaults\Implementation\Default.ResolverConstructorSelector.cs" />
-    <Compile Include="Defaults\Implementation\Default.ExpandoObjectConverter.cs" />
+    <Compile Include="Defaults\Implementation\Default.ObjectToExpandoObjectConverter.cs" />
     <Compile Include="Defaults\Implementation\Default.EndpointDetector.cs" />
     <Compile Include="Defaults\Implementation\Default.EndpointSelector.cs" />
     <Compile Include="Defaults\Implementation\Default.JsonSerializer.cs" />
@@ -91,7 +96,6 @@
     <Compile Include="Defaults\Implementation\Default.XmlSerializer.cs" />
     <Compile Include="DependencyInjection\Heuristics\ResolverConstructorSelectorExtensions.cs" />
     <Compile Include="EntryAssemblyApplicationInfo.cs" />
-    <Compile Include="AssemblyInitialization\IFrameworkInitializer.cs" />
     <Compile Include="Collections\AsKeyedExtension.cs" />
     <Compile Include="Collections\FunctionalKeyedCollection.cs" />
     <Compile Include="Collections\IKeyedEnumerable.cs" />
@@ -127,7 +131,6 @@
     <Compile Include="Mail\DeliveryMethod.NetworkDeliveryMethod.cs" />
     <Compile Include="Mail\DeliveryMethod.cs" />
     <Compile Include="Mail\SendExtension.cs" />
-    <Compile Include="AssemblyInitialization\ModuleInitializer.cs" />
     <Compile Include="Conversion\IConvertsTo.cs" />
     <Compile Include="Collections\ConcatExtensions.cs" />
     <Compile Include="Net\EndpointDetector.cs" />
@@ -151,8 +154,8 @@
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <Target Name="InjectModuleInitializer" AfterTargets="AfterBuild">
-    <Exec Command="..\packages\InjectModuleInitializer.1.3.1\tools\InjectModuleInitializer.exe &quot;$(TargetPath)&quot;" />
+  <Target Name="InjectModuleInitializer" AfterTargets="AfterBuild" Condition="'$(UseInjectModuleInitializer)' == 'true'">
+    <Exec Command="..\packages\Rock.StaticDependencyInjection.1.1.0\tools\InjectModuleInitializer.exe &quot;$(TargetPath)&quot;" />
   </Target>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
