@@ -48,6 +48,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ApplicationId.cs" />
+    <Compile Include="Collections\ForEachExtension.cs" />
     <Compile Include="Cryptography\HashType.cs" />
     <Compile Include="Cryptography\HashTypeExtensions.cs" />
     <Compile Include="DefaultApplicationInfo.cs" />
