@@ -385,7 +385,11 @@ namespace Rock.Serialization
                 try
                 {
                     value = property.GetValue(this);
-                    return true;
+
+                    if (value != null)
+                    {
+                        return true;
+                    }
                 }                                                                                                                                   // ReSharper disable once EmptyGeneralCatchClause
                 catch
                 {
@@ -487,7 +491,7 @@ namespace Rock.Serialization
 
         private static bool TryConvert(string stringValue, Type type, out object value)
         {
-            if (type == typeof (string))
+            if (type == typeof(string))
             {
                 value = stringValue;
                 return true;
