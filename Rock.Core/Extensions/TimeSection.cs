@@ -1,4 +1,4 @@
-namespace Rock.Extensions
+namespace Rock
 {
     /// <summary>
     /// Defines time sections that can be truncated from a DateTime.

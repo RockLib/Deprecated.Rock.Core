@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Rock.Extensions
+namespace Rock
 {
     /// <summary>
     /// Defines a <see cref="Truncate"/> extension method for the <see cref="DateTime"/> struct.
