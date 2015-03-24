@@ -63,6 +63,7 @@
     <Compile Include="Defaults\Implementation\Default.ObjectToDictionaryOfStringToStringConverter.cs" />
     <Compile Include="Extensions\DateTimeTruncateExtension.cs" />
     <Compile Include="Extensions\TimeSection.cs" />
+    <Compile Include="Extensions\ToUnixTimestampExtension.cs" />
     <Compile Include="StringFormatting\FormatToStringExtension.cs" />
     <Compile Include="Immutable\Semimutable.cs" />
     <Compile Include="Net\Http\DefaultHttpClientFactory.cs" />
