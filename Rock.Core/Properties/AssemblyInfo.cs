@@ -34,6 +34,6 @@ using System.Runtime.InteropServices;
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("0.9.0.0")]
 [assembly: AssemblyFileVersion("0.0.4")]
-[assembly: AssemblyInformationalVersion("0.0.4-alpha04")]
+[assembly: AssemblyInformationalVersion("0.0.4-alpha05")]
 
 [assembly: InternalsVisibleTo("Rock.Core.UnitTests")]
