@@ -61,6 +61,8 @@
     <Compile Include="Conversion\ToDictionaryOfStringToStringExtension.cs" />
     <Compile Include="Defaults\Implementation\Default.HttpClientFactory.cs" />
     <Compile Include="Defaults\Implementation\Default.ObjectToDictionaryOfStringToStringConverter.cs" />
+    <Compile Include="Extensions\DateTimeTruncateExtension.cs" />
+    <Compile Include="Extensions\TimeSection.cs" />
     <Compile Include="StringFormatting\FormatToStringExtension.cs" />
     <Compile Include="Immutable\Semimutable.cs" />
     <Compile Include="Net\Http\DefaultHttpClientFactory.cs" />
@@ -158,7 +160,9 @@
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <None Include="Extensions\README.txt" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="InjectModuleInitializer" AfterTargets="AfterBuild" Condition="'$(UseInjectModuleInitializer)' == 'true'">
     <Exec Command="..\packages\Rock.StaticDependencyInjection.1.1.0\tools\InjectModuleInitializer.exe &quot;$(TargetPath)&quot;" />
