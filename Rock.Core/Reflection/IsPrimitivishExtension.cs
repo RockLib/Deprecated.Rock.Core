@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Rock.Defaults.Implementation;
 
-namespace Rock.Extensions
+namespace Rock.Reflection
 {
     public static class IsPrimitivishExtension
     {

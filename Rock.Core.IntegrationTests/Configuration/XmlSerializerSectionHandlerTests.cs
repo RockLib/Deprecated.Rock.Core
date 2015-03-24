@@ -4,7 +4,7 @@ using System.Xml.Serialization;
 using Example;
 using NUnit.Framework;
 using Rock.Configuration;
-using Rock.Extensions;
+using Rock.StringFormatting;
 
 namespace XmlSerializerSectionHandlerTests
 {

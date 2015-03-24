@@ -6,7 +6,7 @@ using System.Reflection;
 using System.Text;
 using Rock.Reflection;
 
-namespace Rock.Extensions
+namespace Rock.StringFormatting
 {
     public static class FormatToStringExtension
     {

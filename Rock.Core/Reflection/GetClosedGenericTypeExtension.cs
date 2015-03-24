@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Rock.Extensions
+namespace Rock.Reflection
 {
     public static class GetClosedGenericTypeExtension
     {

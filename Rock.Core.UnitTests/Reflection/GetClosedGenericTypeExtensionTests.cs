@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using NUnit.Framework;
-using Rock.Extensions;
+using Rock.Reflection;
 using _a;
 
 namespace TheGetClosedGenericTypeExtensionClass

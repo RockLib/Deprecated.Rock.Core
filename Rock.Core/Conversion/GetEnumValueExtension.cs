@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 
-namespace Rock.Extensions
+namespace Rock.Conversion
 {
     public static class GetEnumValueExtension
     {

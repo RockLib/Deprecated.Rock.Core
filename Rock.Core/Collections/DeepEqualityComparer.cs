@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using Rock.Extensions;
+using Rock.Reflection;
 
 namespace Rock.Collections
 {

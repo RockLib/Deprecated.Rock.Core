@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
 using Rock.Defaults.Implementation;
-using Rock.Extensions;
+using Rock.Reflection;
 
 // ReSharper disable once CheckNamespace
 namespace IsPrimitivishExtensionTests

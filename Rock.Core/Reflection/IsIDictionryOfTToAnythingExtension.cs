@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Rock.Extensions
+namespace Rock.Reflection
 {
     /// <summary>
     /// Provides an extension method that determines whether a type implements

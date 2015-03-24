@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using Rock.Extensions;
+using Rock.Reflection;
 
 namespace Rock.DependencyInjection.Heuristics
 {

@@ -1,5 +1,5 @@
 ﻿using NUnit.Framework;
-using Rock.Extensions;
+using Rock.Conversion;
 
 // ReSharper disable once CheckNamespace
 namespace GetEnumValueExtensionTests

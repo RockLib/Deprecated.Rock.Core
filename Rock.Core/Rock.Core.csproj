@@ -61,7 +61,7 @@
     <Compile Include="Conversion\ToDictionaryOfStringToStringExtension.cs" />
     <Compile Include="Defaults\Implementation\Default.HttpClientFactory.cs" />
     <Compile Include="Defaults\Implementation\Default.ObjectToDictionaryOfStringToStringConverter.cs" />
-    <Compile Include="Extensions\FormatToStringExtension.cs" />
+    <Compile Include="StringFormatting\FormatToStringExtension.cs" />
     <Compile Include="Immutable\Semimutable.cs" />
     <Compile Include="Net\Http\DefaultHttpClientFactory.cs" />
     <Compile Include="Net\Http\IHttpClientFactory.cs" />
@@ -79,8 +79,8 @@
     <Compile Include="TryFunc.cs" />
     <Compile Include="Collections\DeepEqualityComparer`1.cs" />
     <Compile Include="Collections\DeepEqualityComparer.cs" />
-    <Compile Include="Extensions\GetClosedGenericTypeExtension.cs" />
-    <Compile Include="Extensions\IsIDictionryOfTToAnythingExtension.cs" />
+    <Compile Include="Reflection\GetClosedGenericTypeExtension.cs" />
+    <Compile Include="Reflection\IsIDictionryOfTToAnythingExtension.cs" />
     <Compile Include="IExceptionHandler.cs" />
     <Compile Include="NullExceptionHandler.cs" />
     <Compile Include="Reflection\GetGetFuncExtension.cs" />
@@ -114,8 +114,8 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="DependencyInjection\ResolveException.cs" />
-    <Compile Include="Extensions\GetEnumValueExtension.cs" />
-    <Compile Include="Extensions\IsPrimitivishExtension.cs" />
+    <Compile Include="Conversion\GetEnumValueExtension.cs" />
+    <Compile Include="Reflection\IsPrimitivishExtension.cs" />
     <Compile Include="IApplicationInfo.cs" />
     <Compile Include="IO\EncodedStringWriter.cs" />
     <Compile Include="KeyValueStores\Extensions\PutExtensions.cs" />
@@ -158,6 +158,7 @@
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="InjectModuleInitializer" AfterTargets="AfterBuild" Condition="'$(UseInjectModuleInitializer)' == 'true'">
     <Exec Command="..\packages\Rock.StaticDependencyInjection.1.1.0\tools\InjectModuleInitializer.exe &quot;$(TargetPath)&quot;" />

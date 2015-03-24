@@ -50,10 +50,10 @@
     <Compile Include="Collections\DefaultMemberLocatorTests.cs" />
     <Compile Include="Conversion\ConvertFuncFactoryTests.cs" />
     <Compile Include="Conversion\ConvertsToDictionaryOfStringToTValueTests.cs" />
-    <Compile Include="Extensions\GetClosedGenericTypeExtensionTests.cs" />
-    <Compile Include="Extensions\IsIDictionryOfTToAnythingExtensionTests.cs" />
+    <Compile Include="Reflection\GetClosedGenericTypeExtensionTests.cs" />
+    <Compile Include="Reflection\IsIDictionryOfTToAnythingExtensionTests.cs" />
     <Compile Include="Conversion\ConvertsToExpandoObjectTests.cs" />
-    <Compile Include="Extensions\ToExpandoObjectExtensionTests.cs" />
+    <Compile Include="Conversion\ToExpandoObjectExtensionTests.cs" />
     <Compile Include="NullExceptionHandlerTests.cs" />
     <Compile Include="Reflection\GetGetFuncExtensionTests.cs" />
     <Compile Include="Reflection\IsLessSpecificThanExtensionTests.cs" />
@@ -82,8 +82,8 @@
     <Compile Include="DependencyInjection\AutoContainerTests.cs" />
     <Compile Include="DependencyInjection\ResolverConstructorSelectorExtensionsTests.cs" />
     <Compile Include="DependencyInjection\ResolverConstructorSelectorTests.cs" />
-    <Compile Include="Extensions\GetEnumValueExtensionTests.cs" />
-    <Compile Include="Extensions\IsPrimitivishExtensionTests.cs" />
+    <Compile Include="Conversion\GetEnumValueExtensionTests.cs" />
+    <Compile Include="Reflection\IsPrimitivishExtensionTests.cs" />
     <Compile Include="KeyValueStores\Extensions\DeleteExtensionsTests.cs" />
     <Compile Include="KeyValueStores\Extensions\GetExtensionsTests.cs" />
     <Compile Include="KeyValueStores\Extensions\GetItemExtensionTests.cs" />
