@@ -87,6 +87,7 @@
     <Compile Include="Rock.StaticDependencyInjection\StaticDependencyInjection.Generated.cs" />
     <Compile Include="Serialization\XmlDeserializationProxy.cs" />
     <Compile Include="StringFormatting\ToHexStringExtensions.cs" />
+    <Compile Include="StringFormatting\ToOctetStringExtension.cs" />
     <Compile Include="Threading\SoftLock.cs" />
     <Compile Include="TryFunc.cs" />
     <Compile Include="Collections\DeepEqualityComparer`1.cs" />
