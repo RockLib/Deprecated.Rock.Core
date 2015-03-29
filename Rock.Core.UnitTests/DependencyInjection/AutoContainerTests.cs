@@ -2,7 +2,6 @@
 using System.Reflection;
 using Moq;
 using NUnit.Framework;
-using Rock.Defaults.Implementation;
 using Rock.DependencyInjection;
 using Rock.DependencyInjection.Heuristics;
 
@@ -20,7 +19,8 @@ namespace AutoContainerTests
                 {
                     var mockConstructorSelector = new Mock<IResolverConstructorSelector>();
 
-                    Default.SetResolverConstructorSelector(() => mockConstructorSelector.Object);
+                    AutoContainer.UnlockDefaultResolverConstructorSelector();
+                    AutoContainer.SetDefaultResolverConstructorSelector(mockConstructorSelector.Object);
 
                     var container = new AutoContainer();
                     container.CanGet(typeof(Foo)); // This method ends up accessing the constructor selector.
@@ -31,7 +31,7 @@ namespace AutoContainerTests
                 }
                 finally
                 {
-                    Default.RestoreDefaultResolverConstructorSelector();
+                    AutoContainer.ResetDefaultResolverConstructorSelector();
                 }
             }
 

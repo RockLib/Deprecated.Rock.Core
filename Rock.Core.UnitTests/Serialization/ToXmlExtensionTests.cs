@@ -1,5 +1,4 @@
 ﻿using NUnit.Framework;
-using Rock.Defaults.Implementation;
 using Rock.Serialization;
 
 // ReSharper disable once CheckNamespace
@@ -20,7 +19,7 @@ namespace ToXmlExtensionTests
 
             var result = foo.ToXml();
 
-            var expectedResult = Default.XmlSerializer.SerializeToString(foo, foo.GetType());
+            var expectedResult = DefaultXmlSerializer.Current.SerializeToString(foo, foo.GetType());
 
             Assert.That(result, Is.EqualTo(expectedResult));
         }

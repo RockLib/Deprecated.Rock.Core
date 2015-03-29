@@ -3,11 +3,11 @@
     /// <summary>
     /// Represents information about an application.
     /// </summary>
-    public interface IApplicationInfo
+    public interface IApplicationIdProvider
     {
         /// <summary>
         /// Gets the ID of the current application.
         /// </summary>
-        string ApplicationId { get; }
+        string GetApplicationId();
     }
 }

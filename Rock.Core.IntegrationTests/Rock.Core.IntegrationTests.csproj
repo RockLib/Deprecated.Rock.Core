@@ -51,7 +51,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Configuration\XmlSerializerSectionHandlerTests.cs" />
-    <Compile Include="EntryAssemblyApplicationInfoTests.cs" />
+    <Compile Include="EntryAssemblyApplicationIdProviderTests.cs" />
     <Compile Include="KeyValueStores\File\DirectoryBucketTestBase.cs" />
     <Compile Include="KeyValueStores\File\DirectoryBucketTests.cs" />
     <Compile Include="KeyValueStores\File\FileBucketItemTestBase.cs" />

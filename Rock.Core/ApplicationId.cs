@@ -1,4 +1,4 @@
-﻿using Rock.Defaults.Implementation;
+﻿using Rock.Immutable;
 
 namespace Rock
 {
@@ -7,15 +7,24 @@ namespace Rock
     /// </summary>
     public static class ApplicationId
     {
+        private static readonly Semimutable<string> _current = new Semimutable<string>(() => new AppSettingsApplicationIdProvider().GetApplicationId()); 
+
         /// <summary>
         /// Gets the ID of the current application.
         /// </summary>
-        /// <remarks>
-        /// This property returns the value of <see cref="Default.ApplicationInfo.ApplicationId"/>.
-        /// </remarks>
         public static string Current
         {
-            get { return Default.ApplicationInfo.ApplicationId; }
+            get { return _current.Value; }
+        }
+
+        public static void SetCurrent(string value)
+        {
+            _current.Value = value;
+        }
+
+        public static void SetCurrent(IApplicationIdProvider applicationIdProvider)
+        {
+            _current.Value = applicationIdProvider.GetApplicationId();
         }
     }
 }

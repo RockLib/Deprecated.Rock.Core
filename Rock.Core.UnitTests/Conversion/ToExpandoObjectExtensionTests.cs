@@ -2,7 +2,6 @@
 using Moq;
 using NUnit.Framework;
 using Rock.Conversion;
-using Rock.Defaults.Implementation;
 
 // ReSharper disable once CheckNamespace
 namespace ToExpandoObjectExtensionTests
@@ -16,13 +15,14 @@ namespace ToExpandoObjectExtensionTests
         {
             _mockConverter = new Mock<IConvertsTo<ExpandoObject>>();
 
-            Default.SetObjectToExpandoObjectConverter(() => _mockConverter.Object);
+            ToExpandoObjectExtension.UnlockConverter();
+            ToExpandoObjectExtension.SetConverter(_mockConverter.Object);
         }
 
         [TearDown]
         public void TearDown()
         {
-            Default.RestoreDefaultObjectToExpandoObjectConverter();
+            ToExpandoObjectExtension.ResetConverter();
         }
 
         [Test]

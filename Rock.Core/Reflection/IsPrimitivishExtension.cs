@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Rock.Defaults.Implementation;
+using Rock.Immutable;
 
 namespace Rock.Reflection
 {
     public static class IsPrimitivishExtension
     {
+        private static readonly Semimutable<IEnumerable<Type>> _extraPrimitivishTypes = new Semimutable<IEnumerable<Type>>(GetDefaultExtraPrimitiveTypes, true);
+
         internal static readonly Type[] _defaultPrimitivishTypes =
         {
             typeof(string),
@@ -17,9 +19,35 @@ namespace Rock.Reflection
             typeof(TimeSpan)
         };
 
+        public static IEnumerable<Type> ExtraPrimitivishTypes
+        {
+            get { return _extraPrimitivishTypes.Value; }
+        }
+
+        public static void SetExtraPrimitivishTypes(IEnumerable<Type> extraPrimitivishTypes)
+        {
+            _extraPrimitivishTypes.Value = extraPrimitivishTypes;
+        }
+
+        internal static void ResetExtraPrimitivishTypes()
+        {
+            UnlockExtraPrimitivishTypes();
+            _extraPrimitivishTypes.ResetValue();
+        }
+
+        internal static void UnlockExtraPrimitivishTypes()
+        {
+            _extraPrimitivishTypes.UnlockValue();
+        }
+
+        private static IEnumerable<Type> GetDefaultExtraPrimitiveTypes()
+        {
+            return Enumerable.Empty<Type>();
+        }
+
         public static bool IsPrimitivish(this Type type, IEnumerable<Type> extraPrimitivishTypes = null)
         {
-            var primitivishTypeList = _defaultPrimitivishTypes.Concat(extraPrimitivishTypes ?? Default.ExtraPrimitivishTypes).ToList();
+            var primitivishTypeList = _defaultPrimitivishTypes.Concat(extraPrimitivishTypes ?? _extraPrimitivishTypes.Value).ToList();
 
             return
                 type.IsNonNullablePrimitivish(primitivishTypeList)

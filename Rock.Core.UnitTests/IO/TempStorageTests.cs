@@ -1,6 +1,5 @@
 ﻿using NUnit.Framework;
 using Rock.Core.UnitTests.KeyValueStores.Extensions;
-using Rock.Defaults.Implementation;
 using Rock.IO;
 
 // ReSharper disable once CheckNamespace
@@ -11,13 +10,14 @@ namespace TempStorageTests
         [SetUp]
         public new void Setup()
         {
-            Default.SetTempStorage(() => MockKeyValueStore.Object);
+            TempStorage.UnlockKeyValueStore();
+            TempStorage.SetKeyValueStore(MockKeyValueStore.Object);
         }
 
         [TearDown]
         public void TearDown()
         {
-            Default.SetTempStorage(null);
+            TempStorage.ResetKeyValueStore();
         }
 
         public class TheGetItemsMethod : TempStorageTests

@@ -1,5 +1,4 @@
 ﻿using System;
-using Rock.Defaults.Implementation;
 
 namespace Rock.Serialization
 {
@@ -12,7 +11,7 @@ namespace Rock.Serialization
                 throw new ArgumentNullException("item");
             }
 
-            return Default.BinarySerializer.SerializeToByteArray(item, item.GetType());
+            return DefaultBinarySerializer.Current.SerializeToByteArray(item, item.GetType());
         }
     }
 }

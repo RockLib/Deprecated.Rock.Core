@@ -4,8 +4,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using Rock.Defaults.Implementation;
 using Rock.DependencyInjection.Heuristics;
+using Rock.Immutable;
 
 namespace Rock.DependencyInjection
 {
@@ -18,6 +18,8 @@ namespace Rock.DependencyInjection
     public partial class AutoContainer : IResolver
     {
         private const Func<object> _getInstanceFuncNotFound = null;
+
+        private static readonly Semimutable<IResolverConstructorSelector> _defaultResolverConstructorSelector = new Semimutable<IResolverConstructorSelector>(GetDefaultDefaultResolverConstructorSelector, true);
 
         private static readonly MethodInfo _genericGetMethod;
 
@@ -63,13 +65,13 @@ namespace Rock.DependencyInjection
         /// depenendencies will be resolvable by this instance of
         /// <see cref="AutoContainer"/> via any type that exactly one dependency
         /// equals, implements, or inherits from. This instance of <see cref="AutoContainer"/>
-        /// will use <see cref="Default.ResolverConstructorSelector"/> internally to determine
+        /// will use <see cref="DefaultResolverConstructorSelector"/> internally to determine
         /// which constructor of an arbitrary type will be selected for invocation when
         /// <see cref="Get{T}"/> or <see cref="Get"/> methods are called.
         /// </summary>
         /// <param name="instances">The objects to use as registered dependencies.</param>
         public AutoContainer(params object[] instances)
-            : this(Default.ResolverConstructorSelector, instances)
+            : this(null, instances)
         {
         }
 
@@ -84,17 +86,57 @@ namespace Rock.DependencyInjection
         /// which constructor of an arbitrary type will be selected for invocation when
         /// <see cref="Get{T}"/> or <see cref="Get"/> methods are called.
         /// </summary>
-        /// <param name="constructorSelector">The </param>
-        /// <param name="instances"></param>
+        /// <param name="constructorSelector">
+        /// An object that determines which constructor should be used when creating an instance of a type.
+        /// If null, the value of the <see cref="DefaultResolverConstructorSelector"/> property is used.
+        /// </param>
+        /// <param name="instances">The objects to use as registered dependencies.</param>
         public AutoContainer(IResolverConstructorSelector constructorSelector, IEnumerable<object> instances)
             : this(
-                (instances == null // I don't know why someone specifically provided null for instances...
-                    ? Enumerable.Empty<object>() // ...but whatever, we'll just use an empty list.
-                    : instances.Where(x => x != null)) // Otherwise, be sure to ignore any null values.
-                .ToList(), // Fully evaluate the instances collection to ensure fast enumeration.
+                (instances ?? new object[0]).Where(x => x != null).ToList(), // Filter out nulls and .ToList() it for fast enumeration.
                 new ConcurrentDictionary<Type, Func<object>>(),
-                constructorSelector)
+                constructorSelector ?? DefaultResolverConstructorSelector)
         {
+        }
+
+        /// <summary>
+        /// Gets the default instance of <see cref="IResolverConstructorSelector"/>. Used by the
+        /// constructors of the <see cref="AutoContainer"/> class when the
+        /// <see cref="IResolverConstructorSelector"/> parameter is null or not present.
+        /// </summary>
+        public static IResolverConstructorSelector DefaultResolverConstructorSelector
+        {
+            get { return _defaultResolverConstructorSelector.Value; }
+        }
+
+        /// <summary>
+        /// Sets the default <see cref="IResolverConstructorSelector"/>. If the
+        /// <see cref="DefaultResolverConstructorSelector"/> has been accessed, then calls to this method
+        /// have no effect.
+        /// </summary>
+        /// <param name="resolverConstructorSelector">
+        /// The value that <see cref="DefaultResolverConstructorSelector"/> property should return. Ignored
+        /// if the <see cref="DefaultResolverConstructorSelector"/> property has previously been accessed.
+        /// </param>
+        public static void SetDefaultResolverConstructorSelector(IResolverConstructorSelector resolverConstructorSelector)
+        {
+            _defaultResolverConstructorSelector.Value = resolverConstructorSelector;
+        }
+
+        internal static void ResetDefaultResolverConstructorSelector()
+        {
+            UnlockDefaultResolverConstructorSelector();
+            _defaultResolverConstructorSelector.ResetValue();
+        }
+
+        internal static void UnlockDefaultResolverConstructorSelector()
+        {
+            _defaultResolverConstructorSelector.UnlockValue();
+        }
+
+        private static IResolverConstructorSelector GetDefaultDefaultResolverConstructorSelector()
+        {
+            return new ResolverConstructorSelector();
         }
 
         /// <summary>

@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
-using Rock.Defaults.Implementation;
 using Rock.Reflection;
 
 // ReSharper disable once CheckNamespace
@@ -15,13 +14,14 @@ namespace IsPrimitivishExtensionTests
             [SetUp]
             public void Setup()
             {
-                Default.SetExtraPrimitivishTypes(GetExtraPrimitivishTypes);
+                IsPrimitivishExtension.UnlockExtraPrimitivishTypes();
+                IsPrimitivishExtension.SetExtraPrimitivishTypes(GetExtraPrimitivishTypes());
             }
 
             [TearDown]
             public void TearDown()
             {
-                Default.RestoreDefaultExtraPrimitivishTypes();
+                IsPrimitivishExtension.ResetExtraPrimitivishTypes();
             }
 
             protected override bool IsPrimitivish(Type type)

@@ -7,14 +7,14 @@ using System.Reflection;
 namespace Rock
 {
     /// <summary>
-    /// An implementation of <see cref="IApplicationInfo"/> that uses the entry
+    /// An implementation of <see cref="IApplicationIdProvider"/> that uses the entry
     /// assembly's name as the ApplicationId.
     /// </summary>
-    public class EntryAssemblyApplicationInfo : IApplicationInfo
+    public class EntryAssemblyApplicationIdProvider : IApplicationIdProvider
     {
         private static readonly IEnumerable<string> _assembliesToIgnore = new[]
         {
-            typeof(EntryAssemblyApplicationInfo).Assembly.GetName().Name,
+            typeof(EntryAssemblyApplicationIdProvider).Assembly.GetName().Name,
             "mscorlib",
             "Microsoft.VisualStudio.HostingProcess.Utilities",
             "nunit.core",
@@ -26,9 +26,9 @@ namespace Rock
         private readonly Lazy<string> _appId;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="EntryAssemblyApplicationInfo"/> class.
+        /// Initializes a new instance of the <see cref="EntryAssemblyApplicationIdProvider"/> class.
         /// </summary>
-        public EntryAssemblyApplicationInfo()
+        public EntryAssemblyApplicationIdProvider()
         {
             var entryAssembly = new Lazy<Assembly>(GetEntryAssembly);
             _appId = new Lazy<string>(() => entryAssembly.Value.GetName().Name);
@@ -62,9 +62,9 @@ namespace Rock
         /// <summary>
         /// Gets the ID of the current application.
         /// </summary>
-        public string ApplicationId
+        public string GetApplicationId()
         {
-            get { return _appId.Value; }
+            return _appId.Value;
         }
     }
 }

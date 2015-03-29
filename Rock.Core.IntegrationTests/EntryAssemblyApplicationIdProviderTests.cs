@@ -4,15 +4,15 @@ using NUnit.Framework;
 
 namespace Rock.Core.IntegrationTests
 {
-    public class EntryAssemblyApplicationInfoTests
+    public class EntryAssemblyApplicationIdProviderTests
     {
         public class TheApplicationIdProperty
         {
             [Test]
             public void ReturnsTheNameOfTheEntryAssemblyWhenAnEntryAssemblyExists()
             {
-                // These command line args are defined in the SampleApplication. See EntryAssemblyApplicationInfoCommand.cs and EntryAssemblyNameCommand.cs for details.
-                var applicationId = RunSampleApplication("EntryAssemblyApplicationInfo -p=ApplicationId");
+                // These command line args are defined in the SampleApplication. See EntryAssemblyApplicationIdProviderCommand.cs and EntryAssemblyNameCommand.cs for details.
+                var applicationId = RunSampleApplication("EntryAssemblyApplicationIdProvider -p=ApplicationId");
                 var entryAssemblyName = RunSampleApplication("EntryAssemblyName");
 
                 Assert.That(applicationId, Is.EqualTo(entryAssemblyName));
@@ -21,9 +21,9 @@ namespace Rock.Core.IntegrationTests
             [Test]
             public void ReturnsTheNameOfTheLastInterestingAssemblyOnTheCallStackWhenNoEntryAssemblyExists()
             {
-                var applicationInfo = new EntryAssemblyApplicationInfo();
+                var applicationIdProvider = new EntryAssemblyApplicationIdProvider();
 
-                var result = applicationInfo.ApplicationId;
+                var result = applicationIdProvider.GetApplicationId();
 
                 var expectedResult = GetType().Assembly.GetName().Name;
 

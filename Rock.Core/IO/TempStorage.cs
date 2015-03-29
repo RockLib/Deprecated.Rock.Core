@@ -1,29 +1,62 @@
-﻿using System.Collections.Generic;
-using Rock.Defaults.Implementation;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using Rock.Immutable;
 using Rock.KeyValueStores;
+using Rock.Serialization;
 
 namespace Rock.IO
 {
     public static class TempStorage
     {
+        private static readonly Semimutable<IKeyValueStore> _keyValueStore = new Semimutable<IKeyValueStore>(GetDefaultKeyValueStore, true);
+
+        public static IKeyValueStore KeyValueStore
+        {
+            get { return _keyValueStore.Value; }
+        }
+
+        public static void SetKeyValueStore(IKeyValueStore keyValueStore)
+        {
+            _keyValueStore.Value = keyValueStore;
+        }
+
+        internal static void ResetKeyValueStore()
+        {
+            UnlockKeyValueStore();
+            _keyValueStore.ResetValue();
+        }
+
+        internal static void UnlockKeyValueStore()
+        {
+            _keyValueStore.UnlockValue();
+        }
+
+        private static IKeyValueStore GetDefaultKeyValueStore()
+        {
+            var tempDirectory = Environment.GetEnvironmentVariable("Temp");
+            var tempStorageDirectoryInfo = new DirectoryInfo(Path.Combine(tempDirectory, "Rock", ApplicationId.Current));
+            return new FileKeyValueStore(DefaultJsonSerializer.Current, tempStorageDirectoryInfo);
+        }
+
         public static IEnumerable<IBucketItem> GetItems(string bucket)
         {
-            return Default.TempStorage.GetItems(bucket);
+            return KeyValueStore.GetItems(bucket);
         }
 
         public static void Put<T>(string bucket, string key, T value)
         {
-            Default.TempStorage.Put(bucket, key, value);
+            KeyValueStore.Put(bucket, key, value);
         }
 
         public static T Get<T>(string bucket, string key)
         {
-            return Default.TempStorage.Get<T>(bucket, key);
+            return KeyValueStore.Get<T>(bucket, key);
         }
 
         public static void Delete(string bucket, string key)
         {
-            Default.TempStorage.Delete(bucket, key);
+            KeyValueStore.Delete(bucket, key);
         }
     }
 }

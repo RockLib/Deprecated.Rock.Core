@@ -15,19 +15,35 @@ namespace Rock.Immutable
     /// <typeparam name="T">The type of the value.</typeparam>
     public class Semimutable<T>
     {
-        private readonly SoftLock _lock = new SoftLock();
+        private readonly SoftLock _lockedInstanceLocker = new SoftLock();
+        private readonly SoftLock _unlockValueLocker = new SoftLock();
 
-        private Func<T> _getValue;
-        private Lazy<T> _instance;
+        private Lazy<T> _potentialInstance;
+        private Lazy<T> _lockedInstance;
+
+        private readonly Func<T> _getDefaultValue;
+        private readonly bool _canUnlock;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Semimutable{T}"/> class.
         /// </summary>
         /// <remarks>
-        /// Calls <see cref="Semimutable{T}(T)"/>, passing the value of <c>default(T)</c>.
+        /// Calls <see cref="Semimutable{T}(bool)"/>, passing <c>false</c>.
         /// </remarks>
         public Semimutable()
-            : this(default(T))
+            : this(false)
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Semimutable{T}"/> class.
+        /// </summary>
+        /// <remarks>
+        /// Calls <see cref="Semimutable{T}(T, bool)"/> with parameters: the value of <c>default(T)</c>;
+        /// and the value of <paramref name="canUnlock"/>.
+        /// </remarks>
+        public Semimutable(bool canUnlock = false)
+            : this(default(T), canUnlock)
         {
         }
 
@@ -35,12 +51,16 @@ namespace Rock.Immutable
         /// Initializes a new instance of the <see cref="Semimutable{T}"/> class.
         /// </summary>
         /// <param name="defaultValue">The default value.</param>
+        /// <param name="canUnlock">
+        /// Whether this instance of <see cref="Semimutable{T}"/> can be unlocked after it has
+        /// been locked.
+        /// </param>
         /// <remarks>
-        /// Calls <see cref="Semimutable{T}(Func{T})"/>, passing a function that returns
-        /// <paramref name="defaultValue"/>.
+        /// Calls <see cref="Semimutable{T}(Func{T}, bool)"/> with parameters: a function that returns
+        /// <paramref name="defaultValue"/>; and the value of <paramref name="canUnlock"/>.
         /// </remarks>
-        public Semimutable(T defaultValue)
-            : this(() => defaultValue)
+        public Semimutable(T defaultValue, bool canUnlock = false)
+            : this(() => defaultValue, canUnlock)
         {
         }
 
@@ -48,10 +68,16 @@ namespace Rock.Immutable
         /// Initializes a new instance of the <see cref="Semimutable{T}"/> class.
         /// </summary>
         /// <param name="getDefaultValue">A function that returns the default value.</param>
-        public Semimutable(Func<T> getDefaultValue)
+        /// <param name="canUnlock">
+        /// Whether this instance of <see cref="Semimutable{T}"/> can be unlocked after it has
+        /// been locked.
+        /// </param>
+        public Semimutable(Func<T> getDefaultValue, bool canUnlock = false)
         {
-            _getValue = getDefaultValue;
-            _instance = null;
+            _getDefaultValue = getDefaultValue;
+            _canUnlock = canUnlock;
+            _potentialInstance = new Lazy<T>(getDefaultValue);
+            _lockedInstance = null;
         }
 
         /// <summary>
@@ -66,12 +92,58 @@ namespace Rock.Immutable
         }
 
         /// <summary>
+        /// Gets a value indicating whether this instance can be unlocked.
+        /// </summary>
+        public bool CanUnlock
+        {
+            get { return _canUnlock; }
+        }
+
+        /// <summary>
+        /// Gets a value indicating whether this instance is locked.
+        /// </summary>
+        public bool IsLocked
+        {
+            get { return _lockedInstance != null; }
+        }
+
+        /// <summary>
+        /// Sets the <see cref="Value"/> property to this instance's original default value.
+        /// </summary>
+        public void ResetValue()
+        {
+            SetValue(_getDefaultValue);
+        }
+
+        /// <summary>
         /// Locks the <see cref="Value"/> property and prevents any further changes from being accepted.
         /// </summary>
         public void LockValue()
         {
             // Just call GetValue and ignore the result.
             GetValue();
+        }
+
+        /// <summary>
+        /// Unlocks the <see cref="Value"/> property, allowing changes to be accepted. If the value of the
+        /// <see cref="CanUnlock"/> is false, then this method does nothing.
+        /// </summary>
+        /// <remarks>
+        /// This method should not be used "in production". It's main use is to help facilitate testing.
+        /// </remarks>
+        public void UnlockValue()
+        {
+            if (CanUnlock // We need to allowed to unlock in the first place.
+                && _lockedInstance != null // Unlocking is only appropriate when Value is locked.
+                && _unlockValueLocker.TryAcquire() // Unlocking is only appropriate from one thread at a time (other threads can piss off).
+                && _lockedInstance != null) // It's logically possible for another thread's call to UnlockValue and clear _lockedInstance, so check again.
+            {
+                // The above conditions ensure that the only time we ever get here is when Value is actually locked right now.
+                _potentialInstance = _lockedInstance;
+                _lockedInstance = null;
+                _lockedInstanceLocker.Release();
+                _unlockValueLocker.Release();
+            }
         }
 
         /// <summary>
@@ -84,21 +156,21 @@ namespace Rock.Immutable
         /// </param>
         public void SetValue(Func<T> getValue)
         {
-            // If at any time _instance has a value, exit the loop.
-            while (_instance == null)
+            // If at any time _lockedInstance has a value, exit the loop.
+            while (_lockedInstance == null)
             {
                 // Synchronize with the GetValue method - only one thread can have the lock at any one time.
-                if (_lock.TryAcquire())
+                if (_lockedInstanceLocker.TryAcquire())
                 {
                     // If no other calls to SetValue are made, then getValue will be the value factory
-                    // for _instance.
-                    _getValue = getValue;
+                    // for _lockedInstance.
+                    _potentialInstance = new Lazy<T>(getValue);
 
                     // Be sure to release the lock to allow other threads (and this thread later on) to
-                    // set _getValue.
-                    _lock.Release();
+                    // set _potentialInstance.
+                    _lockedInstanceLocker.Release();
 
-                    // Break out of  the loop - our job is done and it might be a while until _instance has a value.
+                    // Break out of  the loop - our job is done and it might be a while until _lockedInstance has a value.
                     break;
                 }
             }
@@ -106,26 +178,34 @@ namespace Rock.Immutable
 
         private T GetValue()
         {
-            // If _instance isn't null, then just return its value.
-            while (_instance == null)
+            // In the rare case that _lockedIntance is cleared (via the UnlockValue method)
+            // after the while loop's null check and before its Value property is access,
+            // capture _lockedIntance in a local variable to prevent a null reference exception.
+            Lazy<T> local;
+
+            // If _lockedInstance has been set already, then just return its value.
+            while ((local = _lockedInstance) == null)
             {
                 // Synchronize with the SetValue method - only one thread can have the lock at any one time.
-                if (_lock.TryAcquire())
+                if (_lockedInstanceLocker.TryAcquire())
                 {
-                    // The current value of _getValue will be the value factory for _instance.
-                    _instance = new Lazy<T>(_getValue);
+                    // _potentialInstance will be the new value for _lockedInstance.
+                    var temp = _potentialInstance;
 
-                    // Now that _instance has been created with _getValue, we have no further use for it,
-                    // so get rid of it.
-                    _getValue = null;
+                    // Clear out the value for _potentialInstance before setting _lockedInstance.
+                    _potentialInstance = null;
+
+                    _lockedInstance = temp;
 
                     // Be sure to *not* release the lock. Otherwise a thread in the SetValue method could
-                    // acquire the lock and set _getValue, which will never be used and never be released,
+                    // acquire the lock and set _potentialInstance, which will never be used and never be released,
                     // resulting in potential memory leaks.
                 }
             }
 
-            return _instance.Value;
+            // If we used _lockedInstance instead of a local variable, it would be possible to have a null
+            // reference exception when accessing the Value property.
+            return local.Value;
         }
     }
 }

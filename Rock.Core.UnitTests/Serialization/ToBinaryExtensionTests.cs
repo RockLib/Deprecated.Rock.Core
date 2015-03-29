@@ -1,6 +1,5 @@
 ﻿using System;
 using NUnit.Framework;
-using Rock.Defaults.Implementation;
 using Rock.Serialization;
 
 // ReSharper disable once CheckNamespace
@@ -21,7 +20,7 @@ namespace ToBinaryExtensionTests
 
             var result = foo.ToBinary();
 
-            var expectedResult = Default.BinarySerializer.SerializeToByteArray(foo, foo.GetType());
+            var expectedResult = DefaultBinarySerializer.Current.SerializeToByteArray(foo, foo.GetType());
 
             Assert.That(result, Is.EqualTo(expectedResult));
         }

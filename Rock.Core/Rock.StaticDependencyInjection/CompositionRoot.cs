@@ -1,6 +1,7 @@
 using Rock.Conversion;
-using Rock.Defaults.Implementation;
+using Rock.DependencyInjection;
 using Rock.DependencyInjection.Heuristics;
+using Rock.IO;
 using Rock.KeyValueStores;
 using Rock.Net;
 using Rock.Net.Http;
@@ -18,17 +19,21 @@ namespace Rock.Rock.StaticDependencyInjection
     {
         public override void Bootstrap()
         {
-            ImportFirst<IApplicationInfo>(x => Default.SetApplicationInfo(() => x));
-            ImportFirst<ISerializer>(x => Default.SetBinarySerializer(() => x), "BinarySerializer");
-            ImportFirst<IEndpointDetector>(x => Default.SetEndpointDetector(() => x));
-            ImportFirst<IEndpointSelector>(x => Default.SetEndpointSelector(() => x));
-            ImportFirst<IHttpClientFactory>(x => Default.SetHttpClientFactory(() => x));
-            ImportFirst<ISerializer>(x => Default.SetJsonSerializer(() => x), "JsonSerializer");
-            ImportFirst<IConvertsTo<IDictionary<string, string>>>(x => Default.SetObjectToDictionaryOfStringToStringConverter(() => x));
-            ImportFirst<IConvertsTo<ExpandoObject>>(x => Default.SetObjectToExpandoObjectConverter(() => x));
-            ImportFirst<IResolverConstructorSelector>(x => Default.SetResolverConstructorSelector(() => x));
-            ImportFirst<IKeyValueStore>(x => Default.SetTempStorage(() => x), "TempStorage");
-            ImportFirst<ISerializer>(x => Default.SetXmlSerializer(() => x), "XmlSerializer");
+            ImportFirst<IApplicationIdProvider>(ApplicationId.SetCurrent);
+
+            ImportFirst<IResolverConstructorSelector>(AutoContainer.SetDefaultResolverConstructorSelector);
+
+            ImportFirst<IConvertsTo<IDictionary<string, string>>>(ToDictionaryOfStringToStringExtension.SetConverter);
+            ImportFirst<IConvertsTo<ExpandoObject>>(ToExpandoObjectExtension.SetConverter);
+
+            ImportFirst<IKeyValueStore>(TempStorage.SetKeyValueStore, "TempStorage");
+
+            ImportFirst<ISerializer>(DefaultBinarySerializer.SetCurrent, "DefaultBinarySerializer");
+            ImportFirst<IEndpointDetector>(DefaultEndpointDetector.SetCurrent);
+            ImportFirst<IEndpointSelector>(DefaultEndpointSelector.SetCurrent);
+            ImportFirst<IHttpClientFactory>(DefaultHttpClientFactory.SetCurrent);
+            ImportFirst<ISerializer>(DefaultJsonSerializer.SetCurrent, "JsonSerializer");
+            ImportFirst<ISerializer>(DefaultXmlSerializer.SetCurrent, "XmlSerializer");
         }
 
         /// <summary>
