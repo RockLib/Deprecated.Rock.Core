@@ -78,6 +78,7 @@ namespace Rock.Immutable
             _canUnlock = canUnlock;
             _potentialInstance = new Lazy<T>(getDefaultValue);
             _lockedInstance = null;
+            HasDefaultValue = true;
         }
 
         /// <summary>
@@ -106,6 +107,11 @@ namespace Rock.Immutable
         {
             get { return _lockedInstance != null; }
         }
+        
+        /// <summary>
+        /// Gets a value indicating whether this instance has (or will have) the default value.
+        /// </summary>
+        public bool HasDefaultValue { get; private set; }
 
         /// <summary>
         /// Sets the <see cref="Value"/> property to this instance's original default value.
@@ -162,6 +168,8 @@ namespace Rock.Immutable
                 // Synchronize with the GetValue method - only one thread can have the lock at any one time.
                 if (_lockedInstanceLocker.TryAcquire())
                 {
+                    HasDefaultValue = (getValue == _getDefaultValue);
+
                     // If no other calls to SetValue are made, then getValue will be the value factory
                     // for _lockedInstance.
                     _potentialInstance = new Lazy<T>(getValue);
