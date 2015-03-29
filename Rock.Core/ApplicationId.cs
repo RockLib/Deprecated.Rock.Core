@@ -7,7 +7,7 @@ namespace Rock
     /// </summary>
     public static class ApplicationId
     {
-        private static readonly Semimutable<string> _current = new Semimutable<string>(() => new AppSettingsApplicationIdProvider().GetApplicationId()); 
+        private static readonly Semimutable<string> _current = new Semimutable<string>(() => new DefaultApplicationIdProvider().GetApplicationId()); 
 
         /// <summary>
         /// Gets the ID of the current application.
