@@ -5,7 +5,7 @@
 
 void Main()
 {
-    // The Semimutable class represents a "semi-mutable" value. The value can be change
+    // The Semimutable class represents a "semi-mutable" value. The value can be changed
     // up to the point at which its value is read. Then the value is "locked" and will
     // not change again.
     
@@ -18,7 +18,7 @@ void Main()
     semimutable1.Value.Dump("Default value specified");
     
     // If no default value is passed to the constructor, the default value of the generic
-    // type is used.
+    // type is used. In the case if int, 0 is the default value.
     Semimutable<int> semimutable2 = new Semimutable<int>();
     semimutable2.Value.Dump("Default value not specified");
     
