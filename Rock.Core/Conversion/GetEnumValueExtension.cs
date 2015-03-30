@@ -16,17 +16,17 @@ namespace Rock.Conversion
         {
             private static readonly ConcurrentDictionary<string, T> _values = new ConcurrentDictionary<string, T>();
 
-            static Get()
-            {
-                if (!typeof(T).IsEnum)
-                {
-                    throw new InvalidOperationException("Unable to get enum value. Type '{0}' is not an enum.");
-                }
-            }
-
             public static T EnumValue(string value)
             {
-                return _values.GetOrAdd(value, x => (T)Enum.Parse(typeof(T), x, true));
+                return _values.GetOrAdd(value, x =>
+                {
+                    if (!typeof(T).IsEnum)
+                    {
+                        throw new InvalidOperationException("Unable to get enum value. Type '{0}' is not an enum.");
+                    }
+
+                    return (T)Enum.Parse(typeof(T), x, true);
+                });
             }
         }
     }
