@@ -15,8 +15,7 @@ namespace Rock.Immutable
     /// <typeparam name="T">The type of the value.</typeparam>
     public class Semimutable<T>
     {
-        private readonly SoftLock _lockedInstanceLocker = new SoftLock();
-        private readonly SoftLock _unlockValueLocker = new SoftLock();
+        private readonly SoftLock _softLock = new SoftLock();
 
         private Lazy<T> _potentialInstance;
         private Lazy<T> _lockedInstance;
@@ -132,23 +131,24 @@ namespace Rock.Immutable
 
         /// <summary>
         /// Unlocks the <see cref="Value"/> property, allowing changes to be accepted. If the value of the
-        /// <see cref="CanUnlock"/> is false, then this method does nothing.
+        /// <see cref="CanUnlock"/> property is false, then this method does nothing.
         /// </summary>
         /// <remarks>
         /// This method should not be used "in production". It's main use is to help facilitate testing.
         /// </remarks>
         public void UnlockValue()
         {
-            if (CanUnlock // We need to allowed to unlock in the first place.
-                && _lockedInstance != null // Unlocking is only appropriate when Value is locked.
-                && _unlockValueLocker.TryAcquire() // Unlocking is only appropriate from one thread at a time (other threads can piss off).
-                && _lockedInstance != null) // It's logically possible for another thread's call to UnlockValue and clear _lockedInstance, so check again.
+            if (CanUnlock && _lockedInstance != null)
             {
-                // The above conditions ensure that the only time we ever get here is when Value is actually locked right now.
-                _potentialInstance = _lockedInstance;
-                _lockedInstance = null;
-                _lockedInstanceLocker.Release();
-                _unlockValueLocker.Release();
+                lock (this)
+                {
+                    if (_lockedInstance != null)
+                    {
+                        _potentialInstance = _lockedInstance;
+                        _lockedInstance = null;
+                        _softLock.Release();
+                    }
+                }
             }
         }
 
@@ -166,7 +166,7 @@ namespace Rock.Immutable
             while (_lockedInstance == null)
             {
                 // Synchronize with the GetValue method - only one thread can have the lock at any one time.
-                if (_lockedInstanceLocker.TryAcquire())
+                if (_softLock.TryAcquire())
                 {
                     HasDefaultValue = (getValue == _getDefaultValue);
 
@@ -176,7 +176,7 @@ namespace Rock.Immutable
 
                     // Be sure to release the lock to allow other threads (and this thread later on) to
                     // set _potentialInstance.
-                    _lockedInstanceLocker.Release();
+                    _softLock.Release();
 
                     // Break out of  the loop - our job is done and it might be a while until _lockedInstance has a value.
                     break;
@@ -195,7 +195,7 @@ namespace Rock.Immutable
             while ((local = _lockedInstance) == null)
             {
                 // Synchronize with the SetValue method - only one thread can have the lock at any one time.
-                if (_lockedInstanceLocker.TryAcquire())
+                if (_softLock.TryAcquire())
                 {
                     // _potentialInstance will be the new value for _lockedInstance.
                     var temp = _potentialInstance;
