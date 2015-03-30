@@ -193,12 +193,21 @@ namespace Rock.DependencyInjection
             return new MergedAutoContainer(this, secondaryResolver);
         }
 
+        /// <summary>
+        /// Explicitly set the binding. When the <paramref name="contractType"/> type
+        /// needs to be resolved, AutoContainer will resolve it using
+        /// <paramref name="implementationType"/>.
+        /// </summary>
+        /// <param name="contractType">The type of the contract.</param>
+        /// <param name="implementationType">The type of the implementation.</param>
         public void SetBinding(Type contractType, Type implementationType)
         {
+            var getInstanceFunc = CreateGetInstanceFunc(implementationType);
+
             _bindings.AddOrUpdate(
                 contractType,
-                () => CreateGetInstanceFunc(implementationType),
-                (type, func) => CreateGetInstanceFunc(implementationType));
+                type => getInstanceFunc,
+                (type, func) => getInstanceFunc);
         }
 
         /// <summary>
