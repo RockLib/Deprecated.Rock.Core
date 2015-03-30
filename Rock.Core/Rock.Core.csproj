@@ -55,7 +55,7 @@
     <Compile Include="Cryptography\HashTypeExtensions.cs" />
     <Compile Include="DefaultApplicationIdProvider.cs" />
     <Compile Include="Collections\DeepEqualityComparerConfiguration.cs" />
-    <Compile Include="Collections\DefaultMemberLocator.cs" />
+    <Compile Include="Collections\MemberLocator.cs" />
     <Compile Include="AppSettingsApplicationIdProvider.cs" />
     <Compile Include="Configuration\InvalidConfigurationException.cs" />
     <Compile Include="Configuration\XmlSerializerSectionHandler.cs" />

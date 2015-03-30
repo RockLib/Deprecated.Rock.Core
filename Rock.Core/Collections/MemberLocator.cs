@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace Rock.Collections
 {
-    public class DefaultMemberLocator : DeepEqualityComparer.IMemberLocator
+    public class MemberLocator : DeepEqualityComparer.IMemberLocator
     {
         public virtual IEnumerable<DeepEqualityComparer.PropertyOrField> GetFieldsAndProperties(Type type)
         {
@@ -25,12 +25,12 @@ namespace Rock.Collections
 
         public override bool Equals(object obj)
         {
-            return obj != null && obj.GetType() == typeof(DefaultMemberLocator);
+            return obj != null && obj.GetType() == typeof(MemberLocator);
         }
 
         public override int GetHashCode()
         {
-            return typeof(DefaultMemberLocator).GetHashCode();
+            return typeof(MemberLocator).GetHashCode();
         }
     }
 }

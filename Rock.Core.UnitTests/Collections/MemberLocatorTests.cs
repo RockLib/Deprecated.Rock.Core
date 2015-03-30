@@ -8,12 +8,12 @@ using Rock.Collections;
 
 namespace Rock.Core.UnitTests.Collections
 {
-    public class DefaultMemberLocatorTests
+    public class MemberLocatorTests
     {
         [TestCaseSource("GetTestCases")]
         public void AppropriateMembersAreReturned(MemberInfo member, bool shouldMemberBeReturned)
         {
-            var defaultMemberLocator = new DefaultMemberLocator();
+            var defaultMemberLocator = new MemberLocator();
 
             var result = defaultMemberLocator.GetFieldsAndProperties(typeof(Foo));
 

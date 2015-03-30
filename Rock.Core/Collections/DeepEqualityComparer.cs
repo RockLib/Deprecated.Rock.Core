@@ -12,7 +12,7 @@ namespace Rock.Collections
     public class DeepEqualityComparer : IEqualityComparer
     {
         private const StringComparison _defaultStringComparison = StringComparison.Ordinal;
-        private static readonly IMemberLocator _defaultMemberLocator = new DefaultMemberLocator();
+        private static readonly IMemberLocator _defaultMemberLocator = new MemberLocator();
         private static readonly IConfiguration _defaultConfiguration = new DeepEqualityComparerConfiguration { StringComparison = _defaultStringComparison, MemberLocator = _defaultMemberLocator };
 
         private static readonly ConcurrentDictionary<ImplementationKey, Implementation> _implementations = new ConcurrentDictionary<ImplementationKey, Implementation>(); 

@@ -47,7 +47,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Collections\DeepEqualityComparerTests.cs" />
-    <Compile Include="Collections\DefaultMemberLocatorTests.cs" />
+    <Compile Include="Collections\MemberLocatorTests.cs" />
     <Compile Include="Conversion\ConvertFuncFactoryTests.cs" />
     <Compile Include="Conversion\ConvertsToDictionaryOfStringToTValueTests.cs" />
     <Compile Include="Reflection\GetClosedGenericTypeExtensionTests.cs" />
