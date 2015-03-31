@@ -6,22 +6,17 @@ namespace Rock.Reflection
     {
         public static bool IsPublic(this PropertyInfo propertyInfo)
         {
-            return (propertyInfo.CanRead && propertyInfo.HasPublicGetMethod())
-                   || (propertyInfo.CanWrite && propertyInfo.HasPublicSetMethod());
+            return propertyInfo.HasPublicGetter() || propertyInfo.HasPublicSetter();
         }
 
-        private static bool HasPublicGetMethod(this PropertyInfo propertyInfo)
+        public static bool HasPublicGetter(this PropertyInfo propertyInfo)
         {
-            var getMethod = propertyInfo.GetGetMethod();
-
-            return getMethod != null && getMethod.IsPublic;
+            return propertyInfo.CanRead && propertyInfo.GetGetMethod(false) != null;
         }
 
-        private static bool HasPublicSetMethod(this PropertyInfo propertyInfo)
+        public static bool HasPublicSetter(this PropertyInfo propertyInfo)
         {
-            var setMethod = propertyInfo.GetSetMethod();
-
-            return setMethod != null && setMethod.IsPublic;
+            return propertyInfo.CanWrite && propertyInfo.GetSetMethod(false) != null;
         }
     }
 }
