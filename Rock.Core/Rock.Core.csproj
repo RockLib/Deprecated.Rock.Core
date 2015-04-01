@@ -70,6 +70,8 @@
     <Compile Include="Net\EndpointDetector.cs" />
     <Compile Include="Net\EndpointSelector.cs" />
     <Compile Include="Net\Http\HttpClientFactory.cs" />
+    <Compile Include="Reflection\GetTypesSafelyExtension.cs" />
+    <Compile Include="Reflection\IsDefinedInThisAssemblyExtension.cs" />
     <Compile Include="Serialization\DefaultBinarySerializer.cs" />
     <Compile Include="Serialization\DefaultJsonSerializer.cs" />
     <Compile Include="Serialization\DefaultXmlSerializer.cs" />
