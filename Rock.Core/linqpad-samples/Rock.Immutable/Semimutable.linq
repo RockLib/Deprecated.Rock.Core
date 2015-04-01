@@ -1,5 +1,5 @@
 <Query Kind="Program">
-  <NuGetReference Prerelease="true">Rock.Core</NuGetReference>
+  <NuGetReference>Rock.Core</NuGetReference>
   <Namespace>Rock.Immutable</Namespace>
 </Query>
 
