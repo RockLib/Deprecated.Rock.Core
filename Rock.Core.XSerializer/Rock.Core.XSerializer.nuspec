@@ -7,7 +7,7 @@
         <owners>$author$</owners>
         <description>$description$</description>
         <summary>Core classes that use the XSerializer serialization library.</summary>
-        <tags>rock core serialization xserializer</tags>
+        <tags>rock core serialization xserializer linqpad-samples</tags>
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
     </metadata>
     <files>

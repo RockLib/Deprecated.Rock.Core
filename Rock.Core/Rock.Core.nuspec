@@ -7,7 +7,7 @@
         <owners>$author$</owners>
         <description>$description$</description>
         <summary>Core classes and interfaces for Rock Framework.</summary>
-        <tags>rock core</tags>
+        <tags>rock core linqpad-samples</tags>
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
     </metadata>
     <files>

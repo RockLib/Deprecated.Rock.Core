@@ -7,7 +7,7 @@
         <owners>$author$</owners>
         <description>$description$</description>
         <summary>Core classes that use the JSON.NET (Newtonsoft) serialization library.</summary>
-        <tags>rock core serialization newtonsoft</tags>
+        <tags>rock core serialization newtonsoft linqpad-samples</tags>
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
     </metadata>
     <files>
