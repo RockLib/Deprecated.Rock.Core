@@ -22,6 +22,8 @@ namespace Rock.Serialization
 
         public void SerializeToStream(Stream stream, object item, Type type)
         {
+            type = CheckType(type, item);
+
             var serializer = new XmlSerializer(type);
             serializer.Serialize(stream, item);
         }
@@ -34,6 +36,8 @@ namespace Rock.Serialization
 
         public string SerializeToString(object item, Type type)
         {
+            type = CheckType(type, item);
+
             var sb = new StringBuilder();
 
             using (var writer = new EncodedStringWriter(sb, _encoding))
@@ -52,6 +56,19 @@ namespace Rock.Serialization
                 var serializer = new XmlSerializer(type);
                 return serializer.Deserialize(reader);
             }
+        }
+        /// <summary>
+        /// If <paramref name="type"/> is abstract, return item.GetType().
+        /// If <paramref name="type"/> is not abstract, return it.
+        /// </summary>
+        /// <remarks>
+        /// This check allows us to handle an abstract type during
+        /// serialization. There's still nothing that can be done when
+        /// deserializing.
+        /// </remarks>
+        private static Type CheckType(Type type, object item)
+        {
+            return !type.IsAbstract ? type : item.GetType();
         }
     }
 }
