@@ -51,6 +51,7 @@
     <Compile Include="Conversion\ConvertFuncFactoryTests.cs" />
     <Compile Include="Conversion\ConvertsToDictionaryOfStringToTValueTests.cs" />
     <Compile Include="Reflection\GetClosedGenericTypeExtensionTests.cs" />
+    <Compile Include="Reflection\GetSetActionExtensionTests.cs" />
     <Compile Include="Reflection\IsIDictionryOfTToAnythingExtensionTests.cs" />
     <Compile Include="Conversion\ConvertsToExpandoObjectTests.cs" />
     <Compile Include="Conversion\ToExpandoObjectExtensionTests.cs" />
