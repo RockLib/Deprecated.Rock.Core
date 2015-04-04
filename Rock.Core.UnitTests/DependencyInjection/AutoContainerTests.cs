@@ -82,13 +82,13 @@ namespace AutoContainerTests
             }
 
             [Test]
-            public void ReturnsFalseWhenTheTypeRequestedIsObject()
+            public void ReturnsTrueWhenTheTypeRequestedIsObject()
             {
                 var conatiner = new AutoContainer(new Foo(0));
 
                 var result = conatiner.CanGet(typeof(object));
 
-                Assert.That(result, Is.False);
+                Assert.That(result, Is.True);
             }
 
             [Test]
