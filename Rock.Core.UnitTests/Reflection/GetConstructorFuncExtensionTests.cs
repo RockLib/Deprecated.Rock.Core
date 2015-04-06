@@ -18,6 +18,16 @@ namespace Rock.Core.Reflection.GetConstructorFuncExtensionTests
         }
 
         [Test]
+        public void WorksWithStructs()
+        {
+            var createQux = typeof(Qux).GetConstructorFunc();
+
+            var qux = createQux();
+
+            Assert.That(qux, Is.InstanceOf<Qux>());
+        }
+
+        [Test]
         public void ThrowsWhenTheSpecifiedTypeIsAbstract()
         {
             Assert.That(() => typeof(Bar).GetConstructorFunc(), Throws.ArgumentException);
@@ -41,6 +51,16 @@ namespace Rock.Core.Reflection.GetConstructorFuncExtensionTests
 
             Assert.That(foo, Is.Not.Null);
             Assert.That(foo, Is.InstanceOf<Foo>());
+        }
+
+        [Test]
+        public void WorksWithStructs()
+        {
+            var createQux = typeof(Qux).GetConstructorFunc<Qux>();
+
+            var qux = createQux();
+
+            Assert.That(qux, Is.InstanceOf<Qux>());
         }
 
         [Test]
@@ -75,5 +95,9 @@ namespace Rock.Core.Reflection.GetConstructorFuncExtensionTests
         private Baz()
         {
         }
+    }
+
+    public struct Qux
+    {
     }
 }

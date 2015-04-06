@@ -47,7 +47,7 @@ namespace Rock.Reflection
                 throw new ArgumentException(string.Format("'typeof(T)', {0}, must be assignable from 'type', {1}.", typeof(T), type), "type");
             }
 
-            if (!type.GetConstructors().Any(IsDefaultConstructor))
+            if (!type.IsValueType && !type.GetConstructors().Any(IsDefaultConstructor))
             {
                 throw new ArgumentException(string.Format("'type', {0}, must have a public parameterless constructor.", type), "type");
             }
