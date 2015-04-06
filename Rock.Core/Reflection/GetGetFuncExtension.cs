@@ -25,7 +25,7 @@ namespace Rock.Reflection
         /// </returns>
         public static Func<object, object> GetGetFunc(this PropertyInfo propertyInfo)
         {
-            return PropertyFuncCache<object, object>.GetGetFuncFor(propertyInfo);
+            return propertyInfo.GetGetFunc<object, object>();
         }
 
         /// <summary>
@@ -48,60 +48,20 @@ namespace Rock.Reflection
         /// </returns>
         public static Func<TInstance, TProperty> GetGetFunc<TInstance, TProperty>(this PropertyInfo propertyInfo)
         {
-            return PropertyFuncCache<TInstance, TProperty>.GetGetFuncFor(propertyInfo);
-        }
-
-        private static Func<TInstance, TProperty> CreateGetterFunc<TInstance, TProperty>(PropertyInfo propertyInfo)
-        {
             var instanceParameter = Expression.Parameter(typeof(TInstance), "instance");
 
             var body =
                 Expression.Property(
-                    CheckParameterExpression<TInstance>(instanceParameter, propertyInfo),
+                    instanceParameter.EnsureConvertableTo(propertyInfo.ReflectedType),
                     propertyInfo);
 
             var lambda =
                 Expression.Lambda<Func<TInstance, TProperty>>(
-                    CheckReturnExpression<TProperty>(body, propertyInfo),
-                    instanceParameter);
+                    body.EnsureConvertableTo<TProperty>(),
+                    "Get" + propertyInfo.Name,
+                    new[] { instanceParameter });
 
             return lambda.Compile();
-        }
-
-        private static Expression CheckParameterExpression<TInstance>(Expression expression, PropertyInfo propertyInfo)
-        {
-            if (typeof(TInstance).IsLessSpecificThan(propertyInfo.DeclaringType))
-            {
-                return Expression.Convert(expression, propertyInfo.DeclaringType);
-            }
-
-            return expression;
-        }
-
-        private static Expression CheckReturnExpression<TProperty>(Expression expression, PropertyInfo propertyInfo)
-        {
-            if (propertyInfo.PropertyType.IsLessSpecificThan(typeof(TProperty))
-                || propertyInfo.PropertyType.RequiresBoxingWhenConvertingTo(typeof(TProperty)))
-            {
-                return Expression.Convert(expression, typeof(TProperty));
-            }
-
-            return expression;
-        }
-
-        private static bool RequiresBoxingWhenConvertingTo(this Type fromType, Type toType)
-        {
-            return fromType.IsValueType && !toType.IsValueType;
-        }
-
-        private static class PropertyFuncCache<TInstance, TProperty>
-        {
-            private static readonly ConditionalWeakTable<PropertyInfo, Func<TInstance, TProperty>> _getterTable = new ConditionalWeakTable<PropertyInfo, Func<TInstance, TProperty>>();
-
-            public static Func<TInstance, TProperty> GetGetFuncFor(PropertyInfo propertyInfo)
-            {
-                return _getterTable.GetValue(propertyInfo, CreateGetterFunc<TInstance, TProperty>);
-            }
         }
     }
 }
