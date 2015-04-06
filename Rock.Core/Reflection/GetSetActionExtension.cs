@@ -25,7 +25,7 @@ namespace Rock.Reflection
         /// </returns>
         public static Action<object, object> GetSetAction(this PropertyInfo propertyInfo)
         {
-            return CreateSetterAction<object, object>(propertyInfo);
+            return propertyInfo.GetSetAction<object, object>();
         }
 
         /// <summary>
@@ -48,20 +48,17 @@ namespace Rock.Reflection
         /// </returns>
         public static Action<TInstance, TProperty> GetSetAction<TInstance, TProperty>(this PropertyInfo propertyInfo)
         {
-            return CreateSetterAction<TInstance, TProperty>(propertyInfo);
-        }
-
-        private static Action<TInstance, TProperty> CreateSetterAction<TInstance, TProperty>(PropertyInfo propertyInfo)
-        {
             var instanceParameter = Expression.Parameter(typeof(TInstance), "instance");
             var valueParameter = Expression.Parameter(typeof(TProperty), "value");
 
             var property = 
                 Expression.Property(
-                    CheckParameterExpression<TInstance>(instanceParameter, propertyInfo.DeclaringType),
+                    instanceParameter.EnsureConvertableTo(propertyInfo.DeclaringType),
                     propertyInfo);
 
-            var assign = Expression.Assign(property, CheckParameterExpression<TProperty>(valueParameter, propertyInfo.PropertyType));
+            var assign = Expression.Assign(
+                property,
+                valueParameter.EnsureConvertableTo(propertyInfo.PropertyType));
 
             var lambda =
                 Expression.Lambda<Action<TInstance, TProperty>>(
@@ -70,16 +67,6 @@ namespace Rock.Reflection
                     new[] { instanceParameter, valueParameter });
 
             return lambda.Compile();
-        }
-
-        private static Expression CheckParameterExpression<TInstance>(Expression expression, Type targetType)
-        {
-            if (typeof(TInstance).IsLessSpecificThan(targetType))
-            {
-                return Expression.Convert(expression, targetType);
-            }
-
-            return expression;
         }
     }
 }
