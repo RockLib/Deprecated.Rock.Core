@@ -3,9 +3,11 @@ using System.IO;
 using System.Text;
 using Newtonsoft.Json;
 using Rock.IO;
+using Rock.StaticDependencyInjection;
 
 namespace Rock.Serialization
 {
+    [Export(Name="JsonSerializer")]
     public class NewtonsoftJsonSerializer : ISerializer
     {
         private readonly JsonSerializer _jsonSerializer;

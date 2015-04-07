@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Quicken Loans")]
 [assembly: AssemblyProduct("Rock.Core")]
-[assembly: AssemblyCopyright("Copyright © Quicken Loans 2014")]
+[assembly: AssemblyCopyright("Copyright © Quicken Loans 2014-2015")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

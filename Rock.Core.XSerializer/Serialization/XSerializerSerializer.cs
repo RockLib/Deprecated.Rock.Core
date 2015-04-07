@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using Rock.StaticDependencyInjection;
 using XSerializer;
 
 namespace Rock.Serialization
@@ -7,6 +8,7 @@ namespace Rock.Serialization
     /// <summary>
     /// Defines methods to serialize xml documents using the XSerializer library.
     /// </summary>
+    [Export(Name = "XmlSerializer")]
     public class XSerializerSerializer : ISerializer
     {
         private readonly Func<Type, XmlSerializationOptions> _createOptions; 
