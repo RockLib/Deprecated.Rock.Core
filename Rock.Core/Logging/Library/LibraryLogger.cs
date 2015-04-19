@@ -46,16 +46,18 @@ namespace Rock.Logging.Library
 
         public static void Log(
             string message,
+            string libraryId = null,
             [CallerMemberName] string callerMemberName = null,
             [CallerFilePath] string callerFilePath = null,
             [CallerLineNumber] int callerLineNumber = 0)
         {
-            Log(null, message, callerMemberName, callerFilePath, callerLineNumber);
+            Log(null, message, libraryId, callerMemberName, callerFilePath, callerLineNumber);
         }
 
         public static void Log(
             Exception exception,
             string message = null,
+            string libraryId = null,
             [CallerMemberName] string callerMemberName = null,
             [CallerFilePath] string callerFilePath = null,
             [CallerLineNumber] int callerLineNumber = 0)
@@ -63,28 +65,36 @@ namespace Rock.Logging.Library
             Log(new LibraryLogMessage(callerMemberName, callerFilePath, callerLineNumber)
             {
                 Message = message,
-                Exception = exception
+                Exception = exception,
+                LibraryId = libraryId
             });
         }
 
         public static void Log(ILibraryLogMessage message)
         {
-            try { Current.Log(message); }
-            catch { }
+            try
+            {
+                Current.Log(message);
+            }
+            catch
+            {
+            }
         }
 
         public static void Debug(
             string message,
+            string libraryId = null,
             [CallerMemberName] string callerMemberName = null,
             [CallerFilePath] string callerFilePath = null,
             [CallerLineNumber] int callerLineNumber = 0)
         {
-            Debug(new LibraryLogMessage(callerMemberName, callerFilePath, callerLineNumber) { Message = message });
+            Debug(null, message, libraryId, callerMemberName, callerFilePath, callerLineNumber);
         }
 
         public static void Debug(
             Exception exception,
             string message = null,
+            string libraryId = null,
             [CallerMemberName] string callerMemberName = null,
             [CallerFilePath] string callerFilePath = null,
             [CallerLineNumber] int callerLineNumber = 0)
@@ -92,14 +102,20 @@ namespace Rock.Logging.Library
             Debug(new LibraryLogMessage(callerMemberName, callerFilePath, callerLineNumber)
             {
                 Message = message,
-                Exception = exception
+                Exception = exception,
+                LibraryId = libraryId
             });
         }
 
         public static void Debug(ILibraryLogMessage message)
         {
-            try { Current.Debug(message); }
-            catch { }
+            try
+            {
+                Current.Debug(message);
+            }
+            catch
+            {
+            }
         }
     }
 }

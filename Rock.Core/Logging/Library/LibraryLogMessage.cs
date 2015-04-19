@@ -10,14 +10,13 @@ namespace Rock.Logging.Library
             [CallerFilePath] string callerFilePath = null,
             [CallerLineNumber] int callerLineNumber = 0)
         {
-            ApplicationId = global::Rock.ApplicationId.Current;
             CreateTime = DateTime.UtcNow;
             CallerMemberName = callerMemberName;
             CallerFilePath = callerFilePath;
             CallerLineNumber = callerLineNumber;
         }
 
-        public string ApplicationId { get; set; }
+        public string LibraryId { get; set; }
         public string Message { get; set; }
         public DateTime CreateTime { get; set; }
         public Exception Exception { get; set; }
