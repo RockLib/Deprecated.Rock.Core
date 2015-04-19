@@ -9,6 +9,9 @@ namespace Rock.Threading
     /// </summary>
     public class SoftLock
     {
+        private const int _lockNotAcquired = 0;
+        private const int _lockAcquired = 1;
+
         private int _lock;
 
         /// <summary>
@@ -18,7 +21,7 @@ namespace Rock.Threading
         /// <returns>True, if the lock was acquired. False, if another thread currently has the lock</returns>
         public bool TryAcquire()
         {
-            return Interlocked.Exchange(ref _lock, 1) == 0;
+            return Interlocked.Exchange(ref _lock, _lockAcquired) == _lockNotAcquired;
         }
 
         /// <summary>
@@ -26,7 +29,15 @@ namespace Rock.Threading
         /// </summary>
         public void Release()
         {
-            Interlocked.Exchange(ref _lock, 0);
+            Interlocked.Exchange(ref _lock, _lockNotAcquired);
+        }
+
+        /// <summary>
+        /// Gets a value indicating whether the lock has been acquired.
+        /// </summary>
+        public bool IsLockAcquired
+        {
+            get { return _lock == _lockAcquired; }
         }
     }
 }
