@@ -7,7 +7,7 @@ namespace Rock.Logging.Library
 {
     public static class LibraryLogger
     {
-        private static readonly Semimutable<ILibraryLogger> _current = new Semimutable<ILibraryLogger>(() => NullLibraryLogger.Instance);
+        private static readonly Semimutable<ILibraryLogger> _current = new Semimutable<ILibraryLogger>(GetDefaultLibraryLogger);
         private static readonly Semimutable<bool> _isDebugEnabled = new Semimutable<bool>(GetDefaultIsDebugEnabled);
 
         public static ILibraryLogger Current
@@ -17,7 +17,7 @@ namespace Rock.Logging.Library
 
         public static void SetCurrent(ILibraryLogger value)
         {
-            _current.Value = value ?? NullLibraryLogger.Instance;
+            _current.Value = value ?? GetDefaultLibraryLogger();
         }
 
         public static bool IsEnabled
@@ -29,6 +29,13 @@ namespace Rock.Logging.Library
         {
             get { return _isDebugEnabled.Value; }
             set { _isDebugEnabled.Value = value; }
+        }
+
+        private static ILibraryLogger GetDefaultLibraryLogger()
+        {
+            // TODO: Attempt to load from configuration.
+
+            return NullLibraryLogger.Instance;
         }
 
         private static bool GetDefaultIsDebugEnabled()
