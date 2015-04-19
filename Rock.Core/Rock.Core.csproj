@@ -67,6 +67,12 @@
     <Compile Include="Extensions\StringIsNullExtensions.cs" />
     <Compile Include="Extensions\TimeSection.cs" />
     <Compile Include="Extensions\ToUnixTimestampExtension.cs" />
+    <Compile Include="Logging\Library\ConsoleLibraryLogger.cs" />
+    <Compile Include="Logging\Library\ILibraryLogger.cs" />
+    <Compile Include="Logging\Library\ILibraryLogMessage.cs" />
+    <Compile Include="Logging\Library\LibraryLogger.cs" />
+    <Compile Include="Logging\Library\LibraryLogMessage.cs" />
+    <Compile Include="Logging\Library\NullLibraryLogger.cs" />
     <Compile Include="Net\EndpointDetector.cs" />
     <Compile Include="Net\EndpointSelector.cs" />
     <Compile Include="Net\Http\HttpClientFactory.cs" />
