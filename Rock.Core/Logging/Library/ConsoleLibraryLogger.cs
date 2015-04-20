@@ -32,9 +32,5 @@ namespace Rock.Logging.Library
             Console.WriteLine("--------------------------------------------------------------------------------");
             Console.WriteLine();
         }
-
-        public void Dispose()
-        {
-        }
     }
 }
