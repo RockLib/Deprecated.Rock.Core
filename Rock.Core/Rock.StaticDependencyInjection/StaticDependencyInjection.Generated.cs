@@ -720,6 +720,11 @@ namespace Rock.Rock.StaticDependencyInjection
         {
             foreach (var directoryPath in directoryPaths)
             {
+                if (!Directory.Exists(directoryPath))
+                {
+                    continue;
+                }
+
                 IEnumerable<string> dllFiles;
 
                 try
@@ -762,7 +767,7 @@ namespace Rock.Rock.StaticDependencyInjection
                 }
 
                 return
-                    assembly.GetTypes()
+                    GetTypesSafely(assembly)
                         .Where(t =>
                             t.IsClass
                             && !t.IsAbstract
@@ -772,6 +777,18 @@ namespace Rock.Rock.StaticDependencyInjection
             catch
             {
                 return Enumerable.Empty<Type>();
+            }
+        }
+
+        private static IEnumerable<Type> GetTypesSafely(Assembly assembly)
+        {
+            try
+            {
+                return assembly.GetTypes();
+            }
+            catch (ReflectionTypeLoadException ex)
+            {
+                return ex.Types.Where(t => t != null);
             }
         }
 
@@ -1068,7 +1085,11 @@ namespace Rock.Rock.StaticDependencyInjection
         /// </summary>
         private static string[] GetDefaultDirectoryPaths()
         {
-            return new[] { AppDomain.CurrentDomain.BaseDirectory };
+            return new[]
+            {
+                AppDomain.CurrentDomain.BaseDirectory,
+                Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "bin")
+            };
         }
 
         /// <summary>
