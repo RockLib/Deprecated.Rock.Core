@@ -54,6 +54,7 @@ namespace Rock.Rock.StaticDependencyInjection
             catch (Exception ex)
             {
                 LibraryLogger.Log(ex, "Exception caught in static dependency injection.", "Rock.Core");
+                throw;
             }
         }
 
