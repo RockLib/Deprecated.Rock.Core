@@ -19,7 +19,7 @@ namespace Rock.Logging.Library
 
         private static void WriteMessage(ILibraryLogMessage message)
         {
-            Console.WriteLine(" {0:O} {1}", message.CreateTime, message.LibraryId);
+            Console.WriteLine(" {0:O} {1}", message.CreateTime, message.LibraryName);
             Console.WriteLine("    {0}", message.Message);
             Console.WriteLine("    {0}:{1}({2})", message.CallerFilePath, message.CallerMemberName, message.CallerLineNumber);
 

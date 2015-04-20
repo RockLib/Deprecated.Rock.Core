@@ -98,7 +98,7 @@ namespace Rock.Logging.Library
             {
                 Message = message,
                 Exception = exception,
-                LibraryId = libraryId
+                LibraryName = libraryId
             });
         }
 
@@ -135,7 +135,7 @@ namespace Rock.Logging.Library
             {
                 Message = message,
                 Exception = exception,
-                LibraryId = libraryId
+                LibraryName = libraryId
             });
         }
 

@@ -16,7 +16,7 @@ namespace Rock.Logging.Library
             CallerLineNumber = callerLineNumber;
         }
 
-        public string LibraryId { get; set; }
+        public string LibraryName { get; set; }
         public string Message { get; set; }
         public DateTime CreateTime { get; set; }
         public Exception Exception { get; set; }

@@ -4,7 +4,7 @@ namespace Rock.Logging.Library
 {
     public interface ILibraryLogMessage
     {
-        string LibraryId { get; }
+        string LibraryName { get; }
         string Message { get; }
         DateTime CreateTime { get; }
         Exception Exception { get; }

@@ -15,9 +15,5 @@
         public void Debug(ILibraryLogMessage message)
         {
         }
-
-        public void Dispose()
-        {
-        }
     }
 }
