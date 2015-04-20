@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Configuration;
 using System.Runtime.CompilerServices;
+using Rock.Configuration.Xml;
 using Rock.Immutable;
+using Rock.Serialization;
 
 namespace Rock.Logging.Library
 {
@@ -42,7 +44,17 @@ namespace Rock.Logging.Library
 
         private static ILibraryLogger GetDefaultLibraryLogger()
         {
-            // TODO: Attempt to load from configuration.
+            var configurationProxy = (LibraryLoggerConfigurationProxy)ConfigurationManager.GetSection("rock.logging.library");
+
+            if (configurationProxy != null)
+            {
+                var configuration = configurationProxy.CreateInstance();
+
+                // Side-effect! o_O
+                _isDebugEnabled.Value = configuration.IsDebugEnabled;
+
+                return configuration.LibraryLogger ?? NullLibraryLogger.Instance;
+            }
 
             return NullLibraryLogger.Instance;
         }
