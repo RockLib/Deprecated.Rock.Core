@@ -28,7 +28,11 @@ namespace Rock.Logging.Library
         public static bool IsDebugEnabled
         {
             get { return _isDebugEnabled.Value; }
-            set { _isDebugEnabled.Value = value; }
+        }
+
+        public static void SetIsDebugEnabled(bool value)
+        {
+            _isDebugEnabled.Value = value;
         }
 
         internal static void UnlockCurrent()
