@@ -3,10 +3,10 @@ using System.Configuration;
 using System.Runtime.CompilerServices;
 using Rock.Configuration.Xml;
 using Rock.Immutable;
-using Rock.Serialization;
 
 namespace Rock.Logging.Library
 {
+    // ReSharper disable ExplicitCallerInfoArgument
     public static class LibraryLogger
     {
         private static readonly Semimutable<ILibraryLogger> _current = new Semimutable<ILibraryLogger>(GetDefaultLibraryLogger, true);
@@ -29,7 +29,11 @@ namespace Rock.Logging.Library
 
         public static bool IsDebugEnabled
         {
-            get { return _isDebugEnabled.Value; }
+            get
+            {
+                _current.LockValue();
+                return _isDebugEnabled.Value;
+            }
         }
 
         public static void SetIsDebugEnabled(bool value)
@@ -103,7 +107,7 @@ namespace Rock.Logging.Library
             try
             {
                 Current.Log(message);
-            }
+            } // ReSharper disable once EmptyGeneralCatchClause
             catch
             {
             }
@@ -140,10 +144,11 @@ namespace Rock.Logging.Library
             try
             {
                 Current.Debug(message);
-            }
+            } // ReSharper disable once EmptyGeneralCatchClause
             catch
             {
             }
         }
     }
 }
+// ReSharper restore ExplicitCallerInfoArgument
