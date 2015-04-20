@@ -28,7 +28,7 @@ namespace Rock.Rock.StaticDependencyInjection
 
             ImportFirst<IKeyValueStore>(TempStorage.SetKeyValueStore, "TempStorage");
 
-            ImportFirst<ISerializer>(DefaultBinarySerializer.SetCurrent, "DefaultBinarySerializer");
+            ImportFirst<ISerializer>(DefaultBinarySerializer.SetCurrent, "BinarySerializer");
             ImportFirst<IEndpointDetector>(DefaultEndpointDetector.SetCurrent);
             ImportFirst<IEndpointSelector>(DefaultEndpointSelector.SetCurrent);
             ImportFirst<IHttpClientFactory>(DefaultHttpClientFactory.SetCurrent);
