@@ -54,7 +54,16 @@ namespace Rock.Rock.StaticDependencyInjection
             catch (Exception ex)
             {
                 LibraryLogger.Log(ex, "Exception caught in static dependency injection.", "Rock.Core");
-                throw;
+
+                var message =
+                    string.Format(
+                        "Error while importing type '{0}'.{1}",
+                        typeof(TTargetType),
+                        importName != null
+                            ? string.Format(" Import name: {0}.", importName)
+                            : "");
+
+                throw new CompositionRootException(message, ex);
             }
         }
 

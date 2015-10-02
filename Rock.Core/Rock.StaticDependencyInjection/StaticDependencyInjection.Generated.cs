@@ -794,9 +794,16 @@ namespace Rock.Rock.StaticDependencyInjection
 
         private static bool HasDefaultishConstructor(Type type)
         {
-            return
-                type.GetConstructor(Type.EmptyTypes) != null
-                || type.GetConstructors().Any(ctor => ctor.GetParameters().All(HasDefaultValue));
+            try
+            {
+                return
+                    type.GetConstructor(Type.EmptyTypes) != null
+                    || type.GetConstructors().Any(ctor => ctor.GetParameters().All(HasDefaultValue));
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         private static bool HasDefaultValue(ParameterInfo parameter)
