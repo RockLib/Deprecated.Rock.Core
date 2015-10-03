@@ -434,7 +434,7 @@ namespace Rock.Reflection
         private IEnumerable<InvokeMemberCandidate> CreateInvokeMemberCandidates(string name)
         {
             var methodInfos =
-                _type.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
+                _type.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static)
                     .Where(m => m.Name == name);
 
             return methodInfos.Select(CreateInvokeMemberCandidate).Where(func => func != null);
@@ -458,11 +458,21 @@ namespace Rock.Reflection
                             methodInfoParameters[i].ParameterType);
                 }
 
-                Expression body =
-                    Expression.Call(
+                Expression body;
+
+                if (methodInfo.IsStatic)
+                {
+                    body = Expression.Call(
+                        methodInfo,
+                        callArguments);
+                }
+                else
+                {
+                    body = Expression.Call(
                         Expression.Convert(instanceParameter, _type),
                         methodInfo,
                         callArguments);
+                }
 
                 if (methodInfo.ReturnType == typeof(void))
                 {

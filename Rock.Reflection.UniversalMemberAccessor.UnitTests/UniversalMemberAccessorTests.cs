@@ -201,11 +201,27 @@ namespace Rock.Reflection.UnitTests
         }
 
         [Test]
-        public void CanCallPrivateMethod()
+        public void CanCallPrivateInstanceMethods()
         {
             var foo = new Foo().UnlockNonPublicMembers();
 
             Assert.That(foo.Qux(123, "abc"), Is.EqualTo("Qux(int i, string s)"));
+        }
+
+        [Test]
+        public void CanCallPrivateStaticMethodsThroughInstanceAccessor()
+        {
+            var foo = new Foo().UnlockNonPublicMembers();
+
+            Assert.That(foo.Grault(123), Is.EqualTo("Grault(int i)"));
+        }
+
+        [Test]
+        public void CanCallPrivateStaticMethodsThroughStaticAccessor()
+        {
+            var foo = UniversalMemberAccessor.Get<Foo>();
+
+            Assert.That(foo.Grault(123), Is.EqualTo("Grault(int i)"));
         }
 
         [Test]
@@ -283,6 +299,11 @@ namespace Rock.Reflection.UnitTests
         private string Garply(int i, string s)
         {
             return "Garply(int i, string s)";
+        }
+
+        private static string Grault(int i)
+        {
+            return "Grault(int i)";
         }
     }
 
