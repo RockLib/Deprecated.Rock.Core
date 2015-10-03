@@ -201,6 +201,38 @@ namespace Rock.Reflection.UnitTests
         }
 
         [Test]
+        public void CanIllegallyInvokeEvents()
+        {
+            var bar = new Bar().UnlockNonPublicMembers();
+
+            var eventHandler1Count = 0;
+            var eventHandler2Count = 0;
+
+            EventHandler eventHandler1 = (sender, args) => eventHandler1Count++;
+            EventHandler eventHandler2 = (sender, args) => eventHandler2Count++;
+
+            bar.Qux += eventHandler1;
+            bar.Qux += eventHandler2;
+
+            // If this were a bar object, we would get a compiler error here:
+            // "The event 'Rock.Reflection.UnitTests.Bar.Qux' can only appear on the left hand side
+            // of += or -= (except when used from within the type 'Rock.Reflection.UnitTests.Bar')"
+
+            // What is returned is a delegate, so it can be invoked directly...
+            bar.Qux(this, EventArgs.Empty);
+
+            // ...or the delegate's Invoke method can be called.
+            bar.Qux.Invoke(this, EventArgs.Empty);
+
+            // You can also assign the event to a delegate variable.
+            EventHandler invokingEventHandler = bar.Qux;
+            invokingEventHandler(this, EventArgs.Empty);
+
+            Assert.That(eventHandler1Count, Is.EqualTo(3));
+            Assert.That(eventHandler2Count, Is.EqualTo(3));
+        }
+
+        [Test]
         public void CanCallPrivateInstanceMethods()
         {
             var foo = new Foo().UnlockNonPublicMembers();
@@ -311,6 +343,7 @@ namespace Rock.Reflection.UnitTests
     {
         private event EventHandler Foo;
         private static event EventHandler Baz;
+        public event EventHandler Qux;
         
         public void InvokeFoo()
         {
