@@ -7,6 +7,39 @@ namespace Rock.Reflection.UnitTests
     public class UniversalMemberAccessorTests
     {
         [Test]
+        public void CanGetBackingInstanceWithInstance()
+        {
+            var foo = new Foo(123).Unlock();
+
+            var backingFoo = foo.Instance;
+
+            Assert.That(foo, Is.InstanceOf<UniversalMemberAccessor>());
+            Assert.That(backingFoo, Is.InstanceOf<Foo>());
+        }
+
+        [Test]
+        public void CanGetBackingInstanceWithObject()
+        {
+            var foo = new Foo(123).Unlock();
+
+            var backingFoo = foo.Object;
+
+            Assert.That(foo, Is.InstanceOf<UniversalMemberAccessor>());
+            Assert.That(backingFoo, Is.InstanceOf<Foo>());
+        }
+
+        [Test]
+        public void CanGetBackingInstanceWithValue()
+        {
+            var foo = new Foo(123).Unlock();
+
+            var backingFoo = foo.Value;
+
+            Assert.That(foo, Is.InstanceOf<UniversalMemberAccessor>());
+            Assert.That(backingFoo, Is.InstanceOf<Foo>());
+        }
+
+        [Test]
         public void CanGetValueOfPrivateInstanceField()
         {
             var foo = new Foo(123).Unlock();

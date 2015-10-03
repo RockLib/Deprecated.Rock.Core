@@ -155,6 +155,19 @@ namespace Rock.Reflection
 
             if (getMember == null)
             {
+                switch (binder.Name)
+                {
+                    case "Instance":
+                    case "Object":
+                    case "Value":
+                        if (_instance != null)
+                        {
+                            result = _instance;
+                            return true;
+                        }
+                        break;
+                }
+
                 return base.TryGetMember(binder, out result);
             }
 
@@ -348,7 +361,6 @@ namespace Rock.Reflection
         {
             try
             {
-
                 var parameter = Expression.Parameter(typeof(object), "instance");
                 var convertParameter = Expression.Convert(parameter, _type);
 
