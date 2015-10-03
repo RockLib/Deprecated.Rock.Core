@@ -212,41 +212,6 @@ namespace Rock.Reflection
             return base.TryInvokeMember(binder, args, out result);
         }
 
-        private class InvokeMemberCandidate
-        {
-            private readonly Type[] _parameters;
-            private readonly Func<object, object[], object> _invokeMemberFunc;
-
-            public InvokeMemberCandidate(IEnumerable<ParameterInfo> parameters, Func<object, object[], object> invokeMemberFunc)
-            {
-                _parameters = parameters.Select(p => p.ParameterType).ToArray();
-                _invokeMemberFunc = invokeMemberFunc;
-            }
-
-            public bool Matches(ICollection<object> args)
-            {
-                if (args.Count != _parameters.Length)
-                {
-                    return false;
-                }
-
-                if (args.Where((arg, i) =>
-                    (arg == null && _parameters[i].IsValueType)
-                    || (arg != null && !_parameters[i].IsInstanceOfType(arg)))
-                    .Any())
-                {
-                    return false;
-                }
-
-                return true;
-            }
-
-            public object InvokeMember(object instance, object[] args)
-            {
-                return _invokeMemberFunc(instance, args);
-            }
-        }
-
         /// <summary>
         /// Provides the implementation for operations that get a value by index.
         /// </summary>
@@ -581,6 +546,41 @@ namespace Rock.Reflection
             var getMethod = propertyInfo.GetGetMethod(true);
             var isStatic = (getMethod != null && getMethod.IsStatic) || propertyInfo.GetSetMethod(true).IsStatic;
             return isStatic;
+        }
+
+        private class InvokeMemberCandidate
+        {
+            private readonly Type[] _parameters;
+            private readonly Func<object, object[], object> _invokeMemberFunc;
+
+            public InvokeMemberCandidate(IEnumerable<ParameterInfo> parameters, Func<object, object[], object> invokeMemberFunc)
+            {
+                _parameters = parameters.Select(p => p.ParameterType).ToArray();
+                _invokeMemberFunc = invokeMemberFunc;
+            }
+
+            public bool Matches(ICollection<object> args)
+            {
+                if (args.Count != _parameters.Length)
+                {
+                    return false;
+                }
+
+                if (args.Where((arg, i) =>
+                    (arg == null && _parameters[i].IsValueType)
+                    || (arg != null && !_parameters[i].IsInstanceOfType(arg)))
+                    .Any())
+                {
+                    return false;
+                }
+
+                return true;
+            }
+
+            public object InvokeMember(object instance, object[] args)
+            {
+                return _invokeMemberFunc(instance, args);
+            }
         }
     }
 }
