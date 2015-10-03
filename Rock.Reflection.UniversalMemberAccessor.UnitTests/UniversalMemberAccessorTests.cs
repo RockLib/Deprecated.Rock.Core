@@ -275,6 +275,56 @@ namespace Rock.Reflection.UnitTests
 
             Assert.That(() => foo.Garply(null), Throws.InstanceOf<RuntimeBinderException>());
         }
+
+        [Test]
+        public void CanInvokePrivateConstructorsWithNew()
+        {
+            var quxFactory = UniversalMemberAccessor.Get<Qux>();
+
+            Qux qux = quxFactory.New();
+
+            Assert.That(qux, Is.InstanceOf<Qux>());
+        }
+
+        [Test]
+        public void CanInvokePrivateConstructorsWithCreate()
+        {
+            var quxFactory = UniversalMemberAccessor.Get<Qux>();
+
+            Qux qux = quxFactory.Create();
+
+            Assert.That(qux, Is.InstanceOf<Qux>());
+        }
+
+        [Test]
+        public void CanInvokePrivateConstructorsWithNewInstance()
+        {
+            var quxFactory = UniversalMemberAccessor.Get<Qux>();
+
+            Qux qux = quxFactory.NewInstance();
+
+            Assert.That(qux, Is.InstanceOf<Qux>());
+        }
+
+        [Test]
+        public void CanInvokePrivateConstructorsWithCreateInstance()
+        {
+            var quxFactory = UniversalMemberAccessor.Get<Qux>();
+
+            Qux qux = quxFactory.CreateInstance();
+
+            Assert.That(qux, Is.InstanceOf<Qux>());
+        }
+
+        [Test]
+        public void CanResolveMultipleConstructors()
+        {
+            var garplyFactory = UniversalMemberAccessor.Get<Garply>();
+
+            Assert.That(garplyFactory.New().Value, Is.EqualTo("Garply()"));
+            Assert.That(garplyFactory.New(123).Value, Is.EqualTo("Garply(int i)"));
+            Assert.That(garplyFactory.New("abc").Value, Is.EqualTo("Garply(string s)"));
+        }
     }
 
     // ReSharper disable UnusedParameter.Local
@@ -369,6 +419,37 @@ namespace Rock.Reflection.UnitTests
     }
 
     public class Baz : IBaz
+    {
+    }
+
+    public class Qux
+    {
+        private Qux()
+        {
+        }
+    }
+
+    public class Garply
+    {
+        public readonly string Value;
+
+        private Garply()
+        {
+            Value = "Garply()";
+        }
+
+        private Garply(int i)
+        {
+            Value = "Garply(int i)";
+        }
+
+        private Garply(string s)
+        {
+            Value = "Garply(string s)";
+        }
+    }
+
+    public static class Grault
     {
     }
     // ReSharper restore EventNeverSubscribedTo.Local

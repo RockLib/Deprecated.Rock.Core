@@ -25,6 +25,8 @@ namespace Rock.Reflection
         private static readonly ConcurrentDictionary<Tuple<Type, string>, Action<object, object>> _setMemberActions = new ConcurrentDictionary<Tuple<Type, string>, Action<object, object>>();
         private static readonly ConcurrentDictionary<Tuple<Type, string>, ReadOnlyCollection<InvokeMemberCandidate>> _invokeMemberFuncs = new ConcurrentDictionary<Tuple<Type, string>, ReadOnlyCollection<InvokeMemberCandidate>>();
 
+        private readonly Lazy<ReadOnlyCollection<CreateInstanceCandidate>> _createInstanceCandidates;
+
         private readonly object _instance;
         private readonly Type _type;
         private readonly IEnumerable<string> _memberNames;
@@ -41,6 +43,8 @@ namespace Rock.Reflection
                     .Select(m => m.Name)
                     .ToList()
                     .AsReadOnly());
+
+            _createInstanceCandidates = GetLazyCreateInstanceCandidates();
         }
 
         private UniversalMemberAccessor(object instance)
@@ -201,6 +205,24 @@ namespace Rock.Reflection
                     Tuple.Create(_type, binder.Name),
                     t => new ReadOnlyCollection<InvokeMemberCandidate>(CreateInvokeMemberCandidates(t.Item2).ToList()));
 
+            if (invokeMemberCandidates.Count == 0)
+            {
+                switch (binder.Name)
+                {
+                    case "New":
+                    case "Create":
+                    case "CreateInstance":
+                    case "NewInstance":
+                        if (TryCreateInstance(args, out result))
+                        {
+                            return true;
+                        }
+                        break;
+                }
+
+                return base.TryInvokeMember(binder, args, out result);
+            }
+
             var matchingCandidates = invokeMemberCandidates.Where(c => c.Matches(args)).ToList();
 
             if (matchingCandidates.Count == 1)
@@ -210,6 +232,20 @@ namespace Rock.Reflection
             }
 
             return base.TryInvokeMember(binder, args, out result);
+        }
+
+        private bool TryCreateInstance(object[] args, out object result)
+        {
+            var matchingCandidates = _createInstanceCandidates.Value.Where(c => c.Matches(args)).ToList();
+
+            if (matchingCandidates.Count == 1)
+            {
+                result = matchingCandidates[0].CreateInstance(args);
+                return true;
+            }
+
+            result = null;
+            return false;
         }
 
         /// <summary>
@@ -431,6 +467,62 @@ namespace Rock.Reflection
             }
         }
 
+        private Lazy<ReadOnlyCollection<CreateInstanceCandidate>> GetLazyCreateInstanceCandidates()
+        {
+            return new Lazy<ReadOnlyCollection<CreateInstanceCandidate>>(() =>
+                new ReadOnlyCollection<CreateInstanceCandidate>(
+                    GetCreateInstanceCandidates().ToList()));
+        }
+
+        private IEnumerable<CreateInstanceCandidate> GetCreateInstanceCandidates()
+        {
+            var constructorInfos = _type.GetConstructors(
+                BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+
+            foreach (var constructor in constructorInfos)
+            {
+                var argsParameter = Expression.Parameter(typeof(object[]), "args");
+
+                var methodInfoParameters = constructor.GetParameters();
+                var newArguments = new Expression[methodInfoParameters.Length];
+
+                for (var i = 0; i < newArguments.Length; i++)
+                {
+                    newArguments[i] =
+                        Expression.Convert(
+                            Expression.ArrayAccess(argsParameter, Expression.Constant(i)),
+                            methodInfoParameters[i].ParameterType);
+                }
+
+                Expression body =
+                    Expression.New(
+                        constructor,
+                        newArguments);
+
+                if (constructor.DeclaringType.IsValueType)
+                {
+                    body = Expression.Convert(body, typeof(object));
+                }
+
+                var lambda =
+                    Expression.Lambda<Func<object[], object>>(
+                        body,
+                        new[] { argsParameter });
+
+                var func = lambda.Compile();
+
+                if (ShouldReturnRawValue(constructor.DeclaringType))
+                {
+                    yield return new CreateInstanceCandidate(methodInfoParameters, args => func(UnwrapArgs(args)));
+                }
+                else
+                {
+                    yield return new CreateInstanceCandidate(methodInfoParameters, args =>
+                        func(UnwrapArgs(args)).UnlockNonPublicMembers()); // Unlock the return value.
+                }
+            }
+        }
+
         private IEnumerable<InvokeMemberCandidate> CreateInvokeMemberCandidates(string name)
         {
             var methodInfos =
@@ -558,15 +650,13 @@ namespace Rock.Reflection
             return isStatic;
         }
 
-        private class InvokeMemberCandidate
+        private abstract class Candidate
         {
             private readonly Type[] _parameters;
-            private readonly Func<object, object[], object> _invokeMemberFunc;
 
-            public InvokeMemberCandidate(IEnumerable<ParameterInfo> parameters, Func<object, object[], object> invokeMemberFunc)
+            protected Candidate(IEnumerable<ParameterInfo> parameters)
             {
                 _parameters = parameters.Select(p => p.ParameterType).ToArray();
-                _invokeMemberFunc = invokeMemberFunc;
             }
 
             public bool Matches(ICollection<object> args)
@@ -585,6 +675,33 @@ namespace Rock.Reflection
                 }
 
                 return true;
+            }
+        }
+
+        private class CreateInstanceCandidate : Candidate
+        {
+            private readonly Func<object[], object> _createInstanceFunc;
+
+            public CreateInstanceCandidate(IEnumerable<ParameterInfo> parameters, Func<object[], object> createInstanceFunc)
+                : base(parameters)
+            {
+                _createInstanceFunc = createInstanceFunc;
+            }
+
+            public object CreateInstance(object[] args)
+            {
+                return _createInstanceFunc(args);
+            }
+        }
+
+        private class InvokeMemberCandidate : Candidate
+        {
+            private readonly Func<object, object[], object> _invokeMemberFunc;
+
+            public InvokeMemberCandidate(IEnumerable<ParameterInfo> parameters, Func<object, object[], object> invokeMemberFunc)
+                : base(parameters)
+            {
+                _invokeMemberFunc = invokeMemberFunc;
             }
 
             public object InvokeMember(object instance, object[] args)
