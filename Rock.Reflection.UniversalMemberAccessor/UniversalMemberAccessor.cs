@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Dynamic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -17,22 +18,25 @@ namespace Rock.Reflection
     {
         private static readonly ConditionalWeakTable<object, UniversalMemberAccessor> _instanceMap = new ConditionalWeakTable<object, UniversalMemberAccessor>();
         private static readonly ConcurrentDictionary<Type, UniversalMemberAccessor> _staticCache = new ConcurrentDictionary<Type, UniversalMemberAccessor>();
+        private static readonly ConcurrentDictionary<Type, IEnumerable<string>> _instanceMemberNamesCache = new ConcurrentDictionary<Type, IEnumerable<string>>();
+        private static readonly ConcurrentDictionary<Type, IEnumerable<string>> _staticMemberNamesCache = new ConcurrentDictionary<Type, IEnumerable<string>>();
 
         private static readonly ConcurrentDictionary<Tuple<Type, string>, Func<object, Object>> _getMemberFuncs = new ConcurrentDictionary<Tuple<Type, string>, Func<object, object>>();
         private static readonly ConcurrentDictionary<Tuple<Type, string>, Action<object, object>> _setMemberActions = new ConcurrentDictionary<Tuple<Type, string>, Action<object, object>>();
-        private static readonly ConcurrentDictionary<Tuple<Type, string, int>, Func<object, object[], object>> _invokeMemberFuncs = new ConcurrentDictionary<Tuple<Type, string, int>, Func<object, object[], object>>();
-
-        private readonly Lazy<IEnumerable<string>> _memberNames;
+        private static readonly ConcurrentDictionary<Tuple<Type, string>, IEnumerable<InvokeMemberCandidate>> _invokeMemberFuncs = new ConcurrentDictionary<Tuple<Type, string>, IEnumerable<InvokeMemberCandidate>>();
 
         private readonly object _instance;
         private readonly Type _type;
+        private readonly IEnumerable<string> _memberNames;
 
         private UniversalMemberAccessor(Type type)
         {
+            if (type == null) throw new ArgumentNullException("type");
+
             _type = type;
 
-            _memberNames = new Lazy<IEnumerable<string>>(() =>
-                _type.GetMembers(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static)
+            _memberNames = _staticMemberNamesCache.GetOrAdd(_type, t =>
+                t.GetMembers(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static)
                     .Where(m => !(m is ConstructorInfo) && !(m is EventInfo) && !(m is Type))
                     .Select(m => m.Name)
                     .ToList()
@@ -41,11 +45,13 @@ namespace Rock.Reflection
 
         private UniversalMemberAccessor(object instance)
         {
+            if (instance == null) throw new ArgumentNullException("instance");
+
             _instance = instance;
             _type = _instance.GetType();
 
-            _memberNames = new Lazy<IEnumerable<string>>(() =>
-                _type.GetMembers(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static)
+            _memberNames = _instanceMemberNamesCache.GetOrAdd(_type, t =>
+                t.GetMembers(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static)
                     .Where(m => !(m is ConstructorInfo) && !(m is EventInfo) && !(m is Type))
                     .Select(m => m.Name)
                     .ToList()
@@ -54,20 +60,28 @@ namespace Rock.Reflection
 
         /// <summary>
         /// Gets a dynamic proxy object (specifically, an instance of <see cref="UniversalMemberAccessor"/>)
-        /// for the given object.
+        /// for the given object. Returns null if <paramref name="instance"/> is null.
         /// </summary>
         /// <remarks>
         /// If this method is called more than once with the same object, then the value returned
         /// is the same instance of <see cref="UniversalMemberAccessor"/> each time.
         /// </remarks>
         /// <param name="instance">An object.</param>
-        /// <returns>A dynamic proxy object enabling access to all members of the given instance.</returns>
+        /// <returns>
+        /// A dynamic proxy object enabling access to all members of the given instance, or null
+        /// if <paramref name="instance"/> is null.
+        /// </returns>
         /// <remarks>This is a very dangerous method - use with caution.</remarks>
         public static dynamic Get(object instance)
         {
-            if (instance == null)
+            return instance == null ? null : GetInstance(instance);
+        }
+
+        private static UniversalMemberAccessor GetInstance(object instance)
+        {
+            if (instance.GetType().IsValueType)
             {
-                throw new ArgumentNullException("instance");
+                return new UniversalMemberAccessor(instance);
             }
 
             return _instanceMap.GetValue(instance, o => new UniversalMemberAccessor(o));
@@ -182,24 +196,60 @@ namespace Rock.Reflection
             object[] args,
             out object result)
         {
-            if (binder.Name == "LockNonPublicMembers" && binder.CallInfo.ArgumentCount == 0)
+            var invokeMemberCandidates =
+                _invokeMemberFuncs.GetOrAdd(
+                    Tuple.Create(_type, binder.Name),
+                    t => new ReadOnlyCollection<InvokeMemberCandidate>(CreateInvokeMemberCandidates(t.Item2).ToList()));
+
+            result = null;
+            var successfulInvocations = 0;
+
+            foreach (var candidate in invokeMemberCandidates)
             {
-                result = _instance;
+                object candidateResult;
+                if (candidate.TryInvokeMember(_instance, args, out candidateResult))
+                {
+                    result = candidateResult;
+                    successfulInvocations++;
+                }
+            }
+
+            if (successfulInvocations == 1)
+            {
                 return true;
             }
 
-            var invokeMember =
-                _invokeMemberFuncs.GetOrAdd(
-                    Tuple.Create(_type, binder.Name, binder.CallInfo.ArgumentCount),
-                    t => CreateInvokeMemberFunc(t.Item2, t.Item3));
+            return base.TryInvokeMember(binder, args, out result);
+        }
 
-            if (invokeMember == null)
+        private class InvokeMemberCandidate
+        {
+            private readonly Type[] _parameters;
+            private readonly Func<object, object[], object> _invokeMemberFunc;
+
+            public InvokeMemberCandidate(IEnumerable<ParameterInfo> parameters, Func<object, object[], object> invokeMemberFunc)
             {
-                return base.TryInvokeMember(binder, args, out result);
+                _parameters = parameters.Select(p => p.ParameterType).ToArray();
+                _invokeMemberFunc = invokeMemberFunc;
             }
 
-            result = invokeMember(_instance, args);
-            return true;
+            public bool TryInvokeMember(object instance, object[] args, out object result)
+            {
+                if (args.Length != _parameters.Length)
+                {
+                    result = null;
+                    return false;
+                }
+
+                if (args.Where((arg, i) => (arg == null && _parameters[i].IsValueType) || (arg != null && !_parameters[i].IsInstanceOfType(arg))).Any())
+                {
+                    result = null;
+                    return false;
+                }
+
+                result = _invokeMemberFunc(instance, args);
+                return true;
+            }
         }
 
         /// <summary>
@@ -295,22 +345,25 @@ namespace Rock.Reflection
         /// </returns>
         public override IEnumerable<string> GetDynamicMemberNames()
         {
-            return _memberNames.Value;
+            return _memberNames;
         }
 
         private Func<object, object> CreateGetMemberFunc(string name)
         {
             try
             {
+
                 var parameter = Expression.Parameter(typeof(object), "instance");
                 var convertParameter = Expression.Convert(parameter, _type);
 
                 Expression propertyOrField;
+                bool isDelegate;
 
                 var propertyInfo = _type.GetProperty(name, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static);
                 if (propertyInfo != null)
                 {
                     propertyOrField = Expression.Property(IsStatic(propertyInfo) ? null : convertParameter, propertyInfo);
+                    isDelegate = typeof(Delegate).IsAssignableFrom(propertyInfo.PropertyType);
                 }
                 else
                 {
@@ -318,6 +371,7 @@ namespace Rock.Reflection
                     if (fieldInfo != null)
                     {
                         propertyOrField = Expression.Field(fieldInfo.IsStatic ? null : convertParameter, fieldInfo);
+                        isDelegate = typeof(Delegate).IsAssignableFrom(fieldInfo.FieldType);
                     }
                     else
                     {
@@ -344,15 +398,17 @@ namespace Rock.Reflection
                     return func;
                 }
 
-                return obj =>
-                {
-                    var value = func(obj);
+                return
+                    isDelegate ? func // Don't unlock delegate values.
+                        : obj =>
+                        {
+                            var value = func(obj);
 
-                    return
-                        value == null
-                            ? (object)null
-                            : value.UnlockNonPublicMembers(); // Unlock the return value.
-                };
+                            return
+                                value == null
+                                    ? (object)null
+                                    : value.UnlockNonPublicMembers(); // Unlock the return value.
+                        };
             }
             catch
             {
@@ -398,10 +454,11 @@ namespace Rock.Reflection
 
                 return (obj, value) =>
                 {
-                    // Unwrap the value if it is a universalMemberAccessor.
                     var universalMemberAccessor = value as UniversalMemberAccessor;
+
                     if (universalMemberAccessor != null)
                     {
+                        // Unwrap the value if it is a UniversalMemberAccessor.
                         value = universalMemberAccessor._instance;
                     }
 
@@ -414,14 +471,19 @@ namespace Rock.Reflection
             }
         }
 
-        private Func<object, object[], object> CreateInvokeMemberFunc(string name, int argCount)
+        private IEnumerable<InvokeMemberCandidate> CreateInvokeMemberCandidates(string name)
+        {
+            var methodInfos =
+                _type.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
+                    .Where(m => m.Name == name);
+
+            return methodInfos.Select(CreateInvokeMemberCandidate).Where(func => func != null);
+        }
+
+        private InvokeMemberCandidate CreateInvokeMemberCandidate(MethodInfo methodInfo)
         {
             try
             {
-                var methodInfo =
-                    _type.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
-                        .Single(m => m.Name == name && m.GetParameters().Length == argCount);
-
                 var instanceParameter = Expression.Parameter(typeof(object), "instance");
                 var argsParameter = Expression.Parameter(typeof(object[]), "args");
 
@@ -463,10 +525,10 @@ namespace Rock.Reflection
 
                 if (ShouldReturnRawValue(methodInfo.ReturnType))
                 {
-                    return (obj, args) => func(obj, UnwrapArgs(args));
+                    return new InvokeMemberCandidate(methodInfoParameters, (obj, args) => func(obj, UnwrapArgs(args)));
                 }
 
-                return (obj, args) =>
+                return new InvokeMemberCandidate(methodInfoParameters, (obj, args) =>
                 {
                     var value = func(obj, UnwrapArgs(args));
 
@@ -474,7 +536,7 @@ namespace Rock.Reflection
                         value == null
                             ? (object)null
                             : value.UnlockNonPublicMembers(); // Unlock the return value.
-                };
+                });
             }
             catch
             {

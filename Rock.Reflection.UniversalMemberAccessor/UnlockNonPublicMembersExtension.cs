@@ -7,14 +7,19 @@ namespace Rock.Reflection
     {
         /// <summary>
         /// Gets a dynamic proxy object (specifically, an instance of <see cref="UniversalMemberAccessor"/>)
-        /// for the object.
+        /// for the given object. Returns null if <paramref name="instance"/> is null.
         /// </summary>
         /// <remarks>
         /// If this method is called more than once with the same object, then the value returned
         /// is the same instance of <see cref="UniversalMemberAccessor"/> each time.
+        /// <para>This method returns the result of a call to <see cref="UniversalMemberAccessor.Get(object)"/>,
+        /// passing the <paramref name="instance"/> parameter.</para>
         /// </remarks>
         /// <param name="instance">An object.</param>
-        /// <returns>A dynamic proxy object enabling access to all members of the provided object.</returns>
+        /// <returns>
+        /// A dynamic proxy object enabling access to all members of the given instance, or null
+        /// if <paramref name="instance"/> is null.
+        /// </returns>
         public static dynamic UnlockNonPublicMembers(this object instance)
         {
             return UniversalMemberAccessor.Get(instance);
