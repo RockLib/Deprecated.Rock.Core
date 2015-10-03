@@ -9,7 +9,7 @@ namespace Rock.Reflection.UnitTests
         [Test]
         public void CanGetValueOfPrivateInstanceField()
         {
-            var foo = new Foo(123).UnlockNonPublicMembers();
+            var foo = new Foo(123).Unlock();
 
             int bar = foo._bar;
 
@@ -19,7 +19,7 @@ namespace Rock.Reflection.UnitTests
         [Test]
         public void CanGetValueOfPrivateInstanceProperty()
         {
-            var foo = new Foo(123).UnlockNonPublicMembers();
+            var foo = new Foo(123).Unlock();
 
             int bar = foo.Bar;
 
@@ -29,7 +29,7 @@ namespace Rock.Reflection.UnitTests
         [Test]
         public void CanSetValueOfPrivateInstanceField()
         {
-            var foo = new Foo().UnlockNonPublicMembers();
+            var foo = new Foo().Unlock();
 
             foo._bar = 123;
 
@@ -39,7 +39,7 @@ namespace Rock.Reflection.UnitTests
         [Test]
         public void CanSetValueOfPrivateInstanceProperty()
         {
-            var foo = new Foo().UnlockNonPublicMembers();
+            var foo = new Foo().Unlock();
 
             foo.Bar = 123;
 
@@ -51,7 +51,7 @@ namespace Rock.Reflection.UnitTests
         {
             Foo.Reset();
 
-            var foo = new Foo().UnlockNonPublicMembers();
+            var foo = new Foo().Unlock();
 
             int baz = foo._baz;
 
@@ -63,7 +63,7 @@ namespace Rock.Reflection.UnitTests
         {
             Foo.Reset();
 
-            var foo = new Foo().UnlockNonPublicMembers();
+            var foo = new Foo().Unlock();
 
             int baz = foo.Baz;
 
@@ -73,7 +73,7 @@ namespace Rock.Reflection.UnitTests
         [Test]
         public void CanSetValueOfPrivateStaticFieldThroughInstanceAccessor()
         {
-            var foo = new Foo().UnlockNonPublicMembers();
+            var foo = new Foo().Unlock();
 
             foo._baz = 123;
 
@@ -83,7 +83,7 @@ namespace Rock.Reflection.UnitTests
         [Test]
         public void CanSetValueOfPrivateStaticPropertyThroughInstanceAccessor()
         {
-            var foo = new Foo().UnlockNonPublicMembers();
+            var foo = new Foo().Unlock();
 
             foo.Baz = 123;
 
@@ -137,7 +137,7 @@ namespace Rock.Reflection.UnitTests
         [Test]
         public void CanRegisterAndDeregisterPrivateInstanceEvent()
         {
-            var bar = new Bar().UnlockNonPublicMembers();
+            var bar = new Bar().Unlock();
 
             var invocationCount = 0;
 
@@ -159,7 +159,7 @@ namespace Rock.Reflection.UnitTests
         [Test]
         public void CanRegisterAndDeregisterPrivateStaticEventThroughInstanceAccessor()
         {
-            var bar = new Bar().UnlockNonPublicMembers();
+            var bar = new Bar().Unlock();
 
             var invocationCount = 0;
 
@@ -203,7 +203,7 @@ namespace Rock.Reflection.UnitTests
         [Test]
         public void CanIllegallyInvokeEvents()
         {
-            var bar = new Bar().UnlockNonPublicMembers();
+            var bar = new Bar().Unlock();
 
             var eventHandler1Count = 0;
             var eventHandler2Count = 0;
@@ -235,7 +235,7 @@ namespace Rock.Reflection.UnitTests
         [Test]
         public void CanCallPrivateInstanceMethods()
         {
-            var foo = new Foo().UnlockNonPublicMembers();
+            var foo = new Foo().Unlock();
 
             Assert.That(foo.Qux(123, "abc"), Is.EqualTo("Qux(int i, string s)"));
         }
@@ -243,7 +243,7 @@ namespace Rock.Reflection.UnitTests
         [Test]
         public void CanCallPrivateStaticMethodsThroughInstanceAccessor()
         {
-            var foo = new Foo().UnlockNonPublicMembers();
+            var foo = new Foo().Unlock();
 
             Assert.That(foo.Grault(123), Is.EqualTo("Grault(int i)"));
         }
@@ -259,7 +259,7 @@ namespace Rock.Reflection.UnitTests
         [Test]
         public void CanResolveOverloadedMethods()
         {
-            var foo = new Foo().UnlockNonPublicMembers();
+            var foo = new Foo().Unlock();
 
             Assert.That(foo.Garply(), Is.EqualTo("Garply()"));
             Assert.That(foo.Garply(123), Is.EqualTo("Garply(int i)"));
@@ -271,7 +271,7 @@ namespace Rock.Reflection.UnitTests
         [Test]
         public void AmbiguousInvocationThrowsRuntimeBinderException()
         {
-            var foo = new Foo().UnlockNonPublicMembers();
+            var foo = new Foo().Unlock();
 
             Assert.That(() => foo.Garply(null), Throws.InstanceOf<RuntimeBinderException>());
         }

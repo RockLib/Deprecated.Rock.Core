@@ -395,16 +395,9 @@ namespace Rock.Reflection
                 }
 
                 return
-                    isDelegate ? func // Don't unlock delegate values.
-                        : obj =>
-                        {
-                            var value = func(obj);
-
-                            return
-                                value == null
-                                    ? (object)null
-                                    : value.UnlockNonPublicMembers(); // Unlock the return value.
-                        };
+                    isDelegate
+                        ? func // Don't unlock delegate values.
+                        : obj => func(obj).Unlock();
             }
             catch
             {
@@ -517,8 +510,7 @@ namespace Rock.Reflection
                 }
                 else
                 {
-                    yield return new CreateInstanceCandidate(methodInfoParameters, args =>
-                        func(UnwrapArgs(args)).UnlockNonPublicMembers()); // Unlock the return value.
+                    yield return new CreateInstanceCandidate(methodInfoParameters, args => func(UnwrapArgs(args)).Unlock());
                 }
             }
         }
@@ -590,15 +582,7 @@ namespace Rock.Reflection
                     return new InvokeMemberCandidate(methodInfoParameters, (obj, args) => func(obj, UnwrapArgs(args)));
                 }
 
-                return new InvokeMemberCandidate(methodInfoParameters, (obj, args) =>
-                {
-                    var value = func(obj, UnwrapArgs(args));
-
-                    return
-                        value == null
-                            ? (object)null
-                            : value.UnlockNonPublicMembers(); // Unlock the return value.
-                });
+                return new InvokeMemberCandidate(methodInfoParameters, (obj, args) => func(obj, UnwrapArgs(args)).Unlock());
             }
             catch
             {

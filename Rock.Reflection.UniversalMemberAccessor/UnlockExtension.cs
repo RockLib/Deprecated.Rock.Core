@@ -1,9 +1,9 @@
 namespace Rock.Reflection
 {
     /// <summary>
-    /// A class to provide the <see cref="UnlockNonPublicMembers"/> extension method.
+    /// A class to provide the <see cref="Unlock"/> extension method.
     /// </summary>
-    public static class UnlockNonPublicMembersExtension
+    public static class UnlockExtension
     {
         /// <summary>
         /// Gets a dynamic proxy object (specifically, an instance of <see cref="UniversalMemberAccessor"/>)
@@ -20,7 +20,7 @@ namespace Rock.Reflection
         /// A dynamic proxy object enabling access to all members of the given instance, or null
         /// if <paramref name="instance"/> is null.
         /// </returns>
-        public static dynamic UnlockNonPublicMembers(this object instance)
+        public static dynamic Unlock(this object instance)
         {
             return UniversalMemberAccessor.Get(instance);
         }
