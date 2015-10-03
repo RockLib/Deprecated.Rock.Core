@@ -23,7 +23,7 @@ namespace Rock.Reflection
 
         private static readonly ConcurrentDictionary<Tuple<Type, string>, Func<object, Object>> _getMemberFuncs = new ConcurrentDictionary<Tuple<Type, string>, Func<object, object>>();
         private static readonly ConcurrentDictionary<Tuple<Type, string>, Action<object, object>> _setMemberActions = new ConcurrentDictionary<Tuple<Type, string>, Action<object, object>>();
-        private static readonly ConcurrentDictionary<Tuple<Type, string>, IEnumerable<InvokeMemberCandidate>> _invokeMemberFuncs = new ConcurrentDictionary<Tuple<Type, string>, IEnumerable<InvokeMemberCandidate>>();
+        private static readonly ConcurrentDictionary<Tuple<Type, string>, ReadOnlyCollection<InvokeMemberCandidate>> _invokeMemberFuncs = new ConcurrentDictionary<Tuple<Type, string>, ReadOnlyCollection<InvokeMemberCandidate>>();
 
         private readonly object _instance;
         private readonly Type _type;
@@ -201,21 +201,11 @@ namespace Rock.Reflection
                     Tuple.Create(_type, binder.Name),
                     t => new ReadOnlyCollection<InvokeMemberCandidate>(CreateInvokeMemberCandidates(t.Item2).ToList()));
 
-            result = null;
-            var successfulInvocations = 0;
+            var matchingCandidates = invokeMemberCandidates.Where(c => c.Matches(args)).ToList();
 
-            foreach (var candidate in invokeMemberCandidates)
+            if (matchingCandidates.Count == 1)
             {
-                object candidateResult;
-                if (candidate.TryInvokeMember(_instance, args, out candidateResult))
-                {
-                    result = candidateResult;
-                    successfulInvocations++;
-                }
-            }
-
-            if (successfulInvocations == 1)
-            {
+                result = matchingCandidates[0].InvokeMember(_instance, args);
                 return true;
             }
 
@@ -233,22 +223,27 @@ namespace Rock.Reflection
                 _invokeMemberFunc = invokeMemberFunc;
             }
 
-            public bool TryInvokeMember(object instance, object[] args, out object result)
+            public bool Matches(ICollection<object> args)
             {
-                if (args.Length != _parameters.Length)
+                if (args.Count != _parameters.Length)
                 {
-                    result = null;
                     return false;
                 }
 
-                if (args.Where((arg, i) => (arg == null && _parameters[i].IsValueType) || (arg != null && !_parameters[i].IsInstanceOfType(arg))).Any())
+                if (args.Where((arg, i) =>
+                    (arg == null && _parameters[i].IsValueType)
+                    || (arg != null && !_parameters[i].IsInstanceOfType(arg)))
+                    .Any())
                 {
-                    result = null;
                     return false;
                 }
 
-                result = _invokeMemberFunc(instance, args);
                 return true;
+            }
+
+            public object InvokeMember(object instance, object[] args)
+            {
+                return _invokeMemberFunc(instance, args);
             }
         }
 

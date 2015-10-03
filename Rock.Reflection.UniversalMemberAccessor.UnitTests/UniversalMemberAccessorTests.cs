@@ -217,6 +217,7 @@ namespace Rock.Reflection.UnitTests
             Assert.That(foo.Garply(123), Is.EqualTo("Garply(int i)"));
             Assert.That(foo.Garply("abc"), Is.EqualTo("Garply(string s)"));
             Assert.That(foo.Garply(new Baz()), Is.EqualTo("Garply(IBaz b)"));
+            Assert.That(foo.Garply(123, null), Is.EqualTo("Garply(int i, string s)"));
         }
 
         [Test]
@@ -277,6 +278,11 @@ namespace Rock.Reflection.UnitTests
         private string Garply(IBaz b)
         {
             return "Garply(IBaz b)";
+        }
+
+        private string Garply(int i, string s)
+        {
+            return "Garply(int i, string s)";
         }
     }
 
