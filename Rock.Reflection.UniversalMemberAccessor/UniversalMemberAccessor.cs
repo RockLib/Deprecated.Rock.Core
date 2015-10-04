@@ -78,17 +78,17 @@ namespace Rock.Reflection
         /// <remarks>This is a very dangerous method - use with caution.</remarks>
         public static dynamic Get(object instance)
         {
-            return instance == null ? null : GetInstance(instance);
-        }
+            if (instance == null)
+            {
+                return null;
+            }
 
-        private static UniversalMemberAccessor GetInstance(object instance)
-        {
             if (instance.GetType().IsValueType)
             {
                 return new UniversalMemberAccessor(instance);
             }
 
-            return _instanceMap.GetValue(instance, o => new UniversalMemberAccessor(o));
+            return _instanceMap.GetValue(instance, obj => new UniversalMemberAccessor(obj));
         }
 
         /// <summary>
