@@ -1,6 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using Microsoft.CSharp.RuntimeBinder;
 using NUnit.Framework;
+using System.Reflection;
 
 namespace Rock.Reflection.UnitTests
 {
@@ -358,6 +361,48 @@ namespace Rock.Reflection.UnitTests
             Assert.That(garplyFactory.New(123).Value, Is.EqualTo("Garply(int i)"));
             Assert.That(garplyFactory.New("abc").Value, Is.EqualTo("Garply(string s)"));
         }
+
+        [Test]
+        public void GetImplicitConvertionMethodsReturnsNoMethodsWhenNoneAreDefined()
+        {
+            var f = UniversalMemberAccessor.Get<UniversalMemberAccessor>();
+
+            Type parameterType = typeof(Thud);
+            Type valueType = typeof(Fred);
+
+            IEnumerable<MethodInfo> implicitConvertionMethods =
+                f.GetImplicitConvertionMethods(parameterType, valueType);
+
+            Assert.That(implicitConvertionMethods.Count(), Is.EqualTo(0));
+        }
+
+        [Test]
+        public void GetImplicitConvertionMethodsReturnsOneMethodWhenOneIsDefined()
+        {
+            var f = UniversalMemberAccessor.Get<UniversalMemberAccessor>();
+
+            Type parameterType = typeof(Fred);
+            Type valueType = typeof(Waldo);
+
+            IEnumerable<MethodInfo> implicitConvertionMethods =
+                f.GetImplicitConvertionMethods(parameterType, valueType);
+
+            Assert.That(implicitConvertionMethods.Count(), Is.EqualTo(1));
+        }
+
+        [Test]
+        public void GetImplicitConvertionMethodsReturnsTwoMethodsWhenTwoAreDefined()
+        {
+            var f = UniversalMemberAccessor.Get<UniversalMemberAccessor>();
+
+            Type parameterType = typeof(Fred);
+            Type valueType = typeof(Thud);
+
+            IEnumerable<MethodInfo> implicitConvertionMethods =
+                f.GetImplicitConvertionMethods(parameterType, valueType);
+
+            Assert.That(implicitConvertionMethods.Count(), Is.EqualTo(2));
+        }
     }
 
     // ReSharper disable UnusedParameter.Local
@@ -420,6 +465,18 @@ namespace Rock.Reflection.UnitTests
         {
             return "Grault(int i)";
         }
+
+        public void Fred(object o)
+        {
+        }
+
+        public void Fred(IBaz b)
+        {
+        }
+
+        public void Fred(Baz b)
+        {
+        }
     }
 
     public class Bar
@@ -455,6 +512,10 @@ namespace Rock.Reflection.UnitTests
     {
     }
 
+    public class AnotherBaz : IBaz
+    {
+    }
+
     public class Qux
     {
         private Qux()
@@ -484,6 +545,33 @@ namespace Rock.Reflection.UnitTests
 
     public static class Grault
     {
+    }
+
+    public class Fred
+    {
+        public static implicit operator Fred(Waldo x)
+        {
+            return new Fred();
+        }
+
+        // Dulicate implicit conversion
+        public static implicit operator Fred(Thud x)
+        {
+            return new Fred();
+        }
+    }
+
+    public class Waldo
+    {
+    }
+
+    public class Thud
+    {
+        // Dulicate implicit conversion
+        public static implicit operator Fred(Thud x)
+        {
+            return new Fred();
+        }
     }
     // ReSharper restore EventNeverSubscribedTo.Local
     // ReSharper restore ConvertToAutoProperty

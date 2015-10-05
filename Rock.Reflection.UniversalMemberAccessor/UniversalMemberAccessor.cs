@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -20,6 +21,9 @@ namespace Rock.Reflection
         private static readonly ConcurrentDictionary<Type, UniversalMemberAccessor> _staticCache = new ConcurrentDictionary<Type, UniversalMemberAccessor>();
         private static readonly ConcurrentDictionary<Type, IEnumerable<string>> _instanceMemberNamesCache = new ConcurrentDictionary<Type, IEnumerable<string>>();
         private static readonly ConcurrentDictionary<Type, IEnumerable<string>> _staticMemberNamesCache = new ConcurrentDictionary<Type, IEnumerable<string>>();
+
+        private static readonly ConcurrentDictionary<Type, bool> _canBeAssignedNullCache = new ConcurrentDictionary<Type, bool>();
+        private static readonly ConcurrentDictionary<Tuple<Type, Type>, bool> _canBeAssignedCache = new ConcurrentDictionary<Tuple<Type, Type>, bool>();
 
         private static readonly ConcurrentDictionary<Tuple<Type, string>, Func<object, Object>> _getMemberFuncs = new ConcurrentDictionary<Tuple<Type, string>, Func<object, object>>();
         private static readonly ConcurrentDictionary<Tuple<Type, string>, Action<object, object>> _setMemberActions = new ConcurrentDictionary<Tuple<Type, string>, Action<object, object>>();
@@ -218,7 +222,15 @@ namespace Rock.Reflection
                     Tuple.Create(_type, binder.Name),
                     t => new ReadOnlyCollection<InvokeMemberCandidate>(CreateInvokeMemberCandidates(t.Item2).ToList()));
 
-            if (invokeMemberCandidates.Count == 0)
+            var legalCandidates = invokeMemberCandidates.Where(c => c.IsLegal(args)).ToList();
+
+            if (legalCandidates.Count == 1)
+            {
+                result = legalCandidates[0].InvokeMember(_instance, args);
+                return true;
+            }
+
+            if (legalCandidates.Count == 0)
             {
                 switch (binder.Name)
                 {
@@ -232,16 +244,16 @@ namespace Rock.Reflection
                         }
                         break;
                 }
-
-                return base.TryInvokeMember(binder, args, out result);
             }
-
-            var matchingCandidates = invokeMemberCandidates.Where(c => c.Matches(args)).ToList();
-
-            if (matchingCandidates.Count == 1)
+            else
             {
-                result = matchingCandidates[0].InvokeMember(_instance, args);
-                return true;
+                var betterMethods = GetBetterMethods(args, legalCandidates);
+
+                if (betterMethods.Count == 1)
+                {
+                    result = betterMethods[0].InvokeMember(_instance, args);
+                    return true;
+                }
             }
 
             return base.TryInvokeMember(binder, args, out result);
@@ -249,16 +261,65 @@ namespace Rock.Reflection
 
         private bool TryCreateInstance(object[] args, out object result)
         {
-            var matchingCandidates = _createInstanceCandidates.Value.Where(c => c.Matches(args)).ToList();
+            var legalCandidates = _createInstanceCandidates.Value.Where(c => c.IsLegal(args)).ToList();
 
-            if (matchingCandidates.Count == 1)
+            if (legalCandidates.Count == 1)
             {
-                result = matchingCandidates[0].CreateInstance(args);
+                result = legalCandidates[0].CreateInstance(args);
+                return true;
+            }
+
+            if (legalCandidates.Count == 0)
+            {
+                result = null;
+                return false;
+            }
+
+            var betterMethods = GetBetterMethods(args, legalCandidates);
+
+            if (betterMethods.Count == 1)
+            {
+                result = betterMethods[0].CreateInstance(args);
                 return true;
             }
 
             result = null;
             return false;
+        }
+
+        private static IList<TCandidate> GetBetterMethods<TCandidate>(object[] args, IList<TCandidate> legalCandidates)
+            where TCandidate : Candidate
+        {
+            var isBestCandidate = Enumerable.Repeat(false, legalCandidates.Count).ToList();
+
+            for (int i = 0; i < legalCandidates.Count; i++)
+            {
+                var candidate = legalCandidates[i];
+
+                for (int j = 0; j < legalCandidates.Count; j++)
+                {
+                    if (i == j)
+                    {
+                        continue;
+                    }
+
+                    var score = candidate.GetBetterScore(legalCandidates[j], args);
+
+                    if (score < 1)
+                    {
+                        isBestCandidate[i] = false;
+                    }
+                }
+            }
+
+            var betterMethods =
+                isBestCandidate
+                    .Select((isBest, index) => new { isBest, index })
+                    .Where(x => x.isBest)
+                    .Select(x => legalCandidates[x.index])
+                    .ToList();
+
+            return betterMethods;
         }
 
         /// <summary>
@@ -337,7 +398,7 @@ namespace Rock.Reflection
             ConvertBinder binder,
             out object result)
         {
-            if (!_type.IsAssignableFrom(binder.ReturnType))
+            if (!binder.ReturnType.IsAssignableFrom(_type))
             {
                 return base.TryConvert(binder, out result);
             }
@@ -655,22 +716,400 @@ namespace Rock.Reflection
                 _parameters = parameters.Select(p => p.ParameterType).ToArray();
             }
 
-            public bool Matches(ICollection<object> args)
+            public int GetBetterScore(Candidate other, object[] args)
             {
-                if (args.Count != _parameters.Length)
+                int score = 0;
+
+                for (int i = 0; i < args.Length; i++)
+                {
+                    if (args[i] == null
+                        || _parameters[i] == other._parameters[i])
+                    {
+                        continue;
+                    }
+
+                    AccumulateScore(_parameters[i], other._parameters[i], args[i].GetType(), ref score);
+                }
+
+                return score;
+            }
+
+            private static void AccumulateScore(Type thisParameter, Type otherParameter, Type argType, ref int score)
+            {
+                // sbyte to short, int, long, float, double, or decimal
+                // byte to short, ushort, int, uint, long, ulong, float, double, or decimal
+                // short to int, long, float, double, or decimal
+                // ushort to int, uint, long, ulong, float, double, or decimal
+                // int to long, float, double, or decimal
+                // uint to long, ulong, float, double, or decimal
+                // long to float, double, or decimal
+                // ulong to float, double, or decimal
+                // char to ushort, int, uint, long, ulong, float, double, or decimal
+                // float to double
+                // Nullable type conversion
+                // Reference type to object
+                // Interface to base interface
+                // Array to array when arrays have the same number of dimensions, there is an implicit conversion from the source element type to the destination element type and the source element type and the destination element type are reference types
+                // Array type to System.Array
+                // Array type to IList<> and its base interfaces
+                // Delegate type to System.Delegate
+                // Boxing conversion
+                // Enum type to System.Enum
+                // User defined conversion (op_implicit)
+
+                // Identity
+                if (thisParameter == argType && otherParameter != argType)
+                {
+                    score++;
+                    return;
+                }
+
+                if (otherParameter == argType && thisParameter != argType)
+                {
+                    score -= short.MaxValue;
+                    return;
+                }
+
+                // Derived class to base class
+                // Class to implemented interface
+                var thisHasAncestor = HasAncestor(argType, thisParameter);
+                var otherHasAncestor = HasAncestor(argType, otherParameter);
+
+                if (thisHasAncestor && !otherHasAncestor)
+                {
+                    score++;
+                    return;
+                }
+
+                if (otherHasAncestor && !thisHasAncestor)
+                {
+                    score -= short.MaxValue;
+                    return;
+                }
+            }
+
+            private static bool HasAncestor(Type type, Type ancestorType)
+            {
+                if (ancestorType == typeof(object))
                 {
                     return false;
                 }
 
-                if (args.Where((arg, i) =>
-                    (arg == null && _parameters[i].IsValueType)
-                    || (arg != null && !_parameters[i].IsInstanceOfType(arg)))
-                    .Any())
+                if (ancestorType.IsInterface)
+                {
+                    return type.GetInterfaces().Any(i => i == ancestorType);
+                }
+
+                if (ancestorType.IsClass)
+                {
+                    while (true)
+                    {
+                        type = type.BaseType;
+
+                        if (type == ancestorType)
+                        {
+                            return true;
+                        }
+
+                        if (type == typeof(object) || type == null)
+                        {
+                            return false;
+                        }
+                    }
+                }
+
+                return false;
+            }
+
+            public bool IsLegal(object[] args)
+            {
+                if (args.Length != _parameters.Length)
                 {
                     return false;
+                }
+
+                for (int i = 0; i < args.Length; i++)
+                {
+                    if (args[i] != null)
+                    {
+                        if (!CanBeAssigned(_parameters[i], args[i].GetType()))
+                        {
+                            return false;
+                        }
+                    }
+                    else if (!CanBeAssignedNull(_parameters[i]))
+                    {
+                        return false;
+                    }
                 }
 
                 return true;
+            }
+        }
+
+        private static bool CanBeAssignedNull(Type type)
+        {
+            return _canBeAssignedNullCache.GetOrAdd(type, t =>
+                !t.IsValueType || (t.IsGenericType && t.GetGenericTypeDefinition() == typeof(Nullable<>)));
+        }
+
+        private static bool CanBeAssigned(Type parameterType, Type valueType)
+        {
+            return _canBeAssignedCache.GetOrAdd(
+                Tuple.Create(parameterType, valueType),
+                tuple => GetCanBeAssignedValue(tuple.Item1, tuple.Item2, false));
+        }
+
+        private static bool GetCanBeAssignedValue(Type parameterType, Type valueType, bool skipImplicitConversionSearch)
+        {
+            // Identity
+            if (valueType == parameterType)
+            {
+                return true;
+            }
+
+            // Anything to object
+            if (parameterType == typeof(object))
+            {
+                return true;
+            }
+
+            // Nullable type conversion
+            if (parameterType.IsGenericType && parameterType.GetGenericTypeDefinition() == typeof(Nullable<>))
+            {
+                parameterType = parameterType.GetGenericArguments()[0];
+
+                // Recheck identity
+                if (valueType == parameterType)
+                {
+                    return true;
+                }
+            }
+
+            // sbyte to short, int, long, float, double, or decimal
+            if (valueType == typeof(sbyte))
+            {
+                return parameterType == typeof(short)
+                       || parameterType == typeof(int)
+                       || parameterType == typeof(long)
+                       || parameterType == typeof(float)
+                       || parameterType == typeof(double)
+                       || parameterType == typeof(decimal);
+            }
+
+            // byte to short, ushort, int, uint, long, ulong, float, double, or decimal
+            if (valueType == typeof(byte))
+            {
+                return parameterType == typeof(short)
+                       || parameterType == typeof(ushort)
+                       || parameterType == typeof(int)
+                       || parameterType == typeof(uint)
+                       || parameterType == typeof(long)
+                       || parameterType == typeof(ulong)
+                       || parameterType == typeof(float)
+                       || parameterType == typeof(double)
+                       || parameterType == typeof(decimal);
+            }
+
+            // short to int, long, float, double, or decimal
+            if (valueType == typeof(short))
+            {
+                return parameterType == typeof(int)
+                       || parameterType == typeof(long)
+                       || parameterType == typeof(float)
+                       || parameterType == typeof(double)
+                       || parameterType == typeof(decimal);
+            }
+
+            // ushort to int, uint, long, ulong, float, double, or decimal
+            if (valueType == typeof(ushort))
+            {
+                return parameterType == typeof(int)
+                       || parameterType == typeof(uint)
+                       || parameterType == typeof(long)
+                       || parameterType == typeof(ulong)
+                       || parameterType == typeof(float)
+                       || parameterType == typeof(double)
+                       || parameterType == typeof(decimal);
+            }
+
+            // int to long, float, double, or decimal
+            if (valueType == typeof(int))
+            {
+                return parameterType == typeof(long)
+                       || parameterType == typeof(float)
+                       || parameterType == typeof(double)
+                       || parameterType == typeof(decimal);
+            }
+
+            // uint to long, ulong, float, double, or decimal
+            if (valueType == typeof(uint))
+            {
+                return parameterType == typeof(long)
+                       || parameterType == typeof(ulong)
+                       || parameterType == typeof(float)
+                       || parameterType == typeof(double)
+                       || parameterType == typeof(decimal);
+            }
+
+            // long to float, double, or decimal
+            if (valueType == typeof(double))
+            {
+                return parameterType == typeof(float)
+                       || parameterType == typeof(double)
+                       || parameterType == typeof(decimal);
+            }
+
+            // ulong to float, double, or decimal
+            if (valueType == typeof(ulong))
+            {
+                return parameterType == typeof(float)
+                       || parameterType == typeof(double)
+                       || parameterType == typeof(decimal);
+            }
+
+            // char to ushort, int, uint, long, ulong, float, double, or decimal
+            if (valueType == typeof(char))
+            {
+                return parameterType == typeof(ushort)
+                       || parameterType == typeof(int)
+                       || parameterType == typeof(uint)
+                       || parameterType == typeof(long)
+                       || parameterType == typeof(ulong)
+                       || parameterType == typeof(float)
+                       || parameterType == typeof(double)
+                       || parameterType == typeof(decimal);
+            }
+
+            // float to double
+            if (valueType == typeof(float))
+            {
+                return parameterType == typeof(double);
+            }
+
+            // Derived class to base class
+            // Array type to System.Array
+            // Delegate type to System.Delegate
+            // Enum type to System.Enum
+            if (IsDerivedFrom(valueType, parameterType))
+            {
+                return true;
+            }
+
+            // Class to implemented interface
+            if (parameterType.IsInterface && valueType.GetInterfaces().Any(i => i == parameterType))
+            {
+                return true;
+            }
+
+            // Interface to base interface (not necessary - arg is a concrete type)
+
+            if (valueType.IsArray)
+            {
+                if (parameterType.IsArray)
+                {
+                    // Array to array when arrays have the same number of dimensions, there is an implicit
+                    // conversion from the source element type to the destination element type and the source
+                    // element type and the destination element type are reference types
+                    if (valueType.GetArrayRank() == parameterType.GetArrayRank())
+                    {
+                        var parameterElementType = parameterType.GetElementType();
+                        var valueElementType = valueType.GetElementType();
+
+                        if (!parameterElementType.IsValueType
+                            && !valueElementType.IsValueType
+                            && CanBeAssigned(parameterElementType, valueElementType))
+                        {
+                            return true;
+                        }
+                    }
+                }
+                else if (parameterType.IsInterface && valueType.GetArrayRank() == 1)
+                {
+                    // Array type to IList<> and its base interfaces
+                    if (parameterType.IsGenericType)
+                    {
+                        var typeDefinition = parameterType.GetGenericTypeDefinition();
+
+                        if (typeDefinition == typeof(IList<>)
+                            || typeDefinition == typeof(ICollection<>)
+                            || typeDefinition == typeof(IEnumerable<>))
+                        {
+                            var parameterGenericArgument = parameterType.GetGenericArguments()[0];
+                            var valueElementType = valueType.GetElementType();
+
+                            if (CanBeAssigned(parameterGenericArgument, valueElementType))
+                            {
+                                return true;
+                            }
+                        }
+                    }
+                    else if (parameterType == typeof(IList)
+                             || parameterType == typeof(ICollection)
+                             || parameterType == typeof(IEnumerable))
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+
+            // Boxing conversion (not necessary)
+
+            if (!skipImplicitConversionSearch)
+            {
+                // User defined conversion (op_implicit)
+                var implicitConvertionMethods = GetImplicitConvertionMethods(parameterType, valueType);
+
+                if (implicitConvertionMethods.Count() == 1)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static IEnumerable<MethodInfo> GetImplicitConvertionMethods(Type parameterType, Type valueType)
+        {
+            var allImplicitConversionMethods =
+                GetImplicitConvertionMethods(parameterType).Concat(GetImplicitConvertionMethods(valueType));
+
+            var projection =
+                allImplicitConversionMethods
+                    .Select(m => new { MethodInfo = m, m.ReturnType, m.GetParameters()[0].ParameterType });
+
+            var filter = projection
+                .Where(method => GetCanBeAssignedValue(parameterType, method.ReturnType, true)
+                                 && GetCanBeAssignedValue(method.ParameterType, valueType, true));
+
+            var implicitConvertionMethods = filter.Select(method => method.MethodInfo);
+
+            return implicitConvertionMethods;
+        }
+
+        private static IEnumerable<MethodInfo> GetImplicitConvertionMethods(Type type)
+        {
+            return type.GetMethods(BindingFlags.Public | BindingFlags.Static)
+                .Where(m => m.Name == "op_Implicit");
+        }
+
+        private static bool IsDerivedFrom(Type type, Type baseType)
+        {
+            while (true)
+            {
+                type = type.BaseType;
+
+                if (type == baseType)
+                {
+                    return true;
+                } 
+                
+                if (type == typeof(object) || type == null)
+                {
+                    return false;
+                }
             }
         }
 
