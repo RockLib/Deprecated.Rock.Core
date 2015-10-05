@@ -403,6 +403,27 @@ namespace Rock.Reflection.UnitTests
 
             Assert.That(implicitConvertionMethods.Count(), Is.EqualTo(2));
         }
+
+        [TestCase(typeof(Pork), typeof(Pork), 0)]
+        [TestCase(typeof(Pork), typeof(IPork), 1)]
+        [TestCase(typeof(Ham), typeof(Ham), 0)]
+        [TestCase(typeof(Ham), typeof(Pork), 1)] // «═╗ Potential
+        [TestCase(typeof(Ham), typeof(IHam), 1)] // «═╝ conflict
+        [TestCase(typeof(Ham), typeof(IPork), 2)]
+        [TestCase(typeof(CountryHam), typeof(CountryHam), 0)]
+        [TestCase(typeof(CountryHam), typeof(ICountryHam), 1)] // «═╗ Potential
+        [TestCase(typeof(CountryHam), typeof(Ham), 1)] // «═════════╝ conflict
+        [TestCase(typeof(CountryHam), typeof(Pork), 2)] // «═╗ Potential
+        [TestCase(typeof(CountryHam), typeof(IHam), 2)] // «═╝ conflict
+        [TestCase(typeof(CountryHam), typeof(IPork), 3)]
+        public void AncestorDistanceIsCalculatedCorrectly(Type type, Type ancestorType, int expectedDistance)
+        {
+            var candidate = UniversalMemberAccessor.Get("Rock.Reflection.UniversalMemberAccessor+Candidate, Rock.Reflection.UniversalMemberAccessor");
+
+            var distance = candidate.GetAncestorDistance(type, ancestorType);
+
+            Assert.That(distance, Is.EqualTo(expectedDistance));
+        }
     }
 
     // ReSharper disable UnusedParameter.Local
@@ -571,6 +592,27 @@ namespace Rock.Reflection.UnitTests
         public static implicit operator Fred(Thud x)
         {
             return new Fred();
+        }
+    }
+
+    public interface IPork { }
+    public interface IHam : IPork { }
+    public interface ICountryHam : IHam { }
+
+    public class Pork : IPork { }
+    public class Ham : Pork, IHam { }
+    public class CountryHam : Ham, ICountryHam { }
+
+    public class Spam
+    {
+        public string Foo(IHam ham)
+        {
+            return "IHam";
+        }
+
+        public string Foo(Ham ham)
+        {
+            return "Ham";
         }
     }
     // ReSharper restore EventNeverSubscribedTo.Local

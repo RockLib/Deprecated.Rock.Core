@@ -290,7 +290,7 @@ namespace Rock.Reflection
         private static IList<TCandidate> GetBetterMethods<TCandidate>(object[] args, IList<TCandidate> legalCandidates)
             where TCandidate : Candidate
         {
-            var isBestCandidate = Enumerable.Repeat(false, legalCandidates.Count).ToList();
+            var isBestCandidate = Enumerable.Repeat(true, legalCandidates.Count).ToList();
 
             for (int i = 0; i < legalCandidates.Count; i++)
             {
@@ -775,17 +775,98 @@ namespace Rock.Reflection
                 var thisHasAncestor = HasAncestor(argType, thisParameter);
                 var otherHasAncestor = HasAncestor(argType, otherParameter);
 
-                if (thisHasAncestor && !otherHasAncestor)
+                if (thisHasAncestor && otherHasAncestor)
                 {
-                    score++;
-                    return;
+                    var thisAncestorDistance = GetAncestorDistance(argType, thisParameter);
+                    var otherAncestorDistance = GetAncestorDistance(argType, otherParameter);
+
+                    if (thisAncestorDistance < otherAncestorDistance)
+                    {
+                        score++;
+                        return;
+                    }
+
+                    if (otherAncestorDistance < thisAncestorDistance)
+                    {
+                        score -= short.MaxValue;
+                        return;
+                    }
+                }
+                else
+                {
+                    if (thisHasAncestor)
+                    {
+                        score++;
+                        return;
+                    }
+
+                    if (otherHasAncestor)
+                    {
+                        score -= short.MaxValue;
+                        return;
+                    }
+                }
+            }
+
+            private static int GetAncestorDistance(Type concreteType, Type ancestorType)
+            {
+                if (ancestorType.IsInterface)
+                {
+                    // if type's interfaces contain ancestorType, check to see if type.BaseType's interfaces contain it, and so one. Each time, add one to the distance.
+
+                    var distance = 0;
+
+                    while (true)
+                    {
+                        if (concreteType.BaseType == null)
+                        {
+                            break;
+                        }
+
+                        if (concreteType.BaseType.GetInterfaces().Contains(ancestorType))
+                        {
+                            distance++;
+                        }
+                        else
+                        {
+                            break;
+                        }
+
+                        concreteType = concreteType.BaseType;
+                    }
+
+                    var typeInterfaces = concreteType.GetInterfaces();
+
+                    return distance + typeInterfaces.Count(
+                            typeInterface =>
+                                typeInterface == ancestorType
+                                || typeInterface.GetInterfaces().Any(typeInterfaceInterface =>
+                                    typeInterfaceInterface == ancestorType));
                 }
 
-                if (otherHasAncestor && !thisHasAncestor)
+                if (ancestorType.IsClass)
                 {
-                    score -= short.MaxValue;
-                    return;
+                    var count = 0;
+
+                    while (true)
+                    {
+                        if (concreteType == ancestorType)
+                        {
+                            return count;
+                        }
+
+                        count++;
+
+                        if (concreteType == typeof(object) || concreteType == null)
+                        {
+                            return ushort.MaxValue;
+                        }
+
+                        concreteType = concreteType.BaseType;
+                    }
                 }
+
+                return ushort.MaxValue;
             }
 
             private static bool HasAncestor(Type type, Type ancestorType)
