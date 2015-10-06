@@ -426,13 +426,11 @@ namespace Rock.Reflection
                 var convertParameter = Expression.Convert(parameter, _type);
 
                 Expression propertyOrField;
-                bool isDelegate;
 
                 var propertyInfo = _type.GetProperty(name, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static);
                 if (propertyInfo != null)
                 {
                     propertyOrField = Expression.Property(IsStatic(propertyInfo) ? null : convertParameter, propertyInfo);
-                    isDelegate = typeof(Delegate).IsAssignableFrom(propertyInfo.PropertyType);
                 }
                 else
                 {
@@ -440,7 +438,6 @@ namespace Rock.Reflection
                     if (fieldInfo != null)
                     {
                         propertyOrField = Expression.Field(fieldInfo.IsStatic ? null : convertParameter, fieldInfo);
-                        isDelegate = typeof(Delegate).IsAssignableFrom(fieldInfo.FieldType);
                     }
                     else
                     {
@@ -467,10 +464,7 @@ namespace Rock.Reflection
                     return func;
                 }
 
-                return
-                    isDelegate
-                        ? func // Don't unlock delegate values.
-                        : obj => func(obj).Unlock();
+                return obj => func(obj).Unlock();
             }
             catch
             {
@@ -666,7 +660,9 @@ namespace Rock.Reflection
         private static bool ShouldReturnRawValue(Type type)
         {
             return
-                IsValue(type)
+                type == typeof(string)
+                || typeof(Delegate).IsAssignableFrom(type)
+                || IsValue(type)
                 || (type.IsGenericType
                     && type.GetGenericTypeDefinition() == typeof(Nullable<>)
                     && IsValue(type.GetGenericArguments()[0]));
@@ -676,7 +672,7 @@ namespace Rock.Reflection
         {
             return
                 type.IsPrimitive
-                || type == typeof(string)
+                || type.IsEnum
                 || type == typeof(decimal)
                 || type == typeof(DateTime)
                 || type == typeof(TimeSpan)

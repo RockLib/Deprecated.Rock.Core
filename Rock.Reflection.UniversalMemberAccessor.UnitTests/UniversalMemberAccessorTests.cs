@@ -363,6 +363,54 @@ namespace Rock.Reflection.UnitTests
         }
 
         [Test]
+        public void CanGetAndSetDelegateValue()
+        {
+            var waldo = new Waldo().Unlock();
+
+            var foo = waldo._foo;
+
+            Assert.That(foo, Is.InstanceOf<EventHandler>());
+        }
+
+        [Test]
+        public void CanGetAndSetEnumValue()
+        {
+            var waldo = new Waldo().Unlock();
+
+            var wobble = waldo._wobble;
+
+            Assert.That(wobble, Is.InstanceOf<Waldo.Wobble>());
+            Assert.That(wobble, Is.EqualTo(Waldo.Wobble.Wubble));
+
+            waldo._wobble = Waldo.Wobble.Wibble;
+            wobble = waldo._wobble;
+
+            Assert.That(wobble, Is.EqualTo(Waldo.Wobble.Wibble));
+        }
+
+        [Test]
+        public void CanGetPrivateEnumValue()
+        {
+            var wibbleType = typeof(Waldo).GetNestedTypes(BindingFlags.NonPublic | BindingFlags.Public).Single(t => t.Name == "Wibble");
+            var Wibble = UniversalMemberAccessor.Get(wibbleType);
+
+            // Note that these variables are declared as object. (see below)
+            object wubble = Wibble.Wubble;
+            object wobble = Wibble.Wobble;
+
+            Assert.That(wubble.GetType(), Is.EqualTo(wibbleType));
+            Assert.That(wobble.GetType(), Is.EqualTo(wibbleType));
+
+            // If the wubble and wobble variables had been declared dynamic,
+            // then these conversions would fail.
+            var wubbleInt = (int)wubble;
+            var wobbleInt = (int)wobble;
+
+            Assert.That(wubbleInt, Is.EqualTo(0));
+            Assert.That(wobbleInt, Is.EqualTo(1));
+        }
+
+        [Test]
         public void GetImplicitConvertionMethodsReturnsNoMethodsWhenNoneAreDefined()
         {
             var f = UniversalMemberAccessor.Get<UniversalMemberAccessor>();
@@ -759,6 +807,24 @@ namespace Rock.Reflection.UnitTests
 
     public class Waldo
     {
+        private EventHandler _foo = FooHandler;
+        private Wobble _wobble;
+
+        public enum Wobble
+        {
+            Wubble,
+            Wibble
+        }
+
+        private enum Wibble
+        {
+            Wubble,
+            Wobble
+        }
+
+        private static void FooHandler(object sender, EventArgs args)
+        {
+        }
     }
 
     public class Thud
