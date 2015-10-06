@@ -757,6 +757,11 @@ namespace Rock.Reflection
                 // Enum type to System.Enum
                 // User defined conversion (op_implicit)
 
+                if (thisParameter == otherParameter)
+                {
+                    return;
+                }
+
                 // Identity
                 if (thisParameter == argType && otherParameter != argType)
                 {
@@ -768,6 +773,41 @@ namespace Rock.Reflection
                 {
                     score -= short.MaxValue;
                     return;
+                }
+
+                // Object is always last
+                if (otherParameter == typeof(object))
+                {
+                    score++;
+                    return;
+                }
+
+                if (thisParameter == typeof(object))
+                {
+                    score -= short.MaxValue;
+                }
+
+                if (IsNumeric(argType))
+                {
+                    var thisAncestorDistance = GetAncestorDistance(argType, thisParameter);
+                    var otherAncestorDistance = GetAncestorDistance(argType, otherParameter);
+
+                    if (thisAncestorDistance == otherAncestorDistance)
+                    {
+                        return;
+                    }
+
+                    if (thisAncestorDistance < otherAncestorDistance)
+                    {
+                        score++;
+                        return;
+                    }
+
+                    if (otherAncestorDistance < thisAncestorDistance)
+                    {
+                        score -= short.MaxValue;
+                        return;
+                    }
                 }
 
                 // Derived class to base class
@@ -808,8 +848,121 @@ namespace Rock.Reflection
                 }
             }
 
+            private static bool IsNumeric(Type type)
+            {
+                return type == typeof(sbyte)
+                       || type == typeof(byte)
+                       || type == typeof(short)
+                       || type == typeof(ushort)
+                       || type == typeof(int)
+                       || type == typeof(uint)
+                       || type == typeof(long)
+                       || type == typeof(ulong)
+                       || type == typeof(float)
+                       || type == typeof(double)
+                       || type == typeof(decimal);
+            }
+
+            private static readonly Type[] _signedComparisons =
+            {
+                typeof(sbyte),
+                typeof(short),
+                typeof(int),
+                typeof(long),
+                typeof(float),
+                typeof(double),
+                typeof(decimal)
+            };
+
+            private static readonly Type[] _unsignedComparisons =
+            {
+                typeof(byte),
+                typeof(short),
+                typeof(ushort),
+                typeof(int),
+                typeof(uint),
+                typeof(long),
+                typeof(ulong),
+                typeof(float),
+                typeof(double),
+                typeof(decimal)
+            };
+
             private static int GetAncestorDistance(Type concreteType, Type ancestorType)
             {
+                if ((IsNumeric(concreteType) || concreteType == typeof(char))
+                    && IsNumeric(ancestorType))
+                {
+                    Type[] comparisons;
+
+                    if (concreteType == typeof(sbyte)
+                        || concreteType == typeof(short)
+                        || concreteType == typeof(int)
+                        || concreteType == typeof(long))
+                    {
+                        comparisons = _signedComparisons;
+                    }
+                    else
+                    {
+                        comparisons = _unsignedComparisons;
+                    }
+
+                    if (concreteType == typeof(char))
+                    {
+                        concreteType = typeof(short);
+                    }
+
+                    var concreteIndex = -1;
+                    var ancestorIndex = -1;
+
+                    for (var i = 0; i < comparisons.Length; i++)
+                    {
+                        if (comparisons[i] == concreteType)
+                        {
+                            concreteIndex = i;
+                        }
+
+                        if (comparisons[i] == ancestorType)
+                        {
+                            ancestorIndex = i;
+                        }
+                    }
+
+                    System.Diagnostics.Debug.Assert(concreteIndex != -1);
+                    System.Diagnostics.Debug.Assert(ancestorIndex != -1);
+                    System.Diagnostics.Debug.Assert(concreteIndex <= ancestorIndex);
+
+                    return ancestorIndex - concreteIndex;
+
+                    // Signed Value
+                    //
+                    // short
+                    // int
+                    // long
+                    // float
+                    // double
+                    // decimal*
+
+                    // Unsigned Value
+                    //
+                    // short
+                    // ushort
+                    // int
+                    // uint
+                    // long
+                    // ulong
+                    // float
+                    // double
+                    // decimal*
+
+                    // *float and double do not convert to decimal, nor does decimal convert to
+                    //  them. If 1) the given value is an integer type, 2) there is no method
+                    //  with a legal integer type parameter, 3) there is a method with a decimal
+                    //  parameter, and 4) there is another method with either a double or a float
+                    //  parameter (or two methods with both types); then there is an ambiguous
+                    //  match (CS0121).
+                }
+
                 if (ancestorType.IsInterface)
                 {
                     // if type's interfaces contain ancestorType, check to see if type.BaseType's interfaces contain it, and so one. Each time, add one to the distance.

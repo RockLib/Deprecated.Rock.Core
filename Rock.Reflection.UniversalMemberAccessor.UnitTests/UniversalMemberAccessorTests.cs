@@ -416,13 +416,188 @@ namespace Rock.Reflection.UnitTests
         [TestCase(typeof(CountryHam), typeof(Pork), 2)] // «═╗ Potential
         [TestCase(typeof(CountryHam), typeof(IHam), 2)] // «═╝ conflict
         [TestCase(typeof(CountryHam), typeof(IPork), 3)]
-        public void AncestorDistanceIsCalculatedCorrectly(Type type, Type ancestorType, int expectedDistance)
+        public void AncestorDistanceIsCalculatedCorrectlyForInterfacesAndClasses(Type type, Type ancestorType, int expectedDistance)
         {
-            var candidate = UniversalMemberAccessor.Get("Rock.Reflection.UniversalMemberAccessor+Candidate, Rock.Reflection.UniversalMemberAccessor");
+            var candidate =
+                UniversalMemberAccessor.Get(
+                    "Rock.Reflection.UniversalMemberAccessor+Candidate");
 
             var distance = candidate.GetAncestorDistance(type, ancestorType);
 
             Assert.That(distance, Is.EqualTo(expectedDistance));
+        }
+
+        [TestCase(typeof(sbyte), typeof(sbyte), 0)]
+        [TestCase(typeof(sbyte), typeof(short), 1)]
+        [TestCase(typeof(sbyte), typeof(int), 2)]
+        [TestCase(typeof(sbyte), typeof(long), 3)]
+        [TestCase(typeof(sbyte), typeof(float), 4)]
+        [TestCase(typeof(sbyte), typeof(double), 5)]
+        [TestCase(typeof(sbyte), typeof(decimal), 6)]
+
+        [TestCase(typeof(byte), typeof(byte), 0)]
+        [TestCase(typeof(byte), typeof(short), 1)]
+        [TestCase(typeof(byte), typeof(ushort), 2)]
+        [TestCase(typeof(byte), typeof(int), 3)]
+        [TestCase(typeof(byte), typeof(uint), 4)]
+        [TestCase(typeof(byte), typeof(long), 5)]
+        [TestCase(typeof(byte), typeof(ulong), 6)]
+        [TestCase(typeof(byte), typeof(float), 7)]
+        [TestCase(typeof(byte), typeof(double), 8)]
+        [TestCase(typeof(byte), typeof(decimal), 9)]
+
+        [TestCase(typeof(short), typeof(short), 0)]
+        [TestCase(typeof(short), typeof(int), 1)]
+        [TestCase(typeof(short), typeof(long), 2)]
+        [TestCase(typeof(short), typeof(float), 3)]
+        [TestCase(typeof(short), typeof(double), 4)]
+        [TestCase(typeof(short), typeof(decimal), 5)]
+
+        [TestCase(typeof(ushort), typeof(ushort), 0)]
+        [TestCase(typeof(ushort), typeof(int), 1)]
+        [TestCase(typeof(ushort), typeof(uint), 2)]
+        [TestCase(typeof(ushort), typeof(long), 3)]
+        [TestCase(typeof(ushort), typeof(ulong), 4)]
+        [TestCase(typeof(ushort), typeof(float), 5)]
+        [TestCase(typeof(ushort), typeof(double), 6)]
+        [TestCase(typeof(ushort), typeof(decimal), 7)]
+
+        [TestCase(typeof(char), typeof(ushort), 1)]
+        [TestCase(typeof(char), typeof(int), 2)]
+        [TestCase(typeof(char), typeof(uint), 3)]
+        [TestCase(typeof(char), typeof(long), 4)]
+        [TestCase(typeof(char), typeof(ulong), 5)]
+        [TestCase(typeof(char), typeof(float), 6)]
+        [TestCase(typeof(char), typeof(double), 7)]
+        [TestCase(typeof(char), typeof(decimal), 8)]
+
+        [TestCase(typeof(int), typeof(int), 0)]
+        [TestCase(typeof(int), typeof(long), 1)]
+        [TestCase(typeof(int), typeof(float), 2)]
+        [TestCase(typeof(int), typeof(double), 3)]
+        [TestCase(typeof(int), typeof(decimal), 4)]
+
+        [TestCase(typeof(uint), typeof(uint), 0)]
+        [TestCase(typeof(uint), typeof(long), 1)]
+        [TestCase(typeof(uint), typeof(ulong), 2)]
+        [TestCase(typeof(uint), typeof(float), 3)]
+        [TestCase(typeof(uint), typeof(double), 4)]
+        [TestCase(typeof(uint), typeof(decimal), 5)]
+
+        [TestCase(typeof(long), typeof(long), 0)]
+        [TestCase(typeof(long), typeof(float), 1)]
+        [TestCase(typeof(long), typeof(double), 2)]
+        [TestCase(typeof(long), typeof(decimal), 3)]
+
+        [TestCase(typeof(ulong), typeof(ulong), 0)]
+        [TestCase(typeof(ulong), typeof(float), 1)]
+        [TestCase(typeof(ulong), typeof(double), 2)]
+        [TestCase(typeof(ulong), typeof(decimal), 3)]
+
+        [TestCase(typeof(float), typeof(float), 0)]
+        [TestCase(typeof(float), typeof(double), 1)]
+        [TestCase(typeof(float), typeof(decimal), 2)]
+
+        [TestCase(typeof(double), typeof(double), 0)]
+        [TestCase(typeof(double), typeof(decimal), 1)]
+
+        [TestCase(typeof(decimal), typeof(decimal), 0)]
+        public void AncestorDistanceIsCalculatedCorrectlyForNumericTypes(Type type, Type ancestorType, int expectedDistance)
+        {
+            var candidate =
+                UniversalMemberAccessor.Get(
+                    "Rock.Reflection.UniversalMemberAccessor+Candidate");
+
+            var distance = candidate.GetAncestorDistance(type, ancestorType);
+
+            Assert.That(distance, Is.EqualTo(expectedDistance));
+        }
+
+        [Test]
+        public void WhenResolvingMethodsAnExceptionIsThrownWhenTheAncestorDistanceIsTheSame1()
+        {
+            var spam = new Spam();
+
+            // Demonstrate behavior in dynamic variable that points to a regular object.
+            dynamic lockedSpam = spam;
+
+            // Call each method with a good match.
+            Assert.That(() => lockedSpam.PublicFoo(new Pork()), Throws.Nothing);
+            Assert.That(() => lockedSpam.PublicFoo(new BadActor()), Throws.Nothing);
+
+            // Ambiguous match - Ham has the same ancestor distance to Pork and IHam.
+            Assert.That(() => lockedSpam.PublicFoo(new Ham()), Throws.InstanceOf<RuntimeBinderException>());
+
+            // Unlock the object and verify that calling its private methods exhibits identical behavior.
+            dynamic unlockedSpam = spam.Unlock();
+
+            Assert.That(() => unlockedSpam.PrivateFoo(new Ham()), Throws.InstanceOf<RuntimeBinderException>());
+            Assert.That(() => unlockedSpam.PrivateFoo(new Pork()), Throws.Nothing);
+            Assert.That(() => unlockedSpam.PrivateFoo(new BadActor()), Throws.Nothing);
+        }
+
+        [Test]
+        public void WhenResolvingMethodsAnExceptionIsThrownWhenTheAncestorDistanceIsTheSame2()
+        {
+            var spam = new Spam();
+
+            // Demonstrate behavior in dynamic variable that points to a regular object.
+            dynamic lockedSpam = spam;
+
+            Assert.That(() => lockedSpam.PublicFoo(new CountryHam()), Throws.InstanceOf<RuntimeBinderException>());
+            Assert.That(() => lockedSpam.PublicFoo(new Pork()), Throws.Nothing);
+            Assert.That(() => lockedSpam.PublicFoo(new BadActor()), Throws.Nothing);
+
+            // Unlock the object and verify that calling its private methods exhibits identical behavior.
+            dynamic unlockedSpam = new Spam().Unlock();
+
+            Assert.That(() => unlockedSpam.PrivateFoo(new CountryHam()), Throws.InstanceOf<RuntimeBinderException>());
+            Assert.That(() => unlockedSpam.PrivateFoo(new Pork()), Throws.Nothing);
+            Assert.That(() => unlockedSpam.PrivateFoo(new BadActor()), Throws.Nothing);
+        }
+
+        [Test]
+        public void WhenResolvingMethodsAnExceptionIsThrownWhenTheAncestorDistanceIsTheSame3()
+        {
+            var spam = new Spam();
+
+            // Demonstrate behavior in dynamic variable that points to a regular object.
+            dynamic lockedSpam = spam;
+
+            Assert.That(() => lockedSpam.PublicBar(new CountryHam()), Throws.InstanceOf<RuntimeBinderException>());
+            Assert.That(() => lockedSpam.PublicBar(new Ham()), Throws.Nothing);
+            Assert.That(() => lockedSpam.PublicBar(new Prosciutto()), Throws.Nothing);
+
+            // Unlock the object and verify that calling its private methods exhibits identical behavior.
+            dynamic unlockedSpam = new Spam().Unlock();
+
+            Assert.That(() => unlockedSpam.PrivateBar(new CountryHam()), Throws.InstanceOf<RuntimeBinderException>());
+            Assert.That(() => unlockedSpam.PrivateBar(new Ham()), Throws.Nothing);
+            Assert.That(() => unlockedSpam.PrivateBar(new Prosciutto()), Throws.Nothing);
+        }
+
+        public interface IPork { }
+        public interface IHam : IPork { }
+        public interface ICountryHam : IHam { }
+
+        public class Pork : IPork { }
+        public class Ham : Pork, IHam { }
+        public class CountryHam : Ham, ICountryHam { }
+
+        public class BadActor : IHam { }
+        public class Prosciutto : ICountryHam { }
+
+        public class Spam
+        {
+            private string PrivateFoo(Pork pork) { return null; }
+            private string PrivateFoo(IHam ham) { return null; }
+            public string PublicFoo(Pork pork) { return null; }
+            public string PublicFoo(IHam ham) { return null; }
+
+            private string PrivateBar(ICountryHam countryHam) { return null; }
+            private string PrivateBar(Ham ham) { return null; }
+            public string PublicBar(ICountryHam countryHam) { return null; }
+            public string PublicBar(Ham ham) { return null; }
         }
     }
 
@@ -592,27 +767,6 @@ namespace Rock.Reflection.UnitTests
         public static implicit operator Fred(Thud x)
         {
             return new Fred();
-        }
-    }
-
-    public interface IPork { }
-    public interface IHam : IPork { }
-    public interface ICountryHam : IHam { }
-
-    public class Pork : IPork { }
-    public class Ham : Pork, IHam { }
-    public class CountryHam : Ham, ICountryHam { }
-
-    public class Spam
-    {
-        public string Foo(IHam ham)
-        {
-            return "IHam";
-        }
-
-        public string Foo(Ham ham)
-        {
-            return "Ham";
         }
     }
     // ReSharper restore EventNeverSubscribedTo.Local
