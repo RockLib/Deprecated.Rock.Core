@@ -411,6 +411,24 @@ namespace Rock.Reflection.UnitTests
         }
 
         [Test]
+        public void CanGetDefaultValueOfPrivateEnum()
+        {
+            var wibbleType = typeof(Waldo).GetNestedTypes(BindingFlags.NonPublic | BindingFlags.Public).Single(t => t.Name == "Wibble");
+            var Wibble = UniversalMemberAccessor.Get(wibbleType);
+
+            // Note that the variable is declared as object. (see below)
+            object defaultWibble = Wibble.New();
+
+            Assert.That(defaultWibble.GetType(), Is.EqualTo(wibbleType));
+
+            // If the defaultWibble variable had been declared dynamic,
+            // then this conversion would fail.
+            var defaultInt = (int)defaultWibble;
+
+            Assert.That(defaultInt, Is.EqualTo(0));
+        }
+
+        [Test]
         public void GetImplicitConvertionMethodsReturnsNoMethodsWhenNoneAreDefined()
         {
             var f = UniversalMemberAccessor.Get<UniversalMemberAccessor>();

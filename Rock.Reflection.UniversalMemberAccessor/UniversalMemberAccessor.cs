@@ -8,6 +8,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Runtime.Serialization;
 
 namespace Rock.Reflection
 {
@@ -536,6 +537,11 @@ namespace Rock.Reflection
 
         private IEnumerable<CreateInstanceCandidate> GetCreateInstanceCandidates()
         {
+            if (_type.IsValueType)
+            {
+                yield return new CreateInstanceCandidate(Enumerable.Empty<ParameterInfo>(), args => FormatterServices.GetUninitializedObject(_type));
+            }
+
             var constructorInfos = _type.GetConstructors(
                 BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 
