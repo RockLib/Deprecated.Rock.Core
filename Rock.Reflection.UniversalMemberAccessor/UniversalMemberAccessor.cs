@@ -465,7 +465,7 @@ namespace Rock.Reflection
                     return func;
                 }
 
-                return obj => func(obj).Unlock();
+                return obj => Get(func(obj));
             }
             catch
             {
@@ -583,7 +583,7 @@ namespace Rock.Reflection
                 }
                 else
                 {
-                    yield return new CreateInstanceCandidate(methodInfoParameters, args => func(UnwrapArgs(args)).Unlock());
+                    yield return new CreateInstanceCandidate(methodInfoParameters, args => Get(func(UnwrapArgs(args))));
                 }
             }
         }
@@ -655,7 +655,7 @@ namespace Rock.Reflection
                     return new InvokeMemberCandidate(methodInfoParameters, (obj, args) => func(obj, UnwrapArgs(args)));
                 }
 
-                return new InvokeMemberCandidate(methodInfoParameters, (obj, args) => func(obj, UnwrapArgs(args)).Unlock());
+                return new InvokeMemberCandidate(methodInfoParameters, (obj, args) => Get(func(obj, UnwrapArgs(args))));
             }
             catch
             {
