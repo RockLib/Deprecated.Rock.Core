@@ -103,7 +103,7 @@ namespace Rock.Reflection
         /// <param name="type">The type whose static members will be exposed by the resulting dynamic proxy object.</param>
         /// <returns>A dynamic proxy object enabling access to all static members of the given type.</returns>
         /// <remarks>This is a very dangerous method - use with caution.</remarks>
-        public static dynamic Get(Type type)
+        public static dynamic GetStatic(Type type)
         {
             if (type == null)
             {
@@ -122,9 +122,9 @@ namespace Rock.Reflection
         /// </typeparam>
         /// <returns>A dynamic proxy object enabling access to all static members of the given type.</returns>
         /// <remarks>This is a very dangerous method - use with caution.</remarks>
-        public static dynamic Get<T>()
+        public static dynamic GetStatic<T>()
         {
-            return Get(typeof(T));
+            return GetStatic(typeof(T));
         }
 
         /// <summary>
@@ -138,9 +138,9 @@ namespace Rock.Reflection
         /// </param>
         /// <returns>A dynamic proxy object enabling access to all static members of the given type.</returns>
         /// <remarks>This is a very dangerous method - use with caution.</remarks>
-        public static dynamic Get(string assemblyQualifiedName)
+        public static dynamic GetStatic(string assemblyQualifiedName)
         {
-            return Get(Type.GetType(assemblyQualifiedName, true));
+            return GetStatic(Type.GetType(assemblyQualifiedName, true));
         }
 
         /// <summary>

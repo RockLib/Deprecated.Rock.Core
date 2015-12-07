@@ -131,7 +131,7 @@ namespace Rock.Reflection.UnitTests
         {
             Foo.Reset();
 
-            var foo = UniversalMemberAccessor.Get<Foo>();
+            var foo = UniversalMemberAccessor.GetStatic<Foo>();
 
             int baz = foo._baz;
 
@@ -143,7 +143,7 @@ namespace Rock.Reflection.UnitTests
         {
             Foo.Reset();
 
-            var foo = UniversalMemberAccessor.Get<Foo>();
+            var foo = UniversalMemberAccessor.GetStatic<Foo>();
 
             int baz = foo.Baz;
 
@@ -153,7 +153,7 @@ namespace Rock.Reflection.UnitTests
         [Test]
         public void CanSetValueOfPrivateStaticFieldThroughStaticAccessor()
         {
-            var foo = UniversalMemberAccessor.Get<Foo>();
+            var foo = UniversalMemberAccessor.GetStatic<Foo>();
 
             foo._baz = 123;
 
@@ -163,7 +163,7 @@ namespace Rock.Reflection.UnitTests
         [Test]
         public void CanSetValueOfPrivateStaticPropertyThroughStaticAccessor()
         {
-            var foo = UniversalMemberAccessor.Get<Foo>();
+            var foo = UniversalMemberAccessor.GetStatic<Foo>();
 
             foo.Baz = 123;
 
@@ -217,7 +217,7 @@ namespace Rock.Reflection.UnitTests
         [Test]
         public void CanRegisterAndDeregisterPrivateStaticEventThroughStaticAccessor()
         {
-            var bar = UniversalMemberAccessor.Get<Bar>();
+            var bar = UniversalMemberAccessor.GetStatic<Bar>();
 
             var invocationCount = 0;
 
@@ -287,7 +287,7 @@ namespace Rock.Reflection.UnitTests
         [Test]
         public void CanCallPrivateStaticMethodsThroughStaticAccessor()
         {
-            var foo = UniversalMemberAccessor.Get<Foo>();
+            var foo = UniversalMemberAccessor.GetStatic<Foo>();
 
             Assert.That(foo.Grault(123), Is.EqualTo("Grault(int i)"));
         }
@@ -315,7 +315,7 @@ namespace Rock.Reflection.UnitTests
         [Test]
         public void CanInvokePrivateConstructorsWithNew()
         {
-            var quxFactory = UniversalMemberAccessor.Get<Qux>();
+            var quxFactory = UniversalMemberAccessor.GetStatic<Qux>();
 
             Qux qux = quxFactory.New();
 
@@ -325,7 +325,7 @@ namespace Rock.Reflection.UnitTests
         [Test]
         public void CanInvokePrivateConstructorsWithCreate()
         {
-            var quxFactory = UniversalMemberAccessor.Get<Qux>();
+            var quxFactory = UniversalMemberAccessor.GetStatic<Qux>();
 
             Qux qux = quxFactory.Create();
 
@@ -335,7 +335,7 @@ namespace Rock.Reflection.UnitTests
         [Test]
         public void CanInvokePrivateConstructorsWithNewInstance()
         {
-            var quxFactory = UniversalMemberAccessor.Get<Qux>();
+            var quxFactory = UniversalMemberAccessor.GetStatic<Qux>();
 
             Qux qux = quxFactory.NewInstance();
 
@@ -345,7 +345,7 @@ namespace Rock.Reflection.UnitTests
         [Test]
         public void CanInvokePrivateConstructorsWithCreateInstance()
         {
-            var quxFactory = UniversalMemberAccessor.Get<Qux>();
+            var quxFactory = UniversalMemberAccessor.GetStatic<Qux>();
 
             Qux qux = quxFactory.CreateInstance();
 
@@ -355,7 +355,7 @@ namespace Rock.Reflection.UnitTests
         [Test]
         public void CanResolveMultipleConstructors()
         {
-            var garplyFactory = UniversalMemberAccessor.Get<Garply>();
+            var garplyFactory = UniversalMemberAccessor.GetStatic<Garply>();
 
             Assert.That(garplyFactory.New().Value, Is.EqualTo("Garply()"));
             Assert.That(garplyFactory.New(123).Value, Is.EqualTo("Garply(int i)"));
@@ -392,7 +392,7 @@ namespace Rock.Reflection.UnitTests
         public void CanGetPrivateEnumValue()
         {
             var wibbleType = typeof(Waldo).GetNestedTypes(BindingFlags.NonPublic | BindingFlags.Public).Single(t => t.Name == "Wibble");
-            var Wibble = UniversalMemberAccessor.Get(wibbleType);
+            var Wibble = UniversalMemberAccessor.GetStatic(wibbleType);
 
             // Note that these variables are declared as object. (see below)
             object wubble = Wibble.Wubble;
@@ -414,7 +414,7 @@ namespace Rock.Reflection.UnitTests
         public void CanGetDefaultValueOfPrivateEnum()
         {
             var wibbleType = typeof(Waldo).GetNestedTypes(BindingFlags.NonPublic | BindingFlags.Public).Single(t => t.Name == "Wibble");
-            var Wibble = UniversalMemberAccessor.Get(wibbleType);
+            var Wibble = UniversalMemberAccessor.GetStatic(wibbleType);
 
             // Note that the variable is declared as object. (see below)
             object defaultWibble = Wibble.New();
@@ -431,7 +431,7 @@ namespace Rock.Reflection.UnitTests
         [Test]
         public void GetImplicitConvertionMethodsReturnsNoMethodsWhenNoneAreDefined()
         {
-            var f = UniversalMemberAccessor.Get<UniversalMemberAccessor>();
+            var f = UniversalMemberAccessor.GetStatic<UniversalMemberAccessor>();
 
             Type parameterType = typeof(Thud);
             Type valueType = typeof(Fred);
@@ -445,7 +445,7 @@ namespace Rock.Reflection.UnitTests
         [Test]
         public void GetImplicitConvertionMethodsReturnsOneMethodWhenOneIsDefined()
         {
-            var f = UniversalMemberAccessor.Get<UniversalMemberAccessor>();
+            var f = UniversalMemberAccessor.GetStatic<UniversalMemberAccessor>();
 
             Type parameterType = typeof(Fred);
             Type valueType = typeof(Waldo);
@@ -459,7 +459,7 @@ namespace Rock.Reflection.UnitTests
         [Test]
         public void GetImplicitConvertionMethodsReturnsTwoMethodsWhenTwoAreDefined()
         {
-            var f = UniversalMemberAccessor.Get<UniversalMemberAccessor>();
+            var f = UniversalMemberAccessor.GetStatic<UniversalMemberAccessor>();
 
             Type parameterType = typeof(Fred);
             Type valueType = typeof(Thud);
@@ -485,7 +485,7 @@ namespace Rock.Reflection.UnitTests
         public void AncestorDistanceIsCalculatedCorrectlyForInterfacesAndClasses(Type type, Type ancestorType, int expectedDistance)
         {
             var candidate =
-                UniversalMemberAccessor.Get(
+                UniversalMemberAccessor.GetStatic(
                     "Rock.Reflection.UniversalMemberAccessor+Candidate");
 
             var distance = candidate.GetAncestorDistance(type, ancestorType);
@@ -571,7 +571,7 @@ namespace Rock.Reflection.UnitTests
         public void AncestorDistanceIsCalculatedCorrectlyForNumericTypes(Type type, Type ancestorType, int expectedDistance)
         {
             var candidate =
-                UniversalMemberAccessor.Get(
+                UniversalMemberAccessor.GetStatic(
                     "Rock.Reflection.UniversalMemberAccessor+Candidate");
 
             var distance = candidate.GetAncestorDistance(type, ancestorType);
