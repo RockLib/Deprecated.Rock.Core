@@ -62,9 +62,12 @@
     <Compile Include="Conversion\ConvertFuncFactory.cs" />
     <Compile Include="Conversion\ConvertsToDictionaryOfStringToTValue.cs" />
     <Compile Include="Conversion\ToDictionaryOfStringToStringExtension.cs" />
+    <Compile Include="Extensions\ActionExtensions.cs" />
     <Compile Include="Extensions\DateTimeTruncateExtension.cs" />
     <Compile Include="Extensions\EnumGetDescriptionExtension.cs" />
-    <Compile Include="Extensions\StringIsNullExtensions.cs" />
+    <Compile Include="Extensions\FuncExtensions.async.cs" />
+    <Compile Include="Extensions\FuncExtensions.cs" />
+    <Compile Include="Extensions\StringExtensions.cs" />
     <Compile Include="Extensions\TimeSection.cs" />
     <Compile Include="Extensions\ToUnixTimestampExtension.cs" />
     <Compile Include="Net\EndpointDetector.cs" />
