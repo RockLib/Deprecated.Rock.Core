@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -27,7 +26,7 @@ namespace Rock.Reflection
         private static readonly ConcurrentDictionary<Tuple<Type, Type>, bool> _canBeAssignedCache = new ConcurrentDictionary<Tuple<Type, Type>, bool>();
 
         private static readonly ConcurrentDictionary<Tuple<Type, string>, Func<object, Object>> _getMemberFuncs = new ConcurrentDictionary<Tuple<Type, string>, Func<object, object>>();
-        private static readonly ConcurrentDictionary<Tuple<Type, string>, Action<object, object>> _setMemberActions = new ConcurrentDictionary<Tuple<Type, string>, Action<object, object>>();
+        private static readonly ConcurrentDictionary<Tuple<Type, string, Type>, Action<object, object>> _setMemberActions = new ConcurrentDictionary<Tuple<Type, string, Type>, Action<object, object>>();
         private static readonly ConcurrentDictionary<Tuple<Type, string>, ReadOnlyCollection<InvokeMemberCandidate>> _invokeMemberFuncs = new ConcurrentDictionary<Tuple<Type, string>, ReadOnlyCollection<InvokeMemberCandidate>>();
 
         private readonly Lazy<ReadOnlyCollection<CreateInstanceCandidate>> _createInstanceCandidates;
@@ -38,8 +37,6 @@ namespace Rock.Reflection
 
         private UniversalMemberAccessor(Type type)
         {
-            if (type == null) throw new ArgumentNullException("type");
-
             _type = type;
 
             _memberNames = _staticMemberNamesCache.GetOrAdd(_type, t =>
@@ -54,8 +51,6 @@ namespace Rock.Reflection
 
         private UniversalMemberAccessor(object instance)
         {
-            if (instance == null) throw new ArgumentNullException("instance");
-
             _instance = instance;
             _type = _instance.GetType();
 
@@ -105,10 +100,7 @@ namespace Rock.Reflection
         /// <remarks>This is a very dangerous method - use with caution.</remarks>
         public static dynamic GetStatic(Type type)
         {
-            if (type == null)
-            {
-                throw new ArgumentNullException("type");
-            }
+            if (type == null) throw new ArgumentNullException("type");
 
             return _staticCache.GetOrAdd(type, t => new UniversalMemberAccessor(t));
         }
@@ -153,12 +145,9 @@ namespace Rock.Reflection
         /// </returns>
         public override bool TryGetMember(GetMemberBinder binder, out object result)
         {
-            var getMember =
-                _getMemberFuncs.GetOrAdd(
-                    Tuple.Create(_type, binder.Name),
-                    t => CreateGetMemberFunc(t.Item2));
+            Func<object, object> getMember;
 
-            if (getMember == null)
+            if (!TryGetGetMemberFunc(binder.Name, out getMember))
             {
                 switch (binder.Name)
                 {
@@ -180,6 +169,16 @@ namespace Rock.Reflection
             return true;
         }
 
+        private bool TryGetGetMemberFunc(string name, out Func<object, object> getMember)
+        {
+            getMember =
+                _getMemberFuncs.GetOrAdd(
+                    Tuple.Create(_type, name),
+                    t => CreateGetMemberFunc(t.Item2));
+
+            return getMember != null;
+        }
+
         /// <summary>
         /// Provides the implementation for operations that set member values.
         /// </summary>
@@ -190,18 +189,35 @@ namespace Rock.Reflection
         /// </returns>
         public override bool TrySetMember(SetMemberBinder binder, object value)
         {
-            var setMember =
-                _setMemberActions.GetOrAdd(
-                    Tuple.Create(_type, binder.Name),
-                    t => CreateSetMemberAction(t.Item2));
+            Action<object, object> setMember;
+            var valueType = GetValueType(value);
 
-            if (setMember == null)
+            if (!TryGetSetMemberAction(binder.Name, valueType,  out setMember))
             {
                 return base.TrySetMember(binder, value);
             }
 
             setMember(_instance, value);
             return true;
+        }
+
+        private static Type GetValueType(object value)
+        {
+            return 
+                value == null
+                    ? null
+                    : value is UniversalMemberAccessor
+                        ? ((UniversalMemberAccessor)value)._instance.GetType()
+                        : value.GetType();
+        }
+
+        private bool TryGetSetMemberAction(string name, Type valueType, out Action<object, object> setMember)
+        {
+            setMember = _setMemberActions.GetOrAdd(
+                Tuple.Create(_type, name, valueType),
+                t => CreateSetMemberAction(t.Item2, t.Item3));
+
+            return setMember != null;
         }
 
         /// <summary>
@@ -260,7 +276,7 @@ namespace Rock.Reflection
             return base.TryInvokeMember(binder, args, out result);
         }
 
-        private bool TryCreateInstance(object[] args, out object result)
+        internal bool TryCreateInstance(object[] args, out object result)
         {
             var legalCandidates = _createInstanceCandidates.Value.Where(c => c.IsLegal(args)).ToList();
 
@@ -340,12 +356,9 @@ namespace Rock.Reflection
             if (indexes.Length == 1
                 && indexes[0] is string)
             {
-                var getMember =
-                    _getMemberFuncs.GetOrAdd(
-                        Tuple.Create(_type, (string)indexes[0]),
-                        t => CreateGetMemberFunc(t.Item2));
+                Func<object, object> getMember;
 
-                if (getMember != null)
+                if (TryGetGetMemberFunc((string)indexes[0], out getMember))
                 {
                     result = getMember(_instance);
                     return true;
@@ -372,12 +385,10 @@ namespace Rock.Reflection
             if (indexes.Length == 1
                 && indexes[0] is string)
             {
-                var setMember =
-                    _setMemberActions.GetOrAdd(
-                        Tuple.Create(_type, (string)indexes[0]),
-                        t => CreateSetMemberAction(t.Item2));
+                Action<object, object> setMember;
+                var valueType = GetValueType(value);
 
-                if (setMember != null)
+                if (TryGetSetMemberAction((string)indexes[0], valueType, out setMember))
                 {
                     setMember(_instance, value);
                     return true;
@@ -421,111 +432,147 @@ namespace Rock.Reflection
 
         private Func<object, object> CreateGetMemberFunc(string name)
         {
-            try
+            var parameter = Expression.Parameter(typeof(object), "instance");
+            var convertParameter = Expression.Convert(parameter, _type);
+
+            Expression propertyOrField;
+
+            var propertyInfo = _type.GetProperty(name, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static);
+            if (propertyInfo != null)
             {
-                var parameter = Expression.Parameter(typeof(object), "instance");
-                var convertParameter = Expression.Convert(parameter, _type);
-
-                Expression propertyOrField;
-
-                var propertyInfo = _type.GetProperty(name, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static);
-                if (propertyInfo != null)
+                propertyOrField = Expression.Property(IsStatic(propertyInfo) ? null : convertParameter, propertyInfo);
+            }
+            else
+            {
+                var fieldInfo = _type.GetField(name, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static);
+                if (fieldInfo != null)
                 {
-                    propertyOrField = Expression.Property(IsStatic(propertyInfo) ? null : convertParameter, propertyInfo);
+                    propertyOrField = Expression.Field(fieldInfo.IsStatic ? null : convertParameter, fieldInfo);
                 }
                 else
                 {
-                    var fieldInfo = _type.GetField(name, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static);
-                    if (fieldInfo != null)
-                    {
-                        propertyOrField = Expression.Field(fieldInfo.IsStatic ? null : convertParameter, fieldInfo);
-                    }
-                    else
-                    {
-                        return null;
-                    }
+                    return null;
                 }
-
-                var type = propertyOrField.Type;
-
-                if (type.IsValueType)
-                {
-                    propertyOrField = Expression.Convert(propertyOrField, typeof(object));
-                }
-
-                var lambda =
-                    Expression.Lambda<Func<object, object>>(
-                        propertyOrField,
-                        new[] { parameter });
-
-                var func = lambda.Compile();
-
-                if (ShouldReturnRawValue(type))
-                {
-                    return func;
-                }
-
-                return obj => Get(func(obj));
             }
-            catch
+
+            var type = propertyOrField.Type;
+
+            if (type.IsValueType)
             {
-                return null;
+                propertyOrField = Expression.Convert(propertyOrField, typeof(object));
             }
+
+            var lambda =
+                Expression.Lambda<Func<object, object>>(
+                    propertyOrField,
+                    new[] { parameter });
+
+            var func = lambda.Compile();
+
+            if (ShouldReturnRawValue(type))
+            {
+                return func;
+            }
+
+            return obj => Get(func(obj));
         }
 
-        private Action<object, object> CreateSetMemberAction(string name)
+        private Action<object, object> CreateSetMemberAction(string name, Type valueType)
         {
-            try
+            var instanceParameter = Expression.Parameter(typeof(object), "instance");
+            var valueParameter = Expression.Parameter(typeof(object), "value");
+
+            var convertInstanceParameter = Expression.Convert(instanceParameter, _type);
+
+            Action<object, object> action = null;
+
+            Expression propertyOrField;
+
+            var propertyInfo = _type.GetProperty(name, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static);
+            if (propertyInfo != null)
             {
-                var instanceParameter = Expression.Parameter(typeof(object), "instance");
-                var valueParameter = Expression.Parameter(typeof(object), "value");
-
-                var convertInstanceParameter = Expression.Convert(instanceParameter, _type);
-
-                Expression propertyOrField;
-
-                var propertyInfo = _type.GetProperty(name, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static);
-                if (propertyInfo != null)
+                propertyOrField = Expression.Property(IsStatic(propertyInfo) ? null : convertInstanceParameter, propertyInfo);
+            }
+            else
+            {
+                var fieldInfo = _type.GetField(name, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static);
+                if (fieldInfo != null)
                 {
-                    propertyOrField = Expression.Property(IsStatic(propertyInfo) ? null : convertInstanceParameter, propertyInfo);
-                }
-                else
-                {
-                    var fieldInfo = _type.GetField(name, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static);
-                    if (fieldInfo != null)
+                    if (fieldInfo.IsInitOnly)
+                    {
+                        // TODO: use reflection emit to optimize setting readonly fields.
+                        action = fieldInfo.SetValue;
+                        propertyOrField = null;
+                    }
+                    else
                     {
                         propertyOrField = Expression.Field(fieldInfo.IsStatic ? null : convertInstanceParameter, fieldInfo);
                     }
-                    else
+                }
+                else
+                {
+                    return null;
+                }
+            }
+
+            if (action == null)
+            {
+                if (valueType != null)
+                {
+                    if (!CanBeAssigned(propertyOrField.Type, valueType))
                     {
                         return null;
                     }
+                }
+                else if (!CanBeAssignedNull(propertyOrField.Type))
+                {
+                    return null;
+                }
+
+                Expression newValue;
+
+                if (propertyOrField.Type.IsValueType)
+                {
+                    if (propertyOrField.Type == valueType)
+                    {
+                        newValue = Expression.Unbox(valueParameter, valueType);
+                    }
+                    else if (valueType == null)
+                    {
+                        newValue = Expression.Constant(null, propertyOrField.Type);
+                    }
+                    else
+                    {
+                        newValue = Expression.Convert(
+                            Expression.Unbox(valueParameter, valueType),
+                            propertyOrField.Type);
+                    }
+                }
+                else
+                {
+                    newValue = Expression.Convert(valueParameter, propertyOrField.Type);
                 }
 
                 var lambda =
                     Expression.Lambda<Action<object, object>>(
-                        Expression.Assign(propertyOrField, Expression.Convert(valueParameter, propertyOrField.Type)),
+                        Expression.Assign(propertyOrField, newValue),
                         new[] { instanceParameter, valueParameter });
 
-                var action = lambda.Compile();
-
-                return (obj, value) =>
-                {
-                    var universalMemberAccessor = value as UniversalMemberAccessor;
-
-                    if (universalMemberAccessor != null)
-                    {
-                        // Unwrap the value if it is a UniversalMemberAccessor.
-                        value = universalMemberAccessor._instance;
-                    }
-
-                    action(obj, value);
-                };
+                action = lambda.Compile();
             }
-            catch
+
+            return (obj, value) =>
             {
-                return null;
-            }
+                var universalMemberAccessor = value as UniversalMemberAccessor;
+
+                if (universalMemberAccessor != null)
+                {
+                    // Unwrap the value if it is a UniversalMemberAccessor.
+                    value = universalMemberAccessor._instance;
+                }
+
+                action(obj, value);
+            };
         }
 
         private Lazy<ReadOnlyCollection<CreateInstanceCandidate>> GetLazyCreateInstanceCandidates()
@@ -539,7 +586,14 @@ namespace Rock.Reflection
         {
             if (_type.IsValueType)
             {
-                yield return new CreateInstanceCandidate(Enumerable.Empty<ParameterInfo>(), args => FormatterServices.GetUninitializedObject(_type));
+                if (ShouldReturnRawValue(_type))
+                {
+                    yield return new CreateInstanceCandidate(Enumerable.Empty<ParameterInfo>(), args => FormatterServices.GetUninitializedObject(_type));
+                }
+                else
+                {
+                    yield return new CreateInstanceCandidate(Enumerable.Empty<ParameterInfo>(), args => Get(FormatterServices.GetUninitializedObject(_type)));
+                }
             }
 
             var constructorInfos = _type.GetConstructors(
@@ -549,41 +603,27 @@ namespace Rock.Reflection
             {
                 var argsParameter = Expression.Parameter(typeof(object[]), "args");
 
-                var methodInfoParameters = constructor.GetParameters();
-                var newArguments = new Expression[methodInfoParameters.Length];
+                var constructorParameters = constructor.GetParameters();
+                var newArguments = GetArguments(constructorParameters, argsParameter);
 
-                for (var i = 0; i < newArguments.Length; i++)
-                {
-                    newArguments[i] =
-                        Expression.Convert(
-                            Expression.ArrayAccess(argsParameter, Expression.Constant(i)),
-                            methodInfoParameters[i].ParameterType);
-                }
-
-                Expression body =
-                    Expression.New(
-                        constructor,
-                        newArguments);
+                Expression body = Expression.New(constructor, newArguments);
 
                 if (constructor.DeclaringType.IsValueType)
                 {
                     body = Expression.Convert(body, typeof(object));
                 }
 
-                var lambda =
-                    Expression.Lambda<Func<object[], object>>(
-                        body,
-                        new[] { argsParameter });
+                var lambda = Expression.Lambda<Func<object[], object>>(body, new[] { argsParameter });
 
                 var func = lambda.Compile();
 
                 if (ShouldReturnRawValue(constructor.DeclaringType))
                 {
-                    yield return new CreateInstanceCandidate(methodInfoParameters, args => func(UnwrapArgs(args)));
+                    yield return new CreateInstanceCandidate(constructorParameters, args => func(UnwrapArgs(args)));
                 }
                 else
                 {
-                    yield return new CreateInstanceCandidate(methodInfoParameters, args => Get(func(UnwrapArgs(args))));
+                    yield return new CreateInstanceCandidate(constructorParameters, args => Get(func(UnwrapArgs(args))));
                 }
             }
         }
@@ -599,68 +639,84 @@ namespace Rock.Reflection
 
         private InvokeMemberCandidate CreateInvokeMemberCandidate(MethodInfo methodInfo)
         {
-            try
+            var instanceParameter = Expression.Parameter(typeof(object), "instance");
+            var argsParameter = Expression.Parameter(typeof(object[]), "args");
+
+            var methodInfoParameters = methodInfo.GetParameters();
+            var callArguments = GetArguments(methodInfoParameters, argsParameter);
+
+            Expression body;
+
+            if (methodInfo.IsStatic)
             {
-                var instanceParameter = Expression.Parameter(typeof(object), "instance");
-                var argsParameter = Expression.Parameter(typeof(object[]), "args");
+                body = Expression.Call(
+                    methodInfo,
+                    callArguments);
+            }
+            else
+            {
+                body = Expression.Call(
+                    Expression.Convert(instanceParameter, _type),
+                    methodInfo,
+                    callArguments);
+            }
 
-                var methodInfoParameters = methodInfo.GetParameters();
-                var callArguments = new Expression[methodInfoParameters.Length];
+            if (methodInfo.ReturnType == typeof(void))
+            {
+                body = Expression.Block(body, Expression.Constant(null));
+            }
+            else if (methodInfo.ReturnType.IsValueType)
+            {
+                body = Expression.Convert(body, typeof(object));
+            }
 
-                for (var i = 0; i < callArguments.Length; i++)
+            var lambda =
+                Expression.Lambda<Func<object, object[], object>>(
+                    body,
+                    new[] { instanceParameter, argsParameter });
+
+            var func = lambda.Compile();
+
+            if (ShouldReturnRawValue(methodInfo.ReturnType))
+            {
+                return new InvokeMemberCandidate(methodInfoParameters, (obj, args) => func(obj, UnwrapArgs(args)));
+            }
+
+            return new InvokeMemberCandidate(methodInfoParameters, (obj, args) => Get(func(obj, UnwrapArgs(args))));
+        }
+
+        private static Expression[] GetArguments(ParameterInfo[] parameters, ParameterExpression argsParameter)
+        {
+            var arguments = new Expression[parameters.Length];
+
+            for (var i = 0; i < arguments.Length; i++)
+            {
+                var parameterType = parameters[i].ParameterType;
+
+                if (parameterType.IsValueType)
                 {
-                    callArguments[i] =
+                    var item = Expression.ArrayAccess(argsParameter, Expression.Constant(i));
+
+                    arguments[i] = Expression.Condition(
+                        Expression.TypeIs(item, parameterType),
+                        Expression.Unbox(item, parameterType),
                         Expression.Convert(
-                            Expression.ArrayAccess(argsParameter, Expression.Constant(i)),
-                            methodInfoParameters[i].ParameterType);
-                }
-
-                Expression body;
-
-                if (methodInfo.IsStatic)
-                {
-                    body = Expression.Call(
-                        methodInfo,
-                        callArguments);
+                            Expression.Call(
+                                typeof(Convert).GetMethod("ChangeType", new[] { typeof(object), typeof(Type) }),
+                                item,
+                                Expression.Constant(parameterType)),
+                            parameterType));
                 }
                 else
                 {
-                    body = Expression.Call(
-                        Expression.Convert(instanceParameter, _type),
-                        methodInfo,
-                        callArguments);
+                    arguments[i] =
+                        Expression.Convert(
+                            Expression.ArrayAccess(argsParameter, Expression.Constant(i)),
+                            parameterType);
                 }
-
-                if (methodInfo.ReturnType == typeof(void))
-                {
-                    body =
-                        Expression.Block(
-                            body,
-                            Expression.Constant(null));
-                }
-                else if (methodInfo.ReturnType.IsValueType)
-                {
-                    body = Expression.Convert(body, typeof(object));
-                }
-
-                var lambda =
-                    Expression.Lambda<Func<object, object[], object>>(
-                        body,
-                        new[] { instanceParameter, argsParameter });
-
-                var func = lambda.Compile();
-
-                if (ShouldReturnRawValue(methodInfo.ReturnType))
-                {
-                    return new InvokeMemberCandidate(methodInfoParameters, (obj, args) => func(obj, UnwrapArgs(args)));
-                }
-
-                return new InvokeMemberCandidate(methodInfoParameters, (obj, args) => Get(func(obj, UnwrapArgs(args))));
             }
-            catch
-            {
-                return null;
-            }
+
+            return arguments;
         }
 
         private static bool ShouldReturnRawValue(Type type)
@@ -705,8 +761,13 @@ namespace Rock.Reflection
         private static bool IsStatic(PropertyInfo propertyInfo)
         {
             var getMethod = propertyInfo.GetGetMethod(true);
-            var isStatic = (getMethod != null && getMethod.IsStatic) || propertyInfo.GetSetMethod(true).IsStatic;
-            return isStatic;
+            if (getMethod != null && getMethod.IsStatic)
+            {
+                return true;
+            }
+
+            var setMethod = propertyInfo.GetSetMethod(true);
+            return setMethod != null && setMethod.IsStatic;
         }
 
         private abstract class Candidate
@@ -1066,9 +1127,16 @@ namespace Rock.Reflection
 
                 for (int i = 0; i < args.Length; i++)
                 {
-                    if (args[i] != null)
+                    var arg = args[i];
+
+                    if (arg != null)
                     {
-                        if (!CanBeAssigned(_parameters[i], args[i].GetType()))
+                        if (arg is UniversalMemberAccessor)
+                        {
+                            arg = ((UniversalMemberAccessor)arg)._instance;
+                        }
+
+                        if (!CanBeAssigned(_parameters[i], arg.GetType()))
                         {
                             return false;
                         }
@@ -1089,264 +1157,128 @@ namespace Rock.Reflection
                 !t.IsValueType || (t.IsGenericType && t.GetGenericTypeDefinition() == typeof(Nullable<>)));
         }
 
-        private static bool CanBeAssigned(Type parameterType, Type valueType)
+        private static bool CanBeAssigned(Type targetType, Type valueType)
         {
             return _canBeAssignedCache.GetOrAdd(
-                Tuple.Create(parameterType, valueType),
-                tuple => GetCanBeAssignedValue(tuple.Item1, tuple.Item2, false));
+                Tuple.Create(targetType, valueType),
+                tuple => GetCanBeAssignedValue(tuple.Item1, tuple.Item2));
         }
 
-        private static bool GetCanBeAssignedValue(Type parameterType, Type valueType, bool skipImplicitConversionSearch)
+        private static bool GetCanBeAssignedValue(Type targetType, Type valueType)
         {
-            // Identity
-            if (valueType == parameterType)
+            // Nullable target type needs to be unwrapped.
+            if (targetType.IsGenericType && targetType.GetGenericTypeDefinition() == typeof(Nullable<>))
             {
-                return true;
+                targetType = targetType.GetGenericArguments()[0];
             }
 
-            // Anything to object
-            if (parameterType == typeof(object))
+            if (targetType.IsAssignableFrom(valueType))
             {
                 return true;
-            }
-
-            // Nullable type conversion
-            if (parameterType.IsGenericType && parameterType.GetGenericTypeDefinition() == typeof(Nullable<>))
-            {
-                parameterType = parameterType.GetGenericArguments()[0];
-
-                // Recheck identity
-                if (valueType == parameterType)
-                {
-                    return true;
-                }
             }
 
             // sbyte to short, int, long, float, double, or decimal
             if (valueType == typeof(sbyte))
             {
-                return parameterType == typeof(short)
-                       || parameterType == typeof(int)
-                       || parameterType == typeof(long)
-                       || parameterType == typeof(float)
-                       || parameterType == typeof(double)
-                       || parameterType == typeof(decimal);
+                return targetType == typeof(short)
+                       || targetType == typeof(int)
+                       || targetType == typeof(long)
+                       || targetType == typeof(float)
+                       || targetType == typeof(double)
+                       || targetType == typeof(decimal);
             }
 
             // byte to short, ushort, int, uint, long, ulong, float, double, or decimal
             if (valueType == typeof(byte))
             {
-                return parameterType == typeof(short)
-                       || parameterType == typeof(ushort)
-                       || parameterType == typeof(int)
-                       || parameterType == typeof(uint)
-                       || parameterType == typeof(long)
-                       || parameterType == typeof(ulong)
-                       || parameterType == typeof(float)
-                       || parameterType == typeof(double)
-                       || parameterType == typeof(decimal);
+                return targetType == typeof(short)
+                       || targetType == typeof(ushort)
+                       || targetType == typeof(int)
+                       || targetType == typeof(uint)
+                       || targetType == typeof(long)
+                       || targetType == typeof(ulong)
+                       || targetType == typeof(float)
+                       || targetType == typeof(double)
+                       || targetType == typeof(decimal);
             }
 
             // short to int, long, float, double, or decimal
             if (valueType == typeof(short))
             {
-                return parameterType == typeof(int)
-                       || parameterType == typeof(long)
-                       || parameterType == typeof(float)
-                       || parameterType == typeof(double)
-                       || parameterType == typeof(decimal);
+                return targetType == typeof(int)
+                       || targetType == typeof(long)
+                       || targetType == typeof(float)
+                       || targetType == typeof(double)
+                       || targetType == typeof(decimal);
             }
 
             // ushort to int, uint, long, ulong, float, double, or decimal
             if (valueType == typeof(ushort))
             {
-                return parameterType == typeof(int)
-                       || parameterType == typeof(uint)
-                       || parameterType == typeof(long)
-                       || parameterType == typeof(ulong)
-                       || parameterType == typeof(float)
-                       || parameterType == typeof(double)
-                       || parameterType == typeof(decimal);
+                return targetType == typeof(int)
+                       || targetType == typeof(uint)
+                       || targetType == typeof(long)
+                       || targetType == typeof(ulong)
+                       || targetType == typeof(float)
+                       || targetType == typeof(double)
+                       || targetType == typeof(decimal);
             }
 
             // int to long, float, double, or decimal
             if (valueType == typeof(int))
             {
-                return parameterType == typeof(long)
-                       || parameterType == typeof(float)
-                       || parameterType == typeof(double)
-                       || parameterType == typeof(decimal);
+                return targetType == typeof(long)
+                       || targetType == typeof(float)
+                       || targetType == typeof(double)
+                       || targetType == typeof(decimal);
             }
 
             // uint to long, ulong, float, double, or decimal
             if (valueType == typeof(uint))
             {
-                return parameterType == typeof(long)
-                       || parameterType == typeof(ulong)
-                       || parameterType == typeof(float)
-                       || parameterType == typeof(double)
-                       || parameterType == typeof(decimal);
+                return targetType == typeof(long)
+                       || targetType == typeof(ulong)
+                       || targetType == typeof(float)
+                       || targetType == typeof(double)
+                       || targetType == typeof(decimal);
             }
 
             // long to float, double, or decimal
-            if (valueType == typeof(double))
+            if (valueType == typeof(long))
             {
-                return parameterType == typeof(float)
-                       || parameterType == typeof(double)
-                       || parameterType == typeof(decimal);
+                return targetType == typeof(float)
+                       || targetType == typeof(double)
+                       || targetType == typeof(decimal);
             }
 
             // ulong to float, double, or decimal
             if (valueType == typeof(ulong))
             {
-                return parameterType == typeof(float)
-                       || parameterType == typeof(double)
-                       || parameterType == typeof(decimal);
+                return targetType == typeof(float)
+                       || targetType == typeof(double)
+                       || targetType == typeof(decimal);
             }
 
             // char to ushort, int, uint, long, ulong, float, double, or decimal
             if (valueType == typeof(char))
             {
-                return parameterType == typeof(ushort)
-                       || parameterType == typeof(int)
-                       || parameterType == typeof(uint)
-                       || parameterType == typeof(long)
-                       || parameterType == typeof(ulong)
-                       || parameterType == typeof(float)
-                       || parameterType == typeof(double)
-                       || parameterType == typeof(decimal);
+                return targetType == typeof(ushort)
+                       || targetType == typeof(int)
+                       || targetType == typeof(uint)
+                       || targetType == typeof(long)
+                       || targetType == typeof(ulong)
+                       || targetType == typeof(float)
+                       || targetType == typeof(double)
+                       || targetType == typeof(decimal);
             }
 
             // float to double
             if (valueType == typeof(float))
             {
-                return parameterType == typeof(double);
-            }
-
-            // Derived class to base class
-            // Array type to System.Array
-            // Delegate type to System.Delegate
-            // Enum type to System.Enum
-            if (IsDerivedFrom(valueType, parameterType))
-            {
-                return true;
-            }
-
-            // Class to implemented interface
-            if (parameterType.IsInterface && valueType.GetInterfaces().Any(i => i == parameterType))
-            {
-                return true;
-            }
-
-            // Interface to base interface (not necessary - arg is a concrete type)
-
-            if (valueType.IsArray)
-            {
-                if (parameterType.IsArray)
-                {
-                    // Array to array when arrays have the same number of dimensions, there is an implicit
-                    // conversion from the source element type to the destination element type and the source
-                    // element type and the destination element type are reference types
-                    if (valueType.GetArrayRank() == parameterType.GetArrayRank())
-                    {
-                        var parameterElementType = parameterType.GetElementType();
-                        var valueElementType = valueType.GetElementType();
-
-                        if (!parameterElementType.IsValueType
-                            && !valueElementType.IsValueType
-                            && CanBeAssigned(parameterElementType, valueElementType))
-                        {
-                            return true;
-                        }
-                    }
-                }
-                else if (parameterType.IsInterface && valueType.GetArrayRank() == 1)
-                {
-                    // Array type to IList<> and its base interfaces
-                    if (parameterType.IsGenericType)
-                    {
-                        var typeDefinition = parameterType.GetGenericTypeDefinition();
-
-                        if (typeDefinition == typeof(IList<>)
-                            || typeDefinition == typeof(ICollection<>)
-                            || typeDefinition == typeof(IEnumerable<>))
-                        {
-                            var parameterGenericArgument = parameterType.GetGenericArguments()[0];
-                            var valueElementType = valueType.GetElementType();
-
-                            if (CanBeAssigned(parameterGenericArgument, valueElementType))
-                            {
-                                return true;
-                            }
-                        }
-                    }
-                    else if (parameterType == typeof(IList)
-                             || parameterType == typeof(ICollection)
-                             || parameterType == typeof(IEnumerable))
-                    {
-                        return true;
-                    }
-                }
-
-                return false;
-            }
-
-            // Boxing conversion (not necessary)
-
-            if (!skipImplicitConversionSearch)
-            {
-                // User defined conversion (op_implicit)
-                var implicitConvertionMethods = GetImplicitConvertionMethods(parameterType, valueType);
-
-                if (implicitConvertionMethods.Count() == 1)
-                {
-                    return true;
-                }
+                return targetType == typeof(double);
             }
 
             return false;
-        }
-
-        private static IEnumerable<MethodInfo> GetImplicitConvertionMethods(Type parameterType, Type valueType)
-        {
-            var allImplicitConversionMethods =
-                GetImplicitConvertionMethods(parameterType).Concat(GetImplicitConvertionMethods(valueType));
-
-            var projection =
-                allImplicitConversionMethods
-                    .Select(m => new { MethodInfo = m, m.ReturnType, m.GetParameters()[0].ParameterType });
-
-            var filter = projection
-                .Where(method => GetCanBeAssignedValue(parameterType, method.ReturnType, true)
-                                 && GetCanBeAssignedValue(method.ParameterType, valueType, true));
-
-            var implicitConvertionMethods = filter.Select(method => method.MethodInfo);
-
-            return implicitConvertionMethods;
-        }
-
-        private static IEnumerable<MethodInfo> GetImplicitConvertionMethods(Type type)
-        {
-            return type.GetMethods(BindingFlags.Public | BindingFlags.Static)
-                .Where(m => m.Name == "op_Implicit");
-        }
-
-        private static bool IsDerivedFrom(Type type, Type baseType)
-        {
-            while (true)
-            {
-                type = type.BaseType;
-
-                if (type == baseType)
-                {
-                    return true;
-                } 
-                
-                if (type == typeof(object) || type == null)
-                {
-                    return false;
-                }
-            }
         }
 
         private class CreateInstanceCandidate : Candidate

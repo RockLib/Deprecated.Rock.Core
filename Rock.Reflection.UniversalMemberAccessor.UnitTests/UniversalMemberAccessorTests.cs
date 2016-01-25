@@ -1,14 +1,22 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CSharp.RuntimeBinder;
 using NUnit.Framework;
 using System.Reflection;
+using Rock.Reflection.UnitTests.TypeBuilder;
 
 namespace Rock.Reflection.UnitTests
 {
     public class UniversalMemberAccessorTests
     {
+        [Test]
+        public void CannotCallGetStaticWithNullType()
+        {
+            Assert.That(() => UniversalMemberAccessor.GetStatic((Type)null), Throws.InstanceOf<ArgumentNullException>());
+        }
+
         [Test]
         public void CanGetBackingInstanceWithInstance()
         {
@@ -40,6 +48,51 @@ namespace Rock.Reflection.UnitTests
 
             Assert.That(foo, Is.InstanceOf<UniversalMemberAccessor>());
             Assert.That(backingFoo, Is.InstanceOf<Foo>());
+        }
+
+        [Test]
+        public void CanImplicitlyConvert()
+        {
+            var foo = new Foo(123).Unlock();
+
+            Foo backingFoo = foo;
+
+            Assert.That(foo, Is.InstanceOf<UniversalMemberAccessor>());
+            Assert.That(backingFoo, Is.InstanceOf<Foo>());
+        }
+
+        [Test]
+        public void CannotImplicitlyConvertToWrongType()
+        {
+            var foo = new Foo(123).Unlock();
+
+            Bar bar;
+
+            Assert.That(() => bar = foo, Throws.InstanceOf<RuntimeBinderException>());
+        }
+
+        [Test]
+        public void CannotGetBackingInstanceFromStaticAccessorWithInstance()
+        {
+            var foo = UniversalMemberAccessor.GetStatic<Foo>();
+
+            Assert.That(() => foo.Instance, Throws.InstanceOf<RuntimeBinderException>());
+        }
+
+        [Test]
+        public void CannotGetBackingInstanceFromStaticAccessorWithObject()
+        {
+            var foo = UniversalMemberAccessor.GetStatic<Foo>();
+
+            Assert.That(() => foo.Object, Throws.InstanceOf<RuntimeBinderException>());
+        }
+
+        [Test]
+        public void CannotGetBackingInstanceFromStaticAccessorWithValue()
+        {
+            var foo = UniversalMemberAccessor.GetStatic<Foo>();
+
+            Assert.That(() => foo.Value, Throws.InstanceOf<RuntimeBinderException>());
         }
 
         [Test]
@@ -80,6 +133,158 @@ namespace Rock.Reflection.UnitTests
             foo.Bar = 123;
 
             Assert.That(foo.Bar, Is.EqualTo(123));
+        }
+
+        [Test]
+        public void CannotSetValueOfPropertyThatDoesNotExist()
+        {
+            var foo = new Foo().Unlock();
+
+            Assert.That(() => foo.DoesNotExist = "abc", Throws.InstanceOf<RuntimeBinderException>());
+        }
+
+        [Test]
+        public void CannotSetWrongTypeForProperty()
+        {
+            var foo = new Foo().Unlock();
+
+            Assert.That(() => foo.Bar = "abc", Throws.InstanceOf<RuntimeBinderException>());
+        }
+
+        [Test]
+        public void CannotSetNullForNonNullableValueTypeField()
+        {
+            var type = Create.Class("Foo", Define.Field("_bar", typeof(int)));
+
+            var foo = type.New();
+
+            Assert.That(() => foo._bar = null, Throws.InstanceOf<RuntimeBinderException>());
+        }
+
+        [Test]
+        public void CanSetFieldValueWhenValueIsWrappedInUniversalMemberAccessor()
+        {
+            var barType = Create.Class("Bar", Define.Field("_baz", typeof(int)));
+            var fooType = Create.Class("Foo", Define.Field("_bar", barType));
+
+            var bar = barType.New();
+            bar._baz = 123;
+
+            var foo = fooType.New();
+            foo._bar = bar;
+
+            int baz = foo._bar._baz;
+
+            Assert.That(baz, Is.EqualTo(123));
+        }
+
+        [Test]
+        public void CanCreateInstanceWhenConstructorArgIsUniversalMemberAccessor()
+        {
+            var barType = Create.Class("Bar", Define.Field("_baz", typeof(int)),
+                Define.Constructor(new Parameter(typeof(int), "_baz")));
+            var fooType = Create.Class("Foo", Define.Field("_bar", barType),
+                Define.Constructor(new Parameter(barType, "_bar")));
+
+            object bar = barType.New(123);
+
+            var foo = fooType.New(bar);
+
+            int baz = foo._bar._baz;
+
+            Assert.That(baz, Is.EqualTo(123));
+        }
+
+        [Test]
+        public void CanCreateInstanceOfStruct()
+        {
+            var type = Create.Struct("FooStruct");
+
+            var foo = type.New();
+
+            Assert.That(foo, Is.Not.Null);
+            Assert.That(foo.Value.GetType(), Is.EqualTo(type));
+        }
+
+        [Test]
+        public void CanCreateInstanceOfStructWithDeclaredConstructor()
+        {
+            var type = Create.Struct("FooStruct", Define.Constructor(typeof(int)));
+
+            var foo = type.New(123);
+
+            Assert.That(foo, Is.Not.Null);
+            Assert.That(foo.Value.GetType(), Is.EqualTo(type));
+        }
+
+        [Test]
+        public void CanCreateInstanceOfString()
+        {
+            var type = typeof(string);
+
+            var foo = type.New('a', 3);
+
+            Assert.That(foo, Is.EqualTo("aaa"));
+        }
+
+        [Test]
+        public void CanSetNullableFieldToValue()
+        {
+            var type = Create.Class("Foo", Define.Field("_bar", typeof(int?)));
+
+            var foo = type.New();
+
+            foo._bar = 123;
+
+            var bar = foo._bar;
+            Assert.That(bar, Is.EqualTo(123));
+        }
+
+        [Test]
+        public void CanSetNullableFieldToNull()
+        {
+            var type = Create.Class("Foo", Define.Field("_bar", typeof(int?)));
+
+            var foo = type.New();
+
+            foo._bar = null;
+
+            var bar = foo._bar;
+            Assert.That(bar, Is.Null);
+        }
+
+        [Test]
+        public void CanSetNullablePropertyToValue()
+        {
+            var type = Create.Class("Foo", Define.AutoProperty("Bar", typeof(int?)));
+
+            var foo = type.New();
+
+            foo.Bar = 123;
+
+            var bar = foo.Bar;
+            Assert.That(bar, Is.EqualTo(123));
+        }
+
+        [Test]
+        public void CanSetNullablePropertyToNull()
+        {
+            var type = Create.Class("Foo", Define.AutoProperty("Bar", typeof(int?)));
+
+            var foo = type.New();
+
+            foo.Bar = null;
+
+            var bar = foo.Bar;
+            Assert.That(bar, Is.Null);
+        }
+
+        [Test]
+        public void CanSetMoreSpecificNumericType()
+        {
+            var foo = new Foo().Unlock();
+
+            Assert.That(() => foo.Bar = (byte)123, Throws.Nothing);
         }
 
         [Test]
@@ -168,6 +373,340 @@ namespace Rock.Reflection.UnitTests
             foo.Baz = 123;
 
             Assert.That(foo.Baz, Is.EqualTo(123));
+        }
+
+        [Test]
+        public void CanCreateInstanceWithNewExtensionMethodWithNoParameters()
+        {
+            var type = Create.Class("Foo");
+
+            var foo = type.New();
+
+            Assert.That(foo, Is.Not.Null);
+            Assert.That(foo.Value.GetType().Name, Is.EqualTo("Foo"));
+        }
+
+        [Test]
+        public void CanCreateInstanceWithNewExtensionMethodWithParameters()
+        {
+            var type = Create.Class("Foo", Define.Constructor(typeof(int), typeof(string)));
+
+            var foo = type.New(123, "abc");
+
+            Assert.That(foo, Is.Not.Null);
+            Assert.That(foo.Value.GetType().Name, Is.EqualTo("Foo"));
+        }
+
+        [Test]
+        public void CannotCreateInstanceOfObjectWithWrongParameters()
+        {
+            var type = Create.Class("Foo");
+
+            Assert.That(() => type.New(123, "abc"), Throws.InstanceOf<RuntimeBinderException>());
+        }
+
+        [Test]
+        public void CanChooseTheBestConstructor()
+        {
+            var type = Create.Class("Foo",
+                Define.Constructor(new Parameter(typeof(long), "_long")),
+                Define.Constructor(new Parameter(typeof(short), "_short")),
+                Define.Field("_long", typeof(long), isReadOnly:true),
+                Define.Field("_short", typeof(short), isReadOnly:true));
+
+            long longValue;
+            short shortValue;
+
+            var foo1 = type.New((long)123); // exact match to long ctor
+            longValue = foo1._long;
+            shortValue = foo1._short;
+            Assert.That(longValue, Is.EqualTo(123));
+            Assert.That(shortValue, Is.EqualTo(0));
+
+            var foo2 = type.New((short)123); // exact match to short ctor
+            longValue = foo2._long;
+            shortValue = foo2._short;
+            Assert.That(longValue, Is.EqualTo(0));
+            Assert.That(shortValue, Is.EqualTo(123));
+
+            var foo3 = type.New((uint)123); // only long ctor is legal
+            longValue = foo3._long;
+            shortValue = foo3._short;
+            Assert.That(longValue, Is.EqualTo(123));
+            Assert.That(shortValue, Is.EqualTo(0));
+
+            var foo4 = type.New((byte)123); // short is "closer" to byte than long
+            longValue = foo4._long;
+            shortValue = foo4._short;
+            Assert.That(longValue, Is.EqualTo(0));
+            Assert.That(shortValue, Is.EqualTo(123));
+        }
+
+        [Test]
+        public void CannotChoseBestConstructorWhenChoiceIsAmbiguous()
+        {
+            var type = Create.Class(
+                   Define.Constructor(typeof(ICountryHam)),
+                   Define.Constructor(typeof(Ham)));
+            
+            Assert.That(() => type.New(new CountryHam()), Throws.InstanceOf<RuntimeBinderException>());
+        }
+
+        [Test]
+        public void CannotCallMethodWithWrongParameters()
+        {
+            var type = Create.Class("Foo", Define.EchoMethod("Bar", typeof(int)));
+
+            var foo = type.New();
+
+            Assert.That(() => foo.Bar("abc"), Throws.InstanceOf<RuntimeBinderException>());
+        }
+
+        [Test]
+        public void CanChooseTheBestMethodOverload()
+        {
+            var type = Create.Class("Foo",
+                Define.EchoMethod("Bar", typeof(long)),
+                Define.EchoMethod("Bar", typeof(short)));
+
+            var foo = type.New();
+
+            object result;
+
+            result = foo.Bar((long)123); // exact match to long overload
+            Assert.That(result, Is.InstanceOf<long>());
+
+            result = foo.Bar((short)123); // exact match to short overload
+            Assert.That(result, Is.InstanceOf<short>());
+
+            result = foo.Bar((uint)123); // only long overload is legal
+            Assert.That(result, Is.InstanceOf<long>());
+
+            result = foo.Bar((byte)123); // short is "closer" to byte than long
+            Assert.That(result, Is.InstanceOf<short>());
+        }
+
+        [Test]
+        public void CannotChoseBestMethodOverloadWhenChoiceIsAmbiguous()
+        {
+            var type = Create.Class("Foo",
+                Define.EchoMethod("Bar", typeof(ICountryHam)),
+                Define.EchoMethod("Bar", typeof(Ham)));
+
+            var foo = type.New();
+
+            Assert.That(() => foo.Bar(new CountryHam()), Throws.InstanceOf<RuntimeBinderException>());
+        }
+
+        [Test]
+        public void CanSetReadonlyField()
+        {
+            var type = Create.Class("Foo", Define.Field("_bar", typeof(int), false, true));
+
+            var foo = type.New();
+
+            int bar = foo._bar;
+            Assert.That(bar, Is.EqualTo(0));
+
+            foo._bar = 123;
+
+            bar = foo._bar;
+            Assert.That(bar, Is.EqualTo(123));
+        }
+
+        [Test]
+        public void CanReadFieldWithIllegalCSharpName()
+        {
+            var type = Create.Class("Foo", Define.Field("<Bar>", typeof(int)));
+
+            var foo = type.New();
+
+            int bar = foo["<Bar>"];
+            Assert.That(bar, Is.EqualTo(0));
+        }
+
+        [Test]
+        public void CanWriteFieldWithIllegalCSharpName()
+        {
+            var type = Create.Class("Foo", Define.Field("<Bar>", typeof(int)));
+
+            var foo = type.New();
+
+            foo["<Bar>"] = 123;
+
+            int bar = foo["<Bar>"];
+            Assert.That(bar, Is.EqualTo(123));
+        }
+
+        [Test]
+        public void CanReadFieldWithIllegalCSharpNameThatDoesNotExist()
+        {
+            var type = Create.Class("Foo");
+
+            var foo = type.New();
+
+            int bar;
+            Assert.That(() => bar = foo["<Bar>"], Throws.InstanceOf<RuntimeBinderException>());
+        }
+
+        [Test]
+        public void CanWriteFieldWithIllegalCSharpNameThatDoesNotExist()
+        {
+            var type = Create.Class("Foo");
+
+            var foo = type.New();
+
+            Assert.That(() => foo["<Bar>"] = 123, Throws.InstanceOf<RuntimeBinderException>());
+        }
+
+        [TestCase(typeof(int), typeof(int))]
+        
+        [TestCase(typeof(int?), typeof(int))]
+        [TestCase(typeof(int?), typeof(byte))]
+
+        [TestCase(typeof(object), typeof(int))]
+
+        [TestCase(typeof(short), typeof(sbyte))]
+        [TestCase(typeof(int), typeof(sbyte))]
+        [TestCase(typeof(long), typeof(sbyte))]
+        [TestCase(typeof(float), typeof(sbyte))]
+        [TestCase(typeof(double), typeof(sbyte))]
+        [TestCase(typeof(decimal), typeof(sbyte))]
+
+        [TestCase(typeof(short), typeof(byte))]
+        [TestCase(typeof(ushort), typeof(byte))]
+        [TestCase(typeof(int), typeof(byte))]
+        [TestCase(typeof(uint), typeof(byte))]
+        [TestCase(typeof(long), typeof(byte))]
+        [TestCase(typeof(ulong), typeof(byte))]
+        [TestCase(typeof(float), typeof(byte))]
+        [TestCase(typeof(double), typeof(byte))]
+        [TestCase(typeof(decimal), typeof(byte))]
+
+        [TestCase(typeof(int), typeof(short))]
+        [TestCase(typeof(long), typeof(short))]
+        [TestCase(typeof(float), typeof(short))]
+        [TestCase(typeof(double), typeof(short))]
+        [TestCase(typeof(decimal), typeof(short))]
+
+        [TestCase(typeof(int), typeof(ushort))]
+        [TestCase(typeof(uint), typeof(ushort))]
+        [TestCase(typeof(long), typeof(ushort))]
+        [TestCase(typeof(ulong), typeof(ushort))]
+        [TestCase(typeof(float), typeof(ushort))]
+        [TestCase(typeof(double), typeof(ushort))]
+        [TestCase(typeof(decimal), typeof(ushort))]
+
+        [TestCase(typeof(long), typeof(int))]
+        [TestCase(typeof(float), typeof(int))]
+        [TestCase(typeof(double), typeof(int))]
+        [TestCase(typeof(decimal), typeof(int))]
+
+        [TestCase(typeof(long), typeof(uint))]
+        [TestCase(typeof(ulong), typeof(uint))]
+        [TestCase(typeof(float), typeof(uint))]
+        [TestCase(typeof(double), typeof(uint))]
+        [TestCase(typeof(decimal), typeof(uint))]
+
+        [TestCase(typeof(float), typeof(long))]
+        [TestCase(typeof(double), typeof(long))]
+        [TestCase(typeof(decimal), typeof(long))]
+
+        [TestCase(typeof(float), typeof(ulong))]
+        [TestCase(typeof(double), typeof(ulong))]
+        [TestCase(typeof(decimal), typeof(ulong))]
+
+        [TestCase(typeof(ushort), typeof(char))]
+        [TestCase(typeof(int), typeof(char))]
+        [TestCase(typeof(uint), typeof(char))]
+        [TestCase(typeof(long), typeof(char))]
+        [TestCase(typeof(ulong), typeof(char))]
+        [TestCase(typeof(float), typeof(char))]
+        [TestCase(typeof(double), typeof(char))]
+        [TestCase(typeof(decimal), typeof(char))]
+
+        [TestCase(typeof(double), typeof(float))]
+
+        [TestCase(typeof(MyBase), typeof(MyDerived))]
+
+        [TestCase(typeof(IMyInterface), typeof(MyDerived))]
+        public void CanAssign(Type propertyType, Type valueType)
+        {
+            var value = Activator.CreateInstance(valueType);
+
+            var type = Create.Class("Foo", Define.AutoProperty("Bar", propertyType));
+
+            var foo = type.New();
+
+            Assert.That(() => foo.Bar = value, Throws.Nothing);
+        }
+
+        [Test]
+        public void CanAssignSpecificArrayToArray()
+        {
+            var type = Create.Class("Foo", Define.AutoProperty("Bar", typeof(Array)));
+
+            var foo = type.New();
+
+            Assert.That(() => foo.Bar = new int[0], Throws.Nothing);
+        }
+
+        [Test]
+        public void CanAssignSpecificDelegateToDelegate()
+        {
+            var type = Create.Class("Foo", Define.AutoProperty("Bar", typeof(Delegate)));
+
+            var foo = type.New();
+
+            Assert.That(() => foo.Bar = (Action)(() => {}), Throws.Nothing);
+        }
+
+        [Test]
+        public void CanAssignSpecificEnumToEnum()
+        {
+            var type = Create.Class("Foo", Define.AutoProperty("Bar", typeof(Enum)));
+
+            var foo = type.New();
+
+            Assert.That(() => foo.Bar = MyEnum.First, Throws.Nothing);
+        }
+
+        [TestCase(typeof(IMyInterface[]))]
+
+        [TestCase(typeof(IList<IMyInterface>))]
+        [TestCase(typeof(ICollection<IMyInterface>))]
+        [TestCase(typeof(IEnumerable<IMyInterface>))]
+
+        [TestCase(typeof(IList))]
+        [TestCase(typeof(ICollection))]
+        [TestCase(typeof(IEnumerable))]
+        public void CanAssignArrayToAllOfItsInterfaces(Type propertyType)
+        {
+            var type = Create.Class("Foo", Define.AutoProperty("Bar", propertyType));
+
+            var foo = type.New();
+
+            Assert.That(() => foo.Bar = new MyDerived[0], Throws.Nothing);
+        }
+
+        [Test]
+        public void CanAssignCovariant() // covariance
+        {
+            var type = Create.Class("Foo", Define.AutoProperty("Bar", typeof(IEnumerable<IMyInterface>)));
+
+            var foo = type.New();
+
+            Assert.That(() => foo.Bar = new List<MyDerived>(), Throws.Nothing);
+        }
+
+        [Test]
+        public void CanAssignContravariant() // contravariance
+        {
+            var type = Create.Class("Foo", Define.AutoProperty("Bar", typeof(Action<MyDerived>)));
+
+            var foo = type.New();
+
+            Assert.That(() => foo.Bar = (Action<MyBase>)(myBase => {}), Throws.Nothing);
         }
 
         [Test]
@@ -353,6 +892,14 @@ namespace Rock.Reflection.UnitTests
         }
 
         [Test]
+        public void CannotInvokeConstructorsWithAliasWithIncorrectArgs()
+        {
+            var quxFactory = UniversalMemberAccessor.GetStatic<Qux>();
+
+            Assert.That(() => quxFactory.CreateInstance("wrong", "args"), Throws.InstanceOf<RuntimeBinderException>());
+        }
+
+        [Test]
         public void CanResolveMultipleConstructors()
         {
             var garplyFactory = UniversalMemberAccessor.GetStatic<Garply>();
@@ -391,7 +938,7 @@ namespace Rock.Reflection.UnitTests
         [Test]
         public void CanGetPrivateEnumValue()
         {
-            var wibbleType = typeof(Waldo).GetNestedTypes(BindingFlags.NonPublic | BindingFlags.Public).Single(t => t.Name == "Wibble");
+            var wibbleType = Type.GetType("Rock.Reflection.UnitTests.Waldo+Wibble");
             var Wibble = UniversalMemberAccessor.GetStatic(wibbleType);
 
             // Note that these variables are declared as object. (see below)
@@ -413,7 +960,7 @@ namespace Rock.Reflection.UnitTests
         [Test]
         public void CanGetDefaultValueOfPrivateEnum()
         {
-            var wibbleType = typeof(Waldo).GetNestedTypes(BindingFlags.NonPublic | BindingFlags.Public).Single(t => t.Name == "Wibble");
+            var wibbleType = Type.GetType("Rock.Reflection.UnitTests.Waldo+Wibble");
             var Wibble = UniversalMemberAccessor.GetStatic(wibbleType);
 
             // Note that the variable is declared as object. (see below)
@@ -426,48 +973,6 @@ namespace Rock.Reflection.UnitTests
             var defaultInt = (int)defaultWibble;
 
             Assert.That(defaultInt, Is.EqualTo(0));
-        }
-
-        [Test]
-        public void GetImplicitConvertionMethodsReturnsNoMethodsWhenNoneAreDefined()
-        {
-            var f = UniversalMemberAccessor.GetStatic<UniversalMemberAccessor>();
-
-            Type parameterType = typeof(Thud);
-            Type valueType = typeof(Fred);
-
-            IEnumerable<MethodInfo> implicitConvertionMethods =
-                f.GetImplicitConvertionMethods(parameterType, valueType);
-
-            Assert.That(implicitConvertionMethods.Count(), Is.EqualTo(0));
-        }
-
-        [Test]
-        public void GetImplicitConvertionMethodsReturnsOneMethodWhenOneIsDefined()
-        {
-            var f = UniversalMemberAccessor.GetStatic<UniversalMemberAccessor>();
-
-            Type parameterType = typeof(Fred);
-            Type valueType = typeof(Waldo);
-
-            IEnumerable<MethodInfo> implicitConvertionMethods =
-                f.GetImplicitConvertionMethods(parameterType, valueType);
-
-            Assert.That(implicitConvertionMethods.Count(), Is.EqualTo(1));
-        }
-
-        [Test]
-        public void GetImplicitConvertionMethodsReturnsTwoMethodsWhenTwoAreDefined()
-        {
-            var f = UniversalMemberAccessor.GetStatic<UniversalMemberAccessor>();
-
-            Type parameterType = typeof(Fred);
-            Type valueType = typeof(Thud);
-
-            IEnumerable<MethodInfo> implicitConvertionMethods =
-                f.GetImplicitConvertionMethods(parameterType, valueType);
-
-            Assert.That(implicitConvertionMethods.Count(), Is.EqualTo(2));
         }
 
         [TestCase(typeof(Pork), typeof(Pork), 0)]
@@ -809,20 +1314,6 @@ namespace Rock.Reflection.UnitTests
     {
     }
 
-    public class Fred
-    {
-        public static implicit operator Fred(Waldo x)
-        {
-            return new Fred();
-        }
-
-        // Dulicate implicit conversion
-        public static implicit operator Fred(Thud x)
-        {
-            return new Fred();
-        }
-    }
-
     public class Waldo
     {
         private EventHandler _foo = FooHandler;
@@ -845,14 +1336,23 @@ namespace Rock.Reflection.UnitTests
         }
     }
 
-    public class Thud
+    public class MyBase
     {
-        // Dulicate implicit conversion
-        public static implicit operator Fred(Thud x)
-        {
-            return new Fred();
-        }
     }
+
+    public interface IMyInterface
+    {
+    }
+
+    public class MyDerived : MyBase, IMyInterface
+    {
+    }
+
+    public enum MyEnum
+    {
+        First
+    }
+
     // ReSharper restore EventNeverSubscribedTo.Local
     // ReSharper restore ConvertToAutoProperty
     // ReSharper restore UnusedMember.Local
