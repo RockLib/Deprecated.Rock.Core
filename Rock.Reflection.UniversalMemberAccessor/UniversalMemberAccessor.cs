@@ -6,6 +6,7 @@ using System.Dynamic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
 
@@ -491,6 +492,18 @@ namespace Rock.Reflection
             var propertyInfo = _type.GetProperty(name, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static);
             if (propertyInfo != null)
             {
+                if (valueType != null)
+                {
+                    if (!CanBeAssigned(propertyInfo.PropertyType, valueType))
+                    {
+                        return null;
+                    }
+                }
+                else if (!CanBeAssignedNull(propertyInfo.PropertyType))
+                {
+                    return null;
+                }
+
                 propertyOrField = Expression.Property(IsStatic(propertyInfo) ? null : convertInstanceParameter, propertyInfo);
             }
             else
@@ -498,10 +511,61 @@ namespace Rock.Reflection
                 var fieldInfo = _type.GetField(name, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static);
                 if (fieldInfo != null)
                 {
+                    if (valueType != null)
+                    {
+                        if (!CanBeAssigned(fieldInfo.FieldType, valueType))
+                        {
+                            return null;
+                        }
+                    }
+                    else if (!CanBeAssignedNull(fieldInfo.FieldType))
+                    {
+                        return null;
+                    }
+
                     if (fieldInfo.IsInitOnly)
                     {
-                        // TODO: use reflection emit to optimize setting readonly fields.
-                        action = fieldInfo.SetValue;
+                        var dynamicMethod = new DynamicMethod("", typeof(void),
+                            new[] { typeof(object), typeof(object) }, fieldInfo.DeclaringType);
+
+                        var il = dynamicMethod.GetILGenerator();
+
+                        if (!fieldInfo.IsStatic)
+                        {
+                            // Load the first arg (should not do for static field)
+                            il.Emit(OpCodes.Ldarg_0);
+                            il.Emit(OpCodes.Castclass, fieldInfo.DeclaringType);
+                        }
+
+                        // Load the second arg
+                        il.Emit(OpCodes.Ldarg_1);
+
+                        if (fieldInfo.FieldType.IsValueType)
+                        {
+                            // Unbox value types.
+                            if (valueType == fieldInfo.FieldType || valueType == null)
+                            {
+                                // Unbox as the field type when value type matches or is null.
+                                il.Emit(OpCodes.Unbox_Any, fieldInfo.FieldType);
+                            }
+                            else
+                            {
+                                // If value type is different than field type, unbox as the
+                                // value type. Otherwise we get an invalid cast exception.
+                                il.Emit(OpCodes.Unbox_Any, valueType);
+                            }
+                        }
+                        else
+                        {
+                            // Cast reference types.
+                            il.Emit(OpCodes.Castclass, fieldInfo.FieldType);
+                        }
+
+                        // Different op code for static vs. instance.
+                        il.Emit(fieldInfo.IsStatic ? OpCodes.Stsfld : OpCodes.Stfld, fieldInfo);
+                        il.Emit(OpCodes.Ret);
+
+                        action = (Action<object, object>)dynamicMethod.CreateDelegate(typeof(Action<object, object>));
                         propertyOrField = null;
                     }
                     else
@@ -517,29 +581,13 @@ namespace Rock.Reflection
 
             if (action == null)
             {
-                if (valueType != null)
-                {
-                    if (!CanBeAssigned(propertyOrField.Type, valueType))
-                    {
-                        return null;
-                    }
-                }
-                else if (!CanBeAssignedNull(propertyOrField.Type))
-                {
-                    return null;
-                }
-
                 Expression newValue;
 
                 if (propertyOrField.Type.IsValueType)
                 {
-                    if (propertyOrField.Type == valueType)
+                    if (valueType == propertyOrField.Type || valueType == null)
                     {
-                        newValue = Expression.Unbox(valueParameter, valueType);
-                    }
-                    else if (valueType == null)
-                    {
-                        newValue = Expression.Constant(null, propertyOrField.Type);
+                        newValue = Expression.Unbox(valueParameter, propertyOrField.Type);
                     }
                     else
                     {
@@ -818,7 +866,6 @@ namespace Rock.Reflection
                 // Delegate type to System.Delegate
                 // Boxing conversion
                 // Enum type to System.Enum
-                // User defined conversion (op_implicit)
 
                 if (thisParameter == otherParameter)
                 {
@@ -1028,7 +1075,8 @@ namespace Rock.Reflection
 
                 if (ancestorType.IsInterface)
                 {
-                    // if type's interfaces contain ancestorType, check to see if type.BaseType's interfaces contain it, and so one. Each time, add one to the distance.
+                    // if type's interfaces contain ancestorType, check to see if type.BaseType's
+                    // interfaces contain it, and so on. Each time, add one to the distance.
 
                     var distance = 0;
 

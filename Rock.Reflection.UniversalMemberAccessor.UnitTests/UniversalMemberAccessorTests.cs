@@ -160,9 +160,21 @@ namespace Rock.Reflection.UnitTests
         }
 
         [Test]
+        public void CannotSetWrongTypeForField()
+        {
+            var type = Create.Class("Foo", Define.Field("_bar", typeof(int)));
+
+            var foo = type.New();
+
+            Assert.That(() => foo._bar = "abc", Throws.InstanceOf<RuntimeBinderException>());
+        }
+
+        [Test]
         public void CannotSetWrongTypeForProperty()
         {
-            var foo = new Foo().Unlock();
+            var type = Create.Class("Foo", Define.AutoProperty("Bar", typeof(int)));
+
+            var foo = type.New();
 
             Assert.That(() => foo.Bar = "abc", Throws.InstanceOf<RuntimeBinderException>());
         }
@@ -175,6 +187,16 @@ namespace Rock.Reflection.UnitTests
             var foo = type.New();
 
             Assert.That(() => foo._bar = null, Throws.InstanceOf<RuntimeBinderException>());
+        }
+
+        [Test]
+        public void CannotSetNullForNonNullableValueTypeProperty()
+        {
+            var type = Create.Class("Foo", Define.AutoProperty("Bar", typeof(int)));
+
+            var foo = type.New();
+
+            Assert.That(() => foo.Bar = null, Throws.InstanceOf<RuntimeBinderException>());
         }
 
         [Test]
@@ -514,20 +536,34 @@ namespace Rock.Reflection.UnitTests
             Assert.That(() => foo.Bar(new CountryHam()), Throws.InstanceOf<RuntimeBinderException>());
         }
 
-        [Test]
-        public void CanSetReadonlyField()
+        [TestCase(typeof(int), 123)]
+        [TestCase(typeof(int), (short)456)]
+        [TestCase(typeof(string), "abc")]
+        public void CanSetReadonlyInstanceField(Type fieldType, object fieldValue)
         {
-            var type = Create.Class("Foo", Define.Field("_bar", typeof(int), false, true));
+            var type = Create.Class("Foo", Define.Field("_bar", fieldType, false, true));
 
             var foo = type.New();
 
-            int bar = foo._bar;
-            Assert.That(bar, Is.EqualTo(0));
+            foo._bar = fieldValue;
 
-            foo._bar = 123;
+            var bar = foo._bar;
+            Assert.That(bar, Is.EqualTo(fieldValue));
+        }
 
-            bar = foo._bar;
-            Assert.That(bar, Is.EqualTo(123));
+        [TestCase(typeof(int), 123)]
+        [TestCase(typeof(int), (short)456)]
+        [TestCase(typeof(string), "abc")]
+        public void CanSetReadonlyStaticField(Type fieldType, object fieldValue)
+        {
+            var type = Create.Class("Foo", Define.Field("_bar", fieldType, true, true));
+
+            var foo = UniversalMemberAccessor.GetStatic(type);
+
+            foo._bar = fieldValue;
+
+            var bar = foo._bar;
+            Assert.That(bar, Is.EqualTo(fieldValue));
         }
 
         [Test]
