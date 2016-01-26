@@ -12,6 +12,22 @@ namespace Rock.Reflection.UnitTests
     public class UniversalMemberAccessorTests
     {
         [Test]
+        public void GetDynamicMemberNamesReturnsAllTheMemberNamesOfTheType()
+        {
+            var type = Create.Class();
+
+            var instance = type.New();
+
+            var allMemberNames = type.GetMembers(BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)
+                .Where(m => !(m is ConstructorInfo))
+                .Select(m => m.Name);
+
+            var dynamicMemberNames = instance.GetDynamicMemberNames();
+
+            Assert.That(dynamicMemberNames, Is.EqualTo(allMemberNames));
+        }
+
+        [Test]
         public void CannotCallGetStaticWithNullType()
         {
             Assert.That(() => UniversalMemberAccessor.GetStatic((Type)null), Throws.InstanceOf<ArgumentNullException>());
