@@ -1303,18 +1303,11 @@ namespace Rock.Reflection.UnitTests
         [TestCase(typeof(string), typeof(Ham), typeof(CountryHam), -32767)]
         public void AccumulateScoreModifiesScoreCorrectly(Type thisType, Type otherType, Type argType, int expectedScore)
         {
-            // ref and out parameters are not supported yet, so test this with old-fashion reflection.
-            var candidateType = Type.GetType(
-                "Rock.Reflection.UniversalMemberAccessor+Candidate, Rock.Reflection.UniversalMemberAccessor",
-                true);
+            var candidate = UniversalMemberAccessor.GetStatic(
+                "Rock.Reflection.UniversalMemberAccessor+Candidate, Rock.Reflection.UniversalMemberAccessor");
 
-            var accumulateScore = candidateType.GetMethod("AccumulateScore", BindingFlags.NonPublic | BindingFlags.Static);
-
-            var args = new object[] { thisType, otherType, argType, 0 };
-
-            accumulateScore.Invoke(null, args);
-
-            var score = (int)args[3];
+            var score = 0;
+            candidate.AccumulateScore(thisType, otherType, argType, ref score);
 
             Assert.That(score, Is.EqualTo(expectedScore));
         }
