@@ -76,6 +76,63 @@ namespace Rock.Reflection.UnitTests.TypeBuilder
             });
         }
 
+        public static MemberDefinition EchoRefMethod(string name, Type type, bool returnsVoid = false, bool isStatic = false, Visibility visibility = Visibility.Public)
+        {
+            return EchoByRefMethod(name, type, false, returnsVoid, isStatic, visibility);
+        }
+
+        public static MemberDefinition EchoOutMethod(string name, Type type, bool returnsVoid = false, bool isStatic = false, Visibility visibility = Visibility.Public)
+        {
+            return EchoByRefMethod(name, type, true, returnsVoid, isStatic, visibility);
+        }
+
+        private static MemberDefinition EchoByRefMethod(string name, Type type, bool hasOutParameter, bool returnsVoid, bool isStatic, Visibility visibility)
+        {
+            if (name == null) throw new ArgumentNullException("name");
+            if (type == null) throw new ArgumentNullException("type");
+
+            var methodAttributes = GetMethodAttributes(visibility, false, isStatic);
+            
+            return new MemberDefinition((tb, fields) =>
+            {
+                var methodBuilder = tb.DefineMethod(name, methodAttributes, returnsVoid ? typeof(void) : type, new[] { type, type.MakeByRefType() });
+
+                if (hasOutParameter)
+                {
+                    methodBuilder.DefineParameter(2, ParameterAttributes.Out, null);
+                }
+
+                var il = methodBuilder.GetILGenerator();
+
+                if (isStatic)
+                {
+                    il.Emit(OpCodes.Ldarg_1);
+                    il.Emit(OpCodes.Ldarg_0);
+                }
+                else
+                {
+                    il.Emit(OpCodes.Ldarg_2);
+                    il.Emit(OpCodes.Ldarg_1);
+                }
+
+                if (type.IsValueType)
+                {
+                    il.Emit(OpCodes.Stobj, type);
+                }
+                else
+                {
+                    il.Emit(OpCodes.Stind_Ref);
+                }
+
+                if (!returnsVoid)
+                {
+                    il.Emit(isStatic ? OpCodes.Ldarg_0 : OpCodes.Ldarg_1);
+                }
+
+                il.Emit(OpCodes.Ret);
+            });
+        }
+
         public static MemberDefinition AutoProperty(string name, Type type, bool isStatic = false, Visibility visibility = Visibility.Public, string backingFieldName = null)
         {
             if (name == null) throw new ArgumentNullException("name");
