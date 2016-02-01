@@ -609,6 +609,62 @@ namespace Rock.Reflection.UnitTests
         }
 
         [Test]
+        public void CanCallMethodWithRefParameterUsingOutKeyword()
+        {
+            var type = Create.Class("Foo", Define.EchoRefMethod("Bar", typeof(string)));
+
+            var foo = type.New();
+
+            string s;
+            string dummy = foo.Bar("abc", out s);
+
+            Assert.That(s, Is.EqualTo("abc"));
+            Assert.That(dummy, Is.EqualTo("abc"));
+        }
+
+        [Test]
+        public void CanCallMethodWithOutParameterUsingRefKeyword()
+        {
+            var type = Create.Class("Foo", Define.EchoOutMethod("Bar", typeof(string)));
+
+            var foo = type.New();
+
+            string s = "";
+            string dummy = foo.Bar("abc", ref s);
+
+            Assert.That(s, Is.EqualTo("abc"));
+            Assert.That(dummy, Is.EqualTo("abc"));
+        }
+
+        [Test]
+        public void CanCallMethodWithRefParameterWithoutUsingRefKeywordButVariableIsNotChanged()
+        {
+            var type = Create.Class("Foo", Define.EchoRefMethod("Bar", typeof(string)));
+
+            var foo = type.New();
+
+            string s = null;
+            string dummy = foo.Bar("abc", s);
+
+            Assert.That(s, Is.Null);
+            Assert.That(dummy, Is.EqualTo("abc"));
+        }
+
+        [Test]
+        public void CanCallMethodWithOutParameterWithoutUsingOutKeywordButVariableIsNotChanged()
+        {
+            var type = Create.Class("Foo", Define.EchoOutMethod("Bar", typeof(string)));
+
+            var foo = type.New();
+
+            string s = null;
+            string dummy = foo.Bar("abc", s);
+
+            Assert.That(s, Is.Null);
+            Assert.That(dummy, Is.EqualTo("abc"));
+        }
+
+        [Test]
         public void CanCallComplexMethodWithMixtureOfRefOutAndRegularParameters()
         {
             var foo = new ComplexMethodWithMixtureOfRefOutAndRegularParameters().Unlock();
