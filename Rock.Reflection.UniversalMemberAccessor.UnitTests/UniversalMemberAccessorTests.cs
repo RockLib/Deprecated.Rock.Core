@@ -530,7 +530,7 @@ namespace Rock.Reflection.UnitTests
         [Test]
         public void CanCallMethodWithValueTypeOutParameterReturningVoid()
         {
-            var type = Create.Class("Foo", Define.EchoRefMethod("Bar", typeof(int), true));
+            var type = Create.Class("Foo", Define.EchoOutMethod("Bar", typeof(int), true));
 
             var foo = type.New();
 
@@ -543,7 +543,7 @@ namespace Rock.Reflection.UnitTests
         [Test]
         public void CanCallMethodWithValueTypeOutParameterReturningValue()
         {
-            var type = Create.Class("Foo", Define.EchoRefMethod("Bar", typeof(int)));
+            var type = Create.Class("Foo", Define.EchoOutMethod("Bar", typeof(int)));
 
             var foo = type.New();
 
@@ -584,7 +584,7 @@ namespace Rock.Reflection.UnitTests
         [Test]
         public void CanCallMethodWithReferenceTypeOutParameterReturningVoid()
         {
-            var type = Create.Class("Foo", Define.EchoRefMethod("Bar", typeof(string), true));
+            var type = Create.Class("Foo", Define.EchoOutMethod("Bar", typeof(string), true));
 
             var foo = type.New();
 
@@ -597,7 +597,7 @@ namespace Rock.Reflection.UnitTests
         [Test]
         public void CanCallMethodWithReferenceTypeOutParameterReturningValue()
         {
-            var type = Create.Class("Foo", Define.EchoRefMethod("Bar", typeof(string)));
+            var type = Create.Class("Foo", Define.EchoOutMethod("Bar", typeof(string)));
 
             var foo = type.New();
 
