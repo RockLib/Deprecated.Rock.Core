@@ -693,29 +693,89 @@ namespace Rock.Reflection
             var methodInfoParameters = methodInfo.GetParameters();
             var callArguments = GetArguments(methodInfoParameters, argsParameter);
 
-            Expression body;
+            var localVariables = new List<ParameterExpression>();
+            var assignToVariables = new List<Expression>();
+            var assignToArgs = new List<Expression>();
+
+            for (int i = 0; i < methodInfoParameters.Length; i++)
+            {
+                if (methodInfoParameters[i].ParameterType.IsByRef)
+                {
+                    // need a local variable
+                    var localVariable = Expression.Variable(callArguments[i].Type, "local" + i);
+
+                    var convertItem = callArguments[i];
+                    var item = Expression.ArrayAccess(argsParameter, Expression.Constant(i));
+
+                    localVariables.Add(localVariable);
+                    callArguments[i] = localVariable;
+
+                    if (!methodInfoParameters[i].IsOut)
+                    {
+                        // need to assign to local variable
+                        assignToVariables.Add(Expression.Assign(localVariable, convertItem));
+                    }
+
+                    assignToArgs.Add(Expression.Assign(item, Expression.Convert(localVariable, typeof(object))));
+                }
+            }
+
+            Expression call;
 
             if (methodInfo.IsStatic)
             {
-                body = Expression.Call(
+                call = Expression.Call(
                     methodInfo,
                     callArguments);
             }
             else
             {
-                body = Expression.Call(
+                call = Expression.Call(
                     Expression.Convert(instanceParameter, _type),
                     methodInfo,
                     callArguments);
             }
 
-            if (methodInfo.ReturnType == typeof(void))
+            Expression body;
+
+            if (localVariables.Count == 0)
             {
-                body = Expression.Block(body, Expression.Constant(null));
+                body = call;
+
+                if (methodInfo.ReturnType == typeof(void))
+                {
+                    body = Expression.Block(body, Expression.Constant(null));
+                }
+                else if (methodInfo.ReturnType.IsValueType)
+                {
+                    body = Expression.Convert(body, typeof(object));
+                }
             }
-            else if (methodInfo.ReturnType.IsValueType)
+            else
             {
-                body = Expression.Convert(body, typeof(object));
+                var blockExpressions = assignToVariables.ToList();
+                
+                ParameterExpression returnValue = null;
+
+                if (methodInfo.ReturnType != typeof(void))
+                {
+                    returnValue = Expression.Variable(methodInfo.ReturnType, "returnValue");
+                    localVariables.Add(returnValue);
+                    call = Expression.Assign(returnValue, call);
+                }
+
+                blockExpressions.Add(call);
+                blockExpressions.AddRange(assignToArgs);
+
+                if (returnValue != null)
+                {
+                    blockExpressions.Add(
+                        methodInfo.ReturnType.IsValueType
+                            ? (Expression)Expression.Convert(returnValue, typeof(object))
+                            : returnValue);
+                }
+
+                body = Expression.Block(localVariables, blockExpressions);
             }
 
             var lambda =
@@ -740,6 +800,11 @@ namespace Rock.Reflection
             for (var i = 0; i < arguments.Length; i++)
             {
                 var parameterType = parameters[i].ParameterType;
+
+                if (parameterType.IsByRef)
+                {
+                    parameterType = parameterType.GetElementType();
+                }
 
                 if (parameterType.IsValueType)
                 {
@@ -1207,6 +1272,11 @@ namespace Rock.Reflection
             if (targetType.IsGenericType && targetType.GetGenericTypeDefinition() == typeof(Nullable<>))
             {
                 targetType = targetType.GetGenericArguments()[0];
+            }
+
+            if (targetType.IsByRef)
+            {
+                targetType = targetType.GetElementType();
             }
 
             if (targetType.IsAssignableFrom(valueType))

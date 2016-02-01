@@ -501,6 +501,138 @@ namespace Rock.Reflection.UnitTests
         }
 
         [Test]
+        public void CanCallMethodWithValueTypeRefParameterReturningVoid()
+        {
+            var type = Create.Class("Foo", Define.EchoRefMethod("Bar", typeof(int), true));
+
+            var foo = type.New();
+
+            var i = -1;
+            foo.Bar(123, ref i);
+
+            Assert.That(i, Is.EqualTo(123));
+        }
+
+        [Test]
+        public void CanCallMethodWithValueTypeRefParameterReturningValue()
+        {
+            var type = Create.Class("Foo", Define.EchoRefMethod("Bar", typeof(int), true));
+
+            var foo = type.New();
+
+            var i = -1;
+            int dummy = foo.Bar(123, ref i);
+
+            Assert.That(i, Is.EqualTo(123));
+            Assert.That(dummy, Is.EqualTo(123));
+        }
+
+        [Test]
+        public void CanCallMethodWithValueTypeOutParameterReturningVoid()
+        {
+            var type = Create.Class("Foo", Define.EchoRefMethod("Bar", typeof(int), true));
+
+            var foo = type.New();
+
+            int i;
+            foo.Bar(123, out i);
+
+            Assert.That(i, Is.EqualTo(123));
+        }
+
+        [Test]
+        public void CanCallMethodWithValueTypeOutParameterReturningValue()
+        {
+            var type = Create.Class("Foo", Define.EchoRefMethod("Bar", typeof(int)));
+
+            var foo = type.New();
+
+            int i;
+            int dummy = foo.Bar(123, out i);
+
+            Assert.That(i, Is.EqualTo(123));
+            Assert.That(dummy, Is.EqualTo(123));
+        }
+
+        [Test]
+        public void CanCallMethodWithReferenceTypeRefParameterReturningVoid()
+        {
+            var type = Create.Class("Foo", Define.EchoRefMethod("Bar", typeof(string), true));
+
+            var foo = type.New();
+
+            var s = "";
+            foo.Bar("abc", ref s);
+
+            Assert.That(s, Is.EqualTo("abc"));
+        }
+
+        [Test]
+        public void CanCallMethodWithReferenceTypeRefParameterReturningValue()
+        {
+            var type = Create.Class("Foo", Define.EchoRefMethod("Bar", typeof(string)));
+
+            var foo = type.New();
+
+            var s = "";
+            string dummy = foo.Bar("abc", ref s);
+
+            Assert.That(s, Is.EqualTo("abc"));
+            Assert.That(dummy, Is.EqualTo("abc"));
+        }
+
+        [Test]
+        public void CanCallMethodWithReferenceTypeOutParameterReturningVoid()
+        {
+            var type = Create.Class("Foo", Define.EchoRefMethod("Bar", typeof(string), true));
+
+            var foo = type.New();
+
+            string s;
+            foo.Bar("abc", out s);
+
+            Assert.That(s, Is.EqualTo("abc"));
+        }
+
+        [Test]
+        public void CanCallMethodWithReferenceTypeOutParameterReturningValue()
+        {
+            var type = Create.Class("Foo", Define.EchoRefMethod("Bar", typeof(string)));
+
+            var foo = type.New();
+
+            string s;
+            string dummy = foo.Bar("abc", out s);
+
+            Assert.That(s, Is.EqualTo("abc"));
+            Assert.That(dummy, Is.EqualTo("abc"));
+        }
+
+        [Test]
+        public void CanCallComplexMethodWithMixtureOfRefOutAndRegularParameters()
+        {
+            var foo = new ComplexMethodWithMixtureOfRefOutAndRegularParameters().Unlock();
+
+            double d;
+            var s = "Hello, world!";
+            int result = foo.Bar(123, out d, ref s);
+
+            Assert.That(d, Is.EqualTo(184.5));
+            Assert.That(s, Is.EqualTo("Hello, world! 5.481"));
+            Assert.That(result, Is.EqualTo(246));
+        }
+
+        public class ComplexMethodWithMixtureOfRefOutAndRegularParameters
+        {
+            private int Bar(int i, out double d, ref string s)
+            {
+                d = i * 1.5;
+                s += " " + new string(d.ToString().Reverse().ToArray());
+                return i * 2;
+            }
+        }
+
+        [Test]
         public void CanChooseTheBestMethodOverload()
         {
             var type = Create.Class("Foo",
