@@ -895,6 +895,7 @@ namespace Rock.Reflection
                 if (thisParameter == typeof(object))
                 {
                     score -= short.MaxValue;
+                    return;
                 }
 
                 if (IsNumeric(argType))
@@ -902,22 +903,16 @@ namespace Rock.Reflection
                     var thisAncestorDistance = GetAncestorDistance(argType, thisParameter);
                     var otherAncestorDistance = GetAncestorDistance(argType, otherParameter);
 
-                    if (thisAncestorDistance == otherAncestorDistance)
-                    {
-                        return;
-                    }
-
                     if (thisAncestorDistance < otherAncestorDistance)
                     {
                         score++;
-                        return;
                     }
-
-                    if (otherAncestorDistance < thisAncestorDistance)
+                    else if (otherAncestorDistance < thisAncestorDistance)
                     {
                         score -= short.MaxValue;
-                        return;
                     }
+
+                    return;
                 }
 
                 // Derived class to base class
@@ -933,13 +928,10 @@ namespace Rock.Reflection
                     if (thisAncestorDistance < otherAncestorDistance)
                     {
                         score++;
-                        return;
                     }
-
-                    if (otherAncestorDistance < thisAncestorDistance)
+                    else if (otherAncestorDistance < thisAncestorDistance)
                     {
                         score -= short.MaxValue;
-                        return;
                     }
                 }
                 else
@@ -947,13 +939,10 @@ namespace Rock.Reflection
                     if (thisHasAncestor)
                     {
                         score++;
-                        return;
                     }
-
-                    if (otherHasAncestor)
+                    else if (otherHasAncestor)
                     {
                         score -= short.MaxValue;
-                        return;
                     }
                 }
             }
@@ -1078,15 +1067,15 @@ namespace Rock.Reflection
                     // if type's interfaces contain ancestorType, check to see if type.BaseType's
                     // interfaces contain it, and so on. Each time, add one to the distance.
 
+                    if (!concreteType.GetInterfaces().Contains(ancestorType))
+                    {
+                        return ushort.MaxValue;
+                    }
+
                     var distance = 0;
 
                     while (true)
                     {
-                        if (concreteType.BaseType == null)
-                        {
-                            break;
-                        }
-
                         if (concreteType.BaseType.GetInterfaces().Contains(ancestorType))
                         {
                             distance++;

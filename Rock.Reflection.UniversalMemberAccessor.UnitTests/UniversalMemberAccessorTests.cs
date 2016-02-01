@@ -1039,6 +1039,10 @@ namespace Rock.Reflection.UnitTests
         [TestCase(typeof(CountryHam), typeof(Pork), 2)] // «═╗ Potential
         [TestCase(typeof(CountryHam), typeof(IHam), 2)] // «═╝ conflict
         [TestCase(typeof(CountryHam), typeof(IPork), 3)]
+
+        [TestCase(typeof(string), typeof(IHam), ushort.MaxValue)]
+        [TestCase(typeof(string), typeof(Ham), ushort.MaxValue)]
+        [TestCase(typeof(string), typeof(int), ushort.MaxValue)]
         public void AncestorDistanceIsCalculatedCorrectlyForInterfacesAndClasses(Type type, Type ancestorType, int expectedDistance)
         {
             var candidate =
@@ -1134,6 +1138,53 @@ namespace Rock.Reflection.UnitTests
             var distance = candidate.GetAncestorDistance(type, ancestorType);
 
             Assert.That(distance, Is.EqualTo(expectedDistance));
+        }
+
+        [TestCase(typeof(string), typeof(object), false, TestName="object ancestor returns false")]
+        [TestCase(typeof(string), typeof(int), false, TestName="struct ancestor returns false")]
+        [TestCase(typeof(Foo), typeof(string), false, TestName="unrelated types returns false")]
+        [TestCase(typeof(Ham), typeof(IHam), true, TestName="implemented interface returns true")]
+        [TestCase(typeof(Ham), typeof(Pork), true, TestName="inherited class returns true")]
+        public void HasAncestorReturnsTheCorrectValue(Type type, Type ancestorType, bool expectedValue)
+        {
+            var candidate =
+                UniversalMemberAccessor.GetStatic(
+                    "Rock.Reflection.UniversalMemberAccessor+Candidate");
+
+            bool hasAncestor = candidate.HasAncestor(type, ancestorType);
+
+            Assert.That(hasAncestor, Is.EqualTo(expectedValue));
+        }
+
+        [TestCase(typeof(int), typeof(int), typeof(int), 0)]
+        [TestCase(typeof(int), typeof(short), typeof(int), 1)]
+        [TestCase(typeof(short), typeof(int), typeof(int), -32767)]
+        [TestCase(typeof(int), typeof(object), typeof(int), 1)]
+        [TestCase(typeof(object), typeof(int), typeof(int), -32767)]
+        [TestCase(typeof(Ham), typeof(object), typeof(CountryHam), 1)]
+        [TestCase(typeof(object), typeof(Ham), typeof(CountryHam), -32767)]
+        [TestCase(typeof(short), typeof(int), typeof(byte), 1)]
+        [TestCase(typeof(int), typeof(short), typeof(byte), -32767)]
+        [TestCase(typeof(Ham), typeof(Pork), typeof(CountryHam), 1)]
+        [TestCase(typeof(Pork), typeof(Ham), typeof(CountryHam), -32767)]
+        [TestCase(typeof(Ham), typeof(string), typeof(CountryHam), 1)]
+        [TestCase(typeof(string), typeof(Ham), typeof(CountryHam), -32767)]
+        public void AccumulateScoreModifiesScoreCorrectly(Type thisType, Type otherType, Type argType, int expectedScore)
+        {
+            // ref and out parameters are not supported yet, so test this with old-fashion reflection.
+            var candidateType = Type.GetType(
+                "Rock.Reflection.UniversalMemberAccessor+Candidate, Rock.Reflection.UniversalMemberAccessor",
+                true);
+
+            var accumulateScore = candidateType.GetMethod("AccumulateScore", BindingFlags.NonPublic | BindingFlags.Static);
+
+            var args = new object[] { thisType, otherType, argType, 0 };
+
+            accumulateScore.Invoke(null, args);
+
+            var score = (int)args[3];
+
+            Assert.That(score, Is.EqualTo(expectedScore));
         }
 
         [Test]
