@@ -29,9 +29,9 @@ namespace Rock.Reflection
 
         private static readonly ConcurrentDictionary<Tuple<Type, string>, Func<object, object>> _getMemberFuncs = new ConcurrentDictionary<Tuple<Type, string>, Func<object, object>>();
         private static readonly ConcurrentDictionary<Tuple<Type, string, Type>, Action<object, object>> _setMemberActions = new ConcurrentDictionary<Tuple<Type, string, Type>, Action<object, object>>();
-        private static readonly ConcurrentDictionary<Tuple<Type, string>, ReadOnlyCollection<InvokeMemberCandidate>> _invokeMemberFuncs = new ConcurrentDictionary<Tuple<Type, string>, ReadOnlyCollection<InvokeMemberCandidate>>();
-
-        private readonly Lazy<ReadOnlyCollection<CreateInstanceCandidate>> _createInstanceCandidates;
+        
+        private static readonly ConcurrentDictionary<Tuple<Type, string>, ReadOnlyCollection<InvokeMemberCandidate>> _invokeMemberCandidates = new ConcurrentDictionary<Tuple<Type, string>, ReadOnlyCollection<InvokeMemberCandidate>>();
+        private static readonly ConcurrentDictionary<Type, ReadOnlyCollection<CreateInstanceCandidate>> _createInstanceCandidates = new ConcurrentDictionary<Type, ReadOnlyCollection<CreateInstanceCandidate>>();
 
         private readonly object _instance;
         private readonly Type _type;
@@ -47,8 +47,6 @@ namespace Rock.Reflection
                     .Select(m => m.Name)
                     .ToList()
                     .AsReadOnly());
-
-            _createInstanceCandidates = GetLazyCreateInstanceCandidates();
         }
 
         private UniversalMemberAccessor(object instance)
@@ -237,7 +235,7 @@ namespace Rock.Reflection
             out object result)
         {
             var invokeMemberCandidates =
-                _invokeMemberFuncs.GetOrAdd(
+                _invokeMemberCandidates.GetOrAdd(
                     Tuple.Create(_type, binder.Name),
                     t => new ReadOnlyCollection<InvokeMemberCandidate>(CreateInvokeMemberCandidates(t.Item2).ToList()));
 
@@ -280,7 +278,12 @@ namespace Rock.Reflection
 
         internal bool TryCreateInstance(object[] args, out object result)
         {
-            var legalCandidates = _createInstanceCandidates.Value.Where(c => c.IsLegal(args)).ToList();
+            var createInstanceCandidates =
+                _createInstanceCandidates.GetOrAdd(
+                    _type,
+                    t => new ReadOnlyCollection<CreateInstanceCandidate>(GetCreateInstanceCandidates(t).ToList()));
+
+            var legalCandidates = createInstanceCandidates.Where(c => c.IsLegal(args)).ToList();
 
             if (legalCandidates.Count == 1)
             {
@@ -624,28 +627,21 @@ namespace Rock.Reflection
             };
         }
 
-        private Lazy<ReadOnlyCollection<CreateInstanceCandidate>> GetLazyCreateInstanceCandidates()
+        private static IEnumerable<CreateInstanceCandidate> GetCreateInstanceCandidates(Type type)
         {
-            return new Lazy<ReadOnlyCollection<CreateInstanceCandidate>>(() =>
-                new ReadOnlyCollection<CreateInstanceCandidate>(
-                    GetCreateInstanceCandidates().ToList()));
-        }
-
-        private IEnumerable<CreateInstanceCandidate> GetCreateInstanceCandidates()
-        {
-            if (_type.IsValueType)
+            if (type.IsValueType)
             {
-                if (ShouldReturnRawValue(_type))
+                if (ShouldReturnRawValue(type))
                 {
-                    yield return new CreateInstanceCandidate(new ParameterInfo[0], args => FormatterServices.GetUninitializedObject(_type));
+                    yield return new CreateInstanceCandidate(new ParameterInfo[0], args => FormatterServices.GetUninitializedObject(type));
                 }
                 else
                 {
-                    yield return new CreateInstanceCandidate(new ParameterInfo[0], args => Get(FormatterServices.GetUninitializedObject(_type)));
+                    yield return new CreateInstanceCandidate(new ParameterInfo[0], args => Get(FormatterServices.GetUninitializedObject(type)));
                 }
             }
 
-            var constructorInfos = _type.GetConstructors(
+            var constructorInfos = type.GetConstructors(
                 BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 
             foreach (var constructor in constructorInfos)
