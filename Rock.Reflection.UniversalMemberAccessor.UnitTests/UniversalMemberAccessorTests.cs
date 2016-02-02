@@ -1369,6 +1369,174 @@ namespace Rock.Reflection.UnitTests
         }
 
         [Test]
+        public void IsLegalReturnsFalseIfNotEnoughRequiredArgumentsAreSupplied()
+        {
+            var type = Create.Class("Foo",
+                Define.Constructor(
+                    new Parameter(typeof(string)),
+                    new Parameter(-1, typeof(int)),
+                    new Parameter(true, typeof(bool))));
+
+            var parameters = type.GetConstructors()[0].GetParameters();
+
+            var candidateFactory =
+                UniversalMemberAccessor.GetStatic(
+                    "Rock.Reflection.UniversalMemberAccessor+Candidate");
+
+            var candidate = candidateFactory.New(parameters);
+
+            bool isLegal = candidate.IsLegal(new object[0]);
+
+            Assert.That(isLegal, Is.False);
+        }
+
+        [Test]
+        public void IsLegalReturnsTrueIfAllArgumentsAreSupplied()
+        {
+            var type = Create.Class("Foo",
+                Define.Constructor(
+                    new Parameter(typeof(string)),
+                    new Parameter(-1, typeof(int)),
+                    new Parameter(true, typeof(bool))));
+
+            var parameters = type.GetConstructors()[0].GetParameters();
+
+            var candidateFactory =
+                UniversalMemberAccessor.GetStatic(
+                    "Rock.Reflection.UniversalMemberAccessor+Candidate");
+
+            var candidate = candidateFactory.New(parameters);
+
+            bool isLegal = candidate.IsLegal(new object[] { "a", 1, false });
+
+            Assert.That(isLegal, Is.True);
+        }
+
+        [Test]
+        public void IsLegalReturnsTrueIfNoOptionalArgumentsAreSupplied()
+        {
+            var type = Create.Class("Foo",
+                Define.Constructor(
+                    new Parameter(typeof(string)),
+                    new Parameter(-1, typeof(int)),
+                    new Parameter(true, typeof(bool))));
+
+            var parameters = type.GetConstructors()[0].GetParameters();
+
+            var candidateFactory =
+                UniversalMemberAccessor.GetStatic(
+                    "Rock.Reflection.UniversalMemberAccessor+Candidate");
+
+            var candidate = candidateFactory.New(parameters);
+
+            bool isLegal = candidate.IsLegal(new object[] { "a" });
+
+            Assert.That(isLegal, Is.True);
+        }
+
+        [Test]
+        public void IsLegalReturnsTrueIfSomeOptionalArgumentsAreSupplied()
+        {
+            var type = Create.Class("Foo",
+                Define.Constructor(
+                    new Parameter(typeof(string)),
+                    new Parameter(-1, typeof(int)),
+                    new Parameter(true, typeof(bool))));
+
+            var parameters = type.GetConstructors()[0].GetParameters();
+
+            var candidateFactory =
+                UniversalMemberAccessor.GetStatic(
+                    "Rock.Reflection.UniversalMemberAccessor+Candidate");
+
+            var candidate = candidateFactory.New(parameters);
+
+            bool isLegal = candidate.IsLegal(new object[] { "a", 1 });
+
+            Assert.That(isLegal, Is.True);
+        }
+
+        [Test]
+        public void CanCallConstructorWithDefaultValueParameterWithAndWithoutSpecifyingIt()
+        {
+            var type = Create.Class("Foo",
+                Define.Constructor(typeof(string), new Parameter(-1, typeof(int))));
+
+            Assert.That(() => type.New("abc", 123), Throws.Nothing);
+            Assert.That(() => type.New("abc"), Throws.Nothing);
+        }
+
+        [Test]
+        public void CanFindTheBestConstructorWhenDefaultParametersAreInvolved()
+        {
+            var type = Create.Class("Foo",
+                Define.Constructor(
+                    new Parameter(typeof(string), "_bar"),
+                    new Parameter(-1, typeof(int)),
+                    new Parameter(true, typeof(bool))),
+                Define.Constructor(
+                    new Parameter(typeof(object), "_baz"),
+                    new Parameter(-1, typeof(int))),
+                Define.AutoProperty("Bar", typeof(string), backingFieldName:"_bar"),
+                Define.AutoProperty("Baz", typeof(object), backingFieldName:"_baz"));
+
+            object parameter = "abc";
+            var foo1 = type.New(parameter);
+
+            Assert.That(foo1.Bar, Is.EqualTo(parameter));
+            Assert.That(foo1.Baz, Is.Null);
+
+            parameter = 123.45; 
+            var foo2 = type.New(parameter);
+
+            Assert.That(foo2.Bar, Is.Null);
+            Assert.That(foo2.Baz.Value, Is.EqualTo(parameter));
+        }
+
+        [Test]
+        public void CanCallMethodWithDefaultValueParameterWithAndWithoutSpecifyingIt()
+        {
+            var type = Create.Class("Foo",
+                Define.Method("Bar", typeof(string), new Parameter(-1, typeof(int))));
+
+            var foo = type.New();
+
+            Assert.That(() => foo.Bar("abc", 123), Throws.Nothing);
+            Assert.That(() => foo.Bar("abc"), Throws.Nothing);
+        }
+
+        [Test]
+        public void CanFindTheBestOverloadedMethodWhenDefaultParametersAreInvolved()
+        {
+            var type = Create.Class("Foo",
+                Define.Method("Qux",
+                    new Parameter(typeof(string), "_bar"),
+                    new Parameter(-1, typeof(int)),
+                    new Parameter(true, typeof(bool))),
+                Define.Method("Qux",
+                    new Parameter(typeof(object), "_baz"),
+                    new Parameter(-1, typeof(int))),
+                Define.AutoProperty("Bar", typeof(string), backingFieldName: "_bar"),
+                Define.AutoProperty("Baz", typeof(object), backingFieldName: "_baz"));
+
+            var foo = type.New();
+
+            object parameter = "abc";
+            foo.Qux(parameter);
+
+            Assert.That(foo.Bar, Is.EqualTo(parameter));
+            Assert.That(foo.Baz, Is.Null);
+
+            foo = type.New();
+
+            parameter = 123.45;
+            foo.Qux(parameter);
+
+            Assert.That(foo.Bar, Is.Null);
+            Assert.That(foo.Baz.Value, Is.EqualTo(parameter));
+        }
+
+        [Test]
         public void WhenResolvingMethodsAnExceptionIsThrownWhenTheAncestorDistanceIsTheSame1()
         {
             var spam = new Spam();

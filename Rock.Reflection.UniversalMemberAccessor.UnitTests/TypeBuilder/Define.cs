@@ -21,6 +21,16 @@ namespace Rock.Reflection.UnitTests.TypeBuilder
             return new ConstructorDefinition((tb, fields) =>
             {
                 var constructorBuilder = tb.DefineConstructor(methodAttributes, CallingConventions.Standard, parameters.Select(p => p.Type).ToArray());
+
+                for (int i = 0; i < parameters.Length; i++)
+                {
+                    if (parameters[i].HasDefaultValue)
+                    {
+                        var parameter = constructorBuilder.DefineParameter(i + 1, ParameterAttributes.HasDefault | ParameterAttributes.Optional, null);
+                        parameter.SetConstant(parameters[i].DefaultValue);
+                    }
+                }
+
                 var il = constructorBuilder.GetILGenerator();
 
                 for (int i = 0; i < parameters.Length; i++)
@@ -49,6 +59,64 @@ namespace Rock.Reflection.UnitTests.TypeBuilder
                 }
 
                 il.Emit(OpCodes.Ldstr, tb.Name + ".ctor(" + string.Join(", ", parameters.Select(p => p.Type.Name)) + ")");
+                il.Emit(OpCodes.Call, typeof(Console).GetMethod("WriteLine", new[] { typeof(string) }));
+
+                il.Emit(OpCodes.Ret);
+            });
+        }
+
+        public static MemberDefinition Method(string name, params Parameter[] parameters)
+        {
+            return Method(name, false, parameters:parameters);
+        }
+
+        public static MemberDefinition Method(string name, bool isStatic = false, Visibility visibility = Visibility.Public, params Parameter[] parameters)
+        {
+            parameters = parameters ?? new Parameter[0];
+
+            var methodAttributes = GetMethodAttributes(visibility, false, isStatic);
+
+            return new ConstructorDefinition((tb, fields) =>
+            {
+                var methodBuilder = tb.DefineMethod(name, methodAttributes, typeof(void), parameters.Select(p => p.Type).ToArray());
+
+                for (int i = 0; i < parameters.Length; i++)
+                {
+                    if (parameters[i].HasDefaultValue)
+                    {
+                        var parameter = methodBuilder.DefineParameter(i + 1, ParameterAttributes.HasDefault | ParameterAttributes.Optional, null);
+                        parameter.SetConstant(parameters[i].DefaultValue);
+                    }
+                }
+
+                var il = methodBuilder.GetILGenerator();
+
+                for (int i = 0; i < parameters.Length; i++)
+                {
+                    var parameter = parameters[i];
+
+                    if (parameter.FieldToSet != null)
+                    {
+                        var fieldBuilder = fields.SingleOrDefault(f => f.Name == parameter.FieldToSet);
+
+                        if (fieldBuilder != null)
+                        {
+                            if (fieldBuilder.IsStatic)
+                            {
+                                il.Emit(OpCodes.Ldarg, i);
+                                il.Emit(OpCodes.Stsfld, fieldBuilder);
+                            }
+                            else
+                            {
+                                il.Emit(OpCodes.Ldarg_0);
+                                il.Emit(OpCodes.Ldarg, i + 1);
+                                il.Emit(OpCodes.Stfld, fieldBuilder);
+                            }
+                        }
+                    }
+                }
+
+                il.Emit(OpCodes.Ldstr, "void " + tb.Name + "." + name + "(" + string.Join(", ", parameters.Select(p => p.Type.Name)) + ")");
                 il.Emit(OpCodes.Call, typeof(Console).GetMethod("WriteLine", new[] { typeof(string) }));
 
                 il.Emit(OpCodes.Ret);

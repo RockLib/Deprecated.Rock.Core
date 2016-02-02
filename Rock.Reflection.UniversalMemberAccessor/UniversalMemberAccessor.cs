@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Dynamic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -636,11 +637,11 @@ namespace Rock.Reflection
             {
                 if (ShouldReturnRawValue(_type))
                 {
-                    yield return new CreateInstanceCandidate(Enumerable.Empty<ParameterInfo>(), args => FormatterServices.GetUninitializedObject(_type));
+                    yield return new CreateInstanceCandidate(new ParameterInfo[0], args => FormatterServices.GetUninitializedObject(_type));
                 }
                 else
                 {
-                    yield return new CreateInstanceCandidate(Enumerable.Empty<ParameterInfo>(), args => Get(FormatterServices.GetUninitializedObject(_type)));
+                    yield return new CreateInstanceCandidate(new ParameterInfo[0], args => Get(FormatterServices.GetUninitializedObject(_type)));
                 }
             }
 
@@ -883,13 +884,35 @@ namespace Rock.Reflection
             return setMethod != null && setMethod.IsStatic;
         }
 
-        private abstract class Candidate
+        private class Candidate
         {
-            private readonly Type[] _parameters;
+            private static readonly object _notADefaultValue = new object();
 
-            protected Candidate(IEnumerable<ParameterInfo> parameters)
+            private readonly Type[] _parameters;
+            private readonly object[] _defaultParameterValues;
+            private readonly int _defaultParameterCount;
+
+            protected Candidate(ParameterInfo[] parameters)
             {
                 _parameters = parameters.Select(p => p.ParameterType).ToArray();
+                
+                _defaultParameterValues = new object[_parameters.Length];
+
+                const ParameterAttributes hasDefaultValue =
+                    ParameterAttributes.HasDefault | ParameterAttributes.Optional;
+
+                for (int i = 0; i < _defaultParameterValues.Length; i++)
+                {
+                    if ((parameters[i].Attributes & hasDefaultValue) == hasDefaultValue)
+                    {
+                        _defaultParameterValues[i] = parameters[i].DefaultValue;
+                        _defaultParameterCount++;
+                    }
+                    else
+                    {
+                        _defaultParameterValues[i] = _notADefaultValue;
+                    }
+                }
             }
 
             public int GetBetterScore(Candidate other, object[] args)
@@ -1224,7 +1247,13 @@ namespace Rock.Reflection
             {
                 if (args.Length != _parameters.Length)
                 {
-                    return false;
+                    if (args.Length > _parameters.Length
+                        || args.Length < _parameters.Length - _defaultParameterCount)
+                    {
+                        return false;
+                    }
+
+                    args = AddDefaultParameterValuesIfNecessary(args);
                 }
 
                 for (int i = 0; i < args.Length; i++)
@@ -1250,6 +1279,32 @@ namespace Rock.Reflection
                 }
 
                 return true;
+            }
+
+            protected object[] AddDefaultParameterValuesIfNecessary(object[] args)
+            {
+                if (args.Length == _parameters.Length)
+                {
+                    return args;
+                }
+
+                var newArgs = new object[_parameters.Length];
+
+                for (int i = 0; i < _defaultParameterValues.Length; i++)
+                {
+                    if (i >= args.Length)
+                    {
+                        Debug.Assert(_defaultParameterValues[i] != _notADefaultValue);
+
+                        newArgs[i] = _defaultParameterValues[i];
+                    }
+                    else
+                    {
+                        newArgs[i] = args[i];
+                    }
+                }
+
+                return newArgs;
             }
         }
 
@@ -1392,7 +1447,7 @@ namespace Rock.Reflection
         {
             private readonly Func<object[], object> _createInstanceFunc;
 
-            public CreateInstanceCandidate(IEnumerable<ParameterInfo> parameters, Func<object[], object> createInstanceFunc)
+            public CreateInstanceCandidate(ParameterInfo[] parameters, Func<object[], object> createInstanceFunc)
                 : base(parameters)
             {
                 _createInstanceFunc = createInstanceFunc;
@@ -1400,7 +1455,7 @@ namespace Rock.Reflection
 
             public object CreateInstance(object[] args)
             {
-                return _createInstanceFunc(args);
+                return _createInstanceFunc(AddDefaultParameterValuesIfNecessary(args));
             }
         }
 
@@ -1408,7 +1463,7 @@ namespace Rock.Reflection
         {
             private readonly Func<object, object[], object> _invokeMemberFunc;
 
-            public InvokeMemberCandidate(IEnumerable<ParameterInfo> parameters, Func<object, object[], object> invokeMemberFunc)
+            public InvokeMemberCandidate(ParameterInfo[] parameters, Func<object, object[], object> invokeMemberFunc)
                 : base(parameters)
             {
                 _invokeMemberFunc = invokeMemberFunc;
@@ -1416,7 +1471,7 @@ namespace Rock.Reflection
 
             public object InvokeMember(object instance, object[] args)
             {
-                return _invokeMemberFunc(instance, args);
+                return _invokeMemberFunc(instance, AddDefaultParameterValuesIfNecessary(args));
             }
         }
     }
