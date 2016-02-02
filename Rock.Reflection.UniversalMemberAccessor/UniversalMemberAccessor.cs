@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Dynamic;
 using System.Linq;
@@ -29,9 +28,9 @@ namespace Rock.Reflection
 
         private static readonly ConcurrentDictionary<Tuple<Type, string>, Func<object, object>> _getMemberFuncs = new ConcurrentDictionary<Tuple<Type, string>, Func<object, object>>();
         private static readonly ConcurrentDictionary<Tuple<Type, string, Type>, Action<object, object>> _setMemberActions = new ConcurrentDictionary<Tuple<Type, string, Type>, Action<object, object>>();
-        
-        private static readonly ConcurrentDictionary<Tuple<Type, string>, ReadOnlyCollection<InvokeMemberCandidate>> _invokeMemberCandidates = new ConcurrentDictionary<Tuple<Type, string>, ReadOnlyCollection<InvokeMemberCandidate>>();
-        private static readonly ConcurrentDictionary<Type, ReadOnlyCollection<CreateInstanceCandidate>> _createInstanceCandidates = new ConcurrentDictionary<Type, ReadOnlyCollection<CreateInstanceCandidate>>();
+
+        private static readonly ConcurrentDictionary<InvokeMethodDefinition, Func<object, object[], object>> _invokeMethodFuncs = new ConcurrentDictionary<InvokeMethodDefinition, Func<object, object[], object>>();
+        private static readonly ConcurrentDictionary<CreateInstanceDefinition, Func<object[], object>> _createInstanceFuncs = new ConcurrentDictionary<CreateInstanceDefinition, Func<object[], object>>();
 
         private readonly object _instance;
         private readonly Type _type;
@@ -234,83 +233,36 @@ namespace Rock.Reflection
             object[] args,
             out object result)
         {
-            var invokeMemberCandidates =
-                _invokeMemberCandidates.GetOrAdd(
-                    Tuple.Create(_type, binder.Name),
-                    t => new ReadOnlyCollection<InvokeMemberCandidate>(CreateInvokeMemberCandidates(t.Item2).ToList()));
+            var invokeMethodFunc = _invokeMethodFuncs.GetOrAdd(
+                new InvokeMethodDefinition(_type, binder.Name, args),
+                GetInvokeMethodFunc);
 
-            var legalCandidates = invokeMemberCandidates.Where(c => c.IsLegal(args)).ToList();
-
-            if (legalCandidates.Count == 1)
+            if (invokeMethodFunc == null)
             {
-                result = legalCandidates[0].InvokeMember(_instance, args);
-                return true;
+                return base.TryInvokeMember(binder, args, out result);
             }
 
-            if (legalCandidates.Count == 0)
-            {
-                switch (binder.Name)
-                {
-                    case "New":
-                    case "Create":
-                    case "CreateInstance":
-                    case "NewInstance":
-                        if (TryCreateInstance(args, out result))
-                        {
-                            return true;
-                        }
-                        break;
-                }
-            }
-            else
-            {
-                var betterMethods = GetBetterMethods(args, legalCandidates);
-
-                if (betterMethods.Count == 1)
-                {
-                    result = betterMethods[0].InvokeMember(_instance, args);
-                    return true;
-                }
-            }
-
-            return base.TryInvokeMember(binder, args, out result);
+            result = invokeMethodFunc(_instance, args);
+            return true;
         }
 
         internal bool TryCreateInstance(object[] args, out object result)
         {
-            var createInstanceCandidates =
-                _createInstanceCandidates.GetOrAdd(
-                    _type,
-                    t => new ReadOnlyCollection<CreateInstanceCandidate>(GetCreateInstanceCandidates(t).ToList()));
+            var createInstanceFunc = _createInstanceFuncs.GetOrAdd(
+                new CreateInstanceDefinition(_type, args),
+                GetCreateInstanceFunc);
 
-            var legalCandidates = createInstanceCandidates.Where(c => c.IsLegal(args)).ToList();
-
-            if (legalCandidates.Count == 1)
-            {
-                result = legalCandidates[0].CreateInstance(args);
-                return true;
-            }
-
-            if (legalCandidates.Count == 0)
+            if (createInstanceFunc == null)
             {
                 result = null;
                 return false;
             }
 
-            var betterMethods = GetBetterMethods(args, legalCandidates);
-
-            if (betterMethods.Count == 1)
-            {
-                result = betterMethods[0].CreateInstance(args);
-                return true;
-            }
-
-            result = null;
-            return false;
+            result = createInstanceFunc(args);
+            return true;
         }
 
-        private static IList<TCandidate> GetBetterMethods<TCandidate>(object[] args, IList<TCandidate> legalCandidates)
-            where TCandidate : Candidate
+        private static IList<Candidate> GetBetterMethods(Type[] argTypes, IList<Candidate> legalCandidates)
         {
             var isBestCandidate = Enumerable.Repeat(true, legalCandidates.Count).ToList();
 
@@ -325,7 +277,7 @@ namespace Rock.Reflection
                         continue;
                     }
 
-                    var score = candidate.GetBetterScore(legalCandidates[j], args);
+                    var score = candidate.GetBetterScore(legalCandidates[j], argTypes);
 
                     if (score < 1)
                     {
@@ -627,68 +579,136 @@ namespace Rock.Reflection
             };
         }
 
-        private static IEnumerable<CreateInstanceCandidate> GetCreateInstanceCandidates(Type type)
+        private static Func<object[], object> GetCreateInstanceFunc(CreateInstanceDefinition definition)
         {
-            if (type.IsValueType)
+            if (definition.Type.IsValueType && definition.ArgTypes.Length == 0)
             {
-                if (ShouldReturnRawValue(type))
+                var type = definition.Type;
+
+                if (ShouldReturnRawValue(definition.Type))
                 {
-                    yield return new CreateInstanceCandidate(new ParameterInfo[0], args => FormatterServices.GetUninitializedObject(type));
+                    return args => FormatterServices.GetUninitializedObject(type);
+                }
+
+                return args => Get(FormatterServices.GetUninitializedObject(type));
+            }
+
+            var constructors =
+                definition.Type.GetConstructors(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+
+            var legalCandidates = constructors.Select(c => new Candidate(c))
+                .Where(c => c.IsLegal(definition.ArgTypes)).ToList();
+
+            if (legalCandidates.Count == 0)
+            {
+                return null;
+            }
+
+            Candidate candidate;
+
+            if (legalCandidates.Count == 1)
+            {
+                candidate = legalCandidates[0];
+            }
+            else
+            {
+                var betterMethods = GetBetterMethods(definition.ArgTypes, legalCandidates);
+
+                if (betterMethods.Count == 1)
+                {
+                    candidate = betterMethods[0];
                 }
                 else
                 {
-                    yield return new CreateInstanceCandidate(new ParameterInfo[0], args => Get(FormatterServices.GetUninitializedObject(type)));
+                    return null;
                 }
             }
 
-            var constructorInfos = type.GetConstructors(
-                BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+            var constructor = (ConstructorInfo)candidate.Method;
 
-            foreach (var constructor in constructorInfos)
+            var argsParameter = Expression.Parameter(typeof(object[]), "args");
+
+            var constructorParameters = constructor.GetParameters();
+            var newArguments = GetArguments(constructorParameters, argsParameter, definition.ArgTypes);
+
+            Expression body = Expression.New(constructor, newArguments);
+
+            if (constructor.DeclaringType.IsValueType)
             {
-                var argsParameter = Expression.Parameter(typeof(object[]), "args");
-
-                var constructorParameters = constructor.GetParameters();
-                var newArguments = GetArguments(constructorParameters, argsParameter);
-
-                Expression body = Expression.New(constructor, newArguments);
-
-                if (constructor.DeclaringType.IsValueType)
-                {
-                    body = Expression.Convert(body, typeof(object));
-                }
-
-                var lambda = Expression.Lambda<Func<object[], object>>(body, new[] { argsParameter });
-
-                var func = lambda.Compile();
-
-                if (ShouldReturnRawValue(constructor.DeclaringType))
-                {
-                    yield return new CreateInstanceCandidate(constructorParameters, args => func(UnwrapArgs(args)));
-                }
-                else
-                {
-                    yield return new CreateInstanceCandidate(constructorParameters, args => Get(func(UnwrapArgs(args))));
-                }
+                body = Expression.Convert(body, typeof(object));
             }
+
+            var lambda = Expression.Lambda<Func<object[], object>>(body, new[] { argsParameter });
+
+            var func = lambda.Compile();
+
+            if (ShouldReturnRawValue(constructor.DeclaringType))
+            {
+                return args => func(UnwrapArgs(args));
+            }
+
+            return args => Get(func(UnwrapArgs(args)));
         }
 
-        private IEnumerable<InvokeMemberCandidate> CreateInvokeMemberCandidates(string name)
+        private static Func<object, object[], object> GetInvokeMethodFunc(InvokeMethodDefinition definition)
         {
             var methodInfos =
-                _type.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static)
-                    .Where(m => m.Name == name);
+                definition.Type.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static)
+                    .Where(m => m.Name == definition.Name);
 
-            return methodInfos.Select(CreateInvokeMemberCandidate).Where(func => func != null);
-        }
+            var legalCandidates = methodInfos.Select(m => new Candidate(m))
+                .Where(c => c.IsLegal(definition.ArgTypes)).ToList();
 
-        private InvokeMemberCandidate CreateInvokeMemberCandidate(MethodInfo methodInfo)
-        {
+            if (legalCandidates.Count == 0)
+            {
+                switch (definition.Name)
+                {
+                    case "New":
+                    case "Create":
+                    case "CreateInstance":
+                    case "NewInstance":
+                        var createInstanceFunc = _createInstanceFuncs.GetOrAdd(
+                            new CreateInstanceDefinition(definition.Type, definition.ArgTypes),
+                            GetCreateInstanceFunc);
+
+                        if (createInstanceFunc == null)
+                        {
+                            return null;
+                        }
+
+                        return (instance, args) =>  createInstanceFunc(args);
+                }
+
+                return null;
+            }
+
+            Candidate candidate;
+
+            if (legalCandidates.Count == 1)
+            {
+                candidate = legalCandidates[0];
+            }
+            else
+            {
+                var betterMethods = GetBetterMethods(definition.ArgTypes, legalCandidates);
+
+                if (betterMethods.Count == 1)
+                {
+                    candidate = betterMethods[0];
+                }
+                else
+                {
+                    return null;
+                }
+            }
+
+            var methodInfo = (MethodInfo)candidate.Method;
+
             var instanceParameter = Expression.Parameter(typeof(object), "instance");
             var argsParameter = Expression.Parameter(typeof(object[]), "args");
 
             var methodInfoParameters = methodInfo.GetParameters();
-            var callArguments = GetArguments(methodInfoParameters, argsParameter);
+            var callArguments = GetArguments(methodInfoParameters, argsParameter, definition.ArgTypes);
 
             var localVariables = new List<ParameterExpression>();
             var assignToVariables = new List<Expression>();
@@ -728,7 +748,7 @@ namespace Rock.Reflection
             else
             {
                 call = Expression.Call(
-                    Expression.Convert(instanceParameter, _type),
+                    Expression.Convert(instanceParameter, definition.Type),
                     methodInfo,
                     callArguments);
             }
@@ -751,7 +771,7 @@ namespace Rock.Reflection
             else
             {
                 var blockExpressions = assignToVariables.ToList();
-                
+
                 ParameterExpression returnValue = null;
 
                 if (methodInfo.ReturnType != typeof(void))
@@ -782,47 +802,45 @@ namespace Rock.Reflection
 
             var func = lambda.Compile();
 
-            if (ShouldReturnRawValue(methodInfo.ReturnType))
-            {
-                return new InvokeMemberCandidate(methodInfoParameters, (obj, args) => func(obj, UnwrapArgs(args)));
-            }
-
-            return new InvokeMemberCandidate(methodInfoParameters, (obj, args) => Get(func(obj, UnwrapArgs(args))));
+            return func;
         }
 
-        private static Expression[] GetArguments(ParameterInfo[] parameters, ParameterExpression argsParameter)
+        private static Expression[] GetArguments(ParameterInfo[] parameters, ParameterExpression argsParameter, Type[] argTypes)
         {
             var arguments = new Expression[parameters.Length];
 
             for (var i = 0; i < arguments.Length; i++)
             {
-                var parameterType = parameters[i].ParameterType;
-
-                if (parameterType.IsByRef)
+                if (i < argTypes.Length)
                 {
-                    parameterType = parameterType.GetElementType();
-                }
+                    var parameterType = parameters[i].ParameterType;
 
-                if (parameterType.IsValueType)
-                {
+                    if (parameterType.IsByRef)
+                    {
+                        parameterType = parameterType.GetElementType();
+                    }
+
                     var item = Expression.ArrayAccess(argsParameter, Expression.Constant(i));
 
-                    arguments[i] = Expression.Condition(
-                        Expression.TypeIs(item, parameterType),
-                        Expression.Unbox(item, parameterType),
-                        Expression.Convert(
-                            Expression.Call(
-                                typeof(Convert).GetMethod("ChangeType", new[] { typeof(object), typeof(Type) }),
-                                item,
-                                Expression.Constant(parameterType)),
-                            parameterType));
+                    if (parameterType.IsValueType)
+                    {
+                        Debug.Assert(argTypes[i].IsValueType);
+
+                        arguments[i] = Expression.Unbox(item, argTypes[i]);
+
+                        if (argTypes[i] != parameterType)
+                        {
+                            arguments[i] = Expression.Convert(arguments[i], parameterType);
+                        }
+                    }
+                    else
+                    {
+                        arguments[i] = Expression.Convert(item, parameterType);
+                    }
                 }
                 else
                 {
-                    arguments[i] =
-                        Expression.Convert(
-                            Expression.ArrayAccess(argsParameter, Expression.Constant(i)),
-                            parameterType);
+                    arguments[i] = Expression.Constant(parameters[i].DefaultValue, parameters[i].ParameterType);
                 }
             }
 
@@ -884,46 +902,55 @@ namespace Rock.Reflection
         {
             private static readonly object _notADefaultValue = new object();
 
+            private readonly MethodBase _method;
             private readonly Type[] _parameters;
-            private readonly object[] _defaultParameterValues;
+            private readonly Type[] _defaultParameterTypes;
             private readonly int _defaultParameterCount;
 
-            protected Candidate(ParameterInfo[] parameters)
+            public Candidate(MethodBase method)
             {
+                _method = method;
+
+                var parameters = Method.GetParameters();
+
                 _parameters = parameters.Select(p => p.ParameterType).ToArray();
                 
-                _defaultParameterValues = new object[_parameters.Length];
+                _defaultParameterTypes = new Type[_parameters.Length];
 
                 const ParameterAttributes hasDefaultValue =
                     ParameterAttributes.HasDefault | ParameterAttributes.Optional;
 
-                for (int i = 0; i < _defaultParameterValues.Length; i++)
+                for (int i = 0; i < _defaultParameterTypes.Length; i++)
                 {
                     if ((parameters[i].Attributes & hasDefaultValue) == hasDefaultValue)
                     {
-                        _defaultParameterValues[i] = parameters[i].DefaultValue;
+                        _defaultParameterTypes[i] =
+                            parameters[i].DefaultValue != null
+                                ? parameters[i].DefaultValue.GetType()
+                                : null;
                         _defaultParameterCount++;
-                    }
-                    else
-                    {
-                        _defaultParameterValues[i] = _notADefaultValue;
                     }
                 }
             }
 
-            public int GetBetterScore(Candidate other, object[] args)
+            public MethodBase Method
+            {
+                get { return _method; }
+            }
+
+            public int GetBetterScore(Candidate other, Type[] argTypes)
             {
                 int score = 0;
 
-                for (int i = 0; i < args.Length; i++)
+                for (int i = 0; i < argTypes.Length; i++)
                 {
-                    if (args[i] == null
+                    if (argTypes[i] == null
                         || _parameters[i] == other._parameters[i])
                     {
                         continue;
                     }
 
-                    AccumulateScore(_parameters[i], other._parameters[i], args[i].GetType(), ref score);
+                    AccumulateScore(_parameters[i], other._parameters[i], argTypes[i], ref score);
                 }
 
                 return score;
@@ -1111,9 +1138,9 @@ namespace Rock.Reflection
                         }
                     }
 
-                    System.Diagnostics.Debug.Assert(concreteIndex != -1);
-                    System.Diagnostics.Debug.Assert(ancestorIndex != -1);
-                    System.Diagnostics.Debug.Assert(concreteIndex <= ancestorIndex);
+                    Debug.Assert(concreteIndex != -1);
+                    Debug.Assert(ancestorIndex != -1);
+                    Debug.Assert(concreteIndex <= ancestorIndex);
 
                     return ancestorIndex - concreteIndex;
 
@@ -1239,31 +1266,26 @@ namespace Rock.Reflection
                 return false;
             }
 
-            public bool IsLegal(object[] args)
+            public bool IsLegal(Type[] argTypes)
             {
-                if (args.Length != _parameters.Length)
+                if (argTypes.Length != _parameters.Length)
                 {
-                    if (args.Length > _parameters.Length
-                        || args.Length < _parameters.Length - _defaultParameterCount)
+                    if (argTypes.Length > _parameters.Length
+                        || argTypes.Length < _parameters.Length - _defaultParameterCount)
                     {
                         return false;
                     }
 
-                    args = AddDefaultParameterValuesIfNecessary(args);
+                    argTypes = AddDefaultParameterTypes(argTypes);
                 }
 
-                for (int i = 0; i < args.Length; i++)
+                for (int i = 0; i < argTypes.Length; i++)
                 {
-                    var arg = args[i];
+                    var argType = argTypes[i];
 
-                    if (arg != null)
+                    if (argType != null)
                     {
-                        if (arg is UniversalMemberAccessor)
-                        {
-                            arg = ((UniversalMemberAccessor)arg)._instance;
-                        }
-
-                        if (!CanBeAssigned(_parameters[i], arg.GetType()))
+                        if (!CanBeAssigned(_parameters[i], argType))
                         {
                             return false;
                         }
@@ -1277,30 +1299,28 @@ namespace Rock.Reflection
                 return true;
             }
 
-            protected object[] AddDefaultParameterValuesIfNecessary(object[] args)
+            private Type[] AddDefaultParameterTypes(Type[] argTypes)
             {
-                if (args.Length == _parameters.Length)
+                if (argTypes.Length == _parameters.Length)
                 {
-                    return args;
+                    return argTypes;
                 }
 
-                var newArgs = new object[_parameters.Length];
+                var newArgTypes = new Type[_parameters.Length];
 
-                for (int i = 0; i < _defaultParameterValues.Length; i++)
+                for (int i = 0; i < _defaultParameterTypes.Length; i++)
                 {
-                    if (i >= args.Length)
+                    if (i >= argTypes.Length)
                     {
-                        Debug.Assert(_defaultParameterValues[i] != _notADefaultValue);
-
-                        newArgs[i] = _defaultParameterValues[i];
+                        newArgTypes[i] = _defaultParameterTypes[i];
                     }
                     else
                     {
-                        newArgs[i] = args[i];
+                        newArgTypes[i] = argTypes[i];
                     }
                 }
 
-                return newArgs;
+                return newArgTypes;
             }
         }
 
@@ -1439,35 +1459,129 @@ namespace Rock.Reflection
             return false;
         }
 
-        private class CreateInstanceCandidate : Candidate
+        private sealed class CreateInstanceDefinition
         {
-            private readonly Func<object[], object> _createInstanceFunc;
+            private readonly Type _type;
+            private readonly Type[] _argTypes;
 
-            public CreateInstanceCandidate(ParameterInfo[] parameters, Func<object[], object> createInstanceFunc)
-                : base(parameters)
+            public CreateInstanceDefinition(Type type, object[] args)
+                : this(type, args.Select(arg =>
+                    arg != null
+                        ? arg is UniversalMemberAccessor
+                            ? ((UniversalMemberAccessor)arg)._instance.GetType()
+                            : arg.GetType()
+                        : null).ToArray())
             {
-                _createInstanceFunc = createInstanceFunc;
             }
 
-            public object CreateInstance(object[] args)
+            public CreateInstanceDefinition(Type type, Type[] argTypes)
             {
-                return _createInstanceFunc(AddDefaultParameterValuesIfNecessary(args));
+                _type = type;
+                _argTypes = argTypes;
+            }
+
+            public Type Type
+            {
+                get { return _type; }
+            }
+
+            public Type[] ArgTypes
+            {
+                get { return _argTypes; }
+            }
+
+            public override bool Equals(object obj)
+            {
+                if (ReferenceEquals(this, obj))
+                {
+                    return true;
+                }
+
+                var other = obj as CreateInstanceDefinition;
+
+                if (other == null
+                    || !(_type == other._type)
+                    || _argTypes.Length != other._argTypes.Length)
+                {
+                    return false;
+                }
+
+                return !_argTypes.Where((argType, i) => !(argType == other._argTypes[i])).Any();
+            }
+
+            public override int GetHashCode()
+            {
+                unchecked
+                {
+                    var hashCode = _type.GetHashCode();
+                    return _argTypes.Aggregate(hashCode, (current, argType) =>
+                        (current * 397) ^ (argType == null ? 0 : argType.GetHashCode()));
+                }
             }
         }
 
-        private class InvokeMemberCandidate : Candidate
+        private sealed class InvokeMethodDefinition
         {
-            private readonly Func<object, object[], object> _invokeMemberFunc;
+            private readonly Type _type;
+            private readonly string _name;
+            private readonly Type[] _argTypes;
 
-            public InvokeMemberCandidate(ParameterInfo[] parameters, Func<object, object[], object> invokeMemberFunc)
-                : base(parameters)
+            public InvokeMethodDefinition(Type type, string name, object[] args)
             {
-                _invokeMemberFunc = invokeMemberFunc;
+                _type = type;
+                _name = name;
+                _argTypes = args.Select(arg =>
+                    arg != null
+                        ? arg is UniversalMemberAccessor
+                            ? ((UniversalMemberAccessor)arg)._instance.GetType()
+                            : arg.GetType()
+                        : null).ToArray();
             }
 
-            public object InvokeMember(object instance, object[] args)
+            public Type Type
             {
-                return _invokeMemberFunc(instance, AddDefaultParameterValuesIfNecessary(args));
+                get { return _type; }
+            }
+
+            public string Name
+            {
+                get { return _name; }
+            }
+
+            public Type[] ArgTypes
+            {
+                get { return _argTypes; }
+            }
+
+            public override bool Equals(object obj)
+            {
+                if (ReferenceEquals(this, obj))
+                {
+                    return true;
+                }
+
+                var other = obj as InvokeMethodDefinition;
+
+                if (other == null
+                    || !(_type == other._type)
+                    || !string.Equals(_name, other._name)
+                    || _argTypes.Length != other._argTypes.Length)
+                {
+                    return false;
+                }
+
+                return !_argTypes.Where((argType, i) => !(argType == other._argTypes[i])).Any();
+            }
+
+            public override int GetHashCode()
+            {
+                unchecked
+                {
+                    var hashCode = _type.GetHashCode();
+                    hashCode = (hashCode * 397) ^ _name.GetHashCode();
+                    return _argTypes.Aggregate(hashCode, (current, argType) =>
+                        (current * 397) ^ (argType == null ? 0 : argType.GetHashCode()));
+                }
             }
         }
     }

@@ -1377,15 +1377,15 @@ namespace Rock.Reflection.UnitTests
                     new Parameter(-1, typeof(int)),
                     new Parameter(true, typeof(bool))));
 
-            var parameters = type.GetConstructors()[0].GetParameters();
+            var constructor = type.GetConstructors()[0];
 
             var candidateFactory =
                 UniversalMemberAccessor.GetStatic(
                     "Rock.Reflection.UniversalMemberAccessor+Candidate");
 
-            var candidate = candidateFactory.New(parameters);
+            var candidate = candidateFactory.New(constructor);
 
-            bool isLegal = candidate.IsLegal(new object[0]);
+            bool isLegal = candidate.IsLegal(new Type[0]);
 
             Assert.That(isLegal, Is.False);
         }
@@ -1399,15 +1399,15 @@ namespace Rock.Reflection.UnitTests
                     new Parameter(-1, typeof(int)),
                     new Parameter(true, typeof(bool))));
 
-            var parameters = type.GetConstructors()[0].GetParameters();
+            var constructor = type.GetConstructors()[0];
 
             var candidateFactory =
                 UniversalMemberAccessor.GetStatic(
                     "Rock.Reflection.UniversalMemberAccessor+Candidate");
 
-            var candidate = candidateFactory.New(parameters);
+            var candidate = candidateFactory.New(constructor);
 
-            bool isLegal = candidate.IsLegal(new object[] { "a", 1, false });
+            bool isLegal = candidate.IsLegal(new[] { typeof(string), typeof(int), typeof(bool) });
 
             Assert.That(isLegal, Is.True);
         }
@@ -1421,15 +1421,15 @@ namespace Rock.Reflection.UnitTests
                     new Parameter(-1, typeof(int)),
                     new Parameter(true, typeof(bool))));
 
-            var parameters = type.GetConstructors()[0].GetParameters();
+            var constructor = type.GetConstructors()[0];
 
             var candidateFactory =
                 UniversalMemberAccessor.GetStatic(
                     "Rock.Reflection.UniversalMemberAccessor+Candidate");
 
-            var candidate = candidateFactory.New(parameters);
+            var candidate = candidateFactory.New(constructor);
 
-            bool isLegal = candidate.IsLegal(new object[] { "a" });
+            bool isLegal = candidate.IsLegal(new[] { typeof(string) });
 
             Assert.That(isLegal, Is.True);
         }
@@ -1443,15 +1443,15 @@ namespace Rock.Reflection.UnitTests
                     new Parameter(-1, typeof(int)),
                     new Parameter(true, typeof(bool))));
 
-            var parameters = type.GetConstructors()[0].GetParameters();
+            var constructor = type.GetConstructors()[0];
 
             var candidateFactory =
                 UniversalMemberAccessor.GetStatic(
                     "Rock.Reflection.UniversalMemberAccessor+Candidate");
 
-            var candidate = candidateFactory.New(parameters);
+            var candidate = candidateFactory.New(constructor);
 
-            bool isLegal = candidate.IsLegal(new object[] { "a", 1 });
+            bool isLegal = candidate.IsLegal(new[] { typeof(string), typeof(int) });
 
             Assert.That(isLegal, Is.True);
         }
