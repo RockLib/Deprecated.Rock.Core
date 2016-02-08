@@ -267,7 +267,7 @@ namespace Rock.Reflection
         {
             var invokeMethodFunc = _invokeMethodFuncs.GetOrAdd(
                 new InvokeMethodDefinition(_type, binder.Name, args),
-                GetInvokeMethodFunc);
+                CreateInvokeMethodFunc);
 
             if (invokeMethodFunc == null)
             {
@@ -282,7 +282,7 @@ namespace Rock.Reflection
         {
             var createInstanceFunc = _createInstanceFuncs.GetOrAdd(
                 new CreateInstanceDefinition(_type, args),
-                GetCreateInstanceFunc);
+                CreateCreateInstanceFunc);
 
             if (createInstanceFunc == null)
             {
@@ -623,7 +623,7 @@ namespace Rock.Reflection
             };
         }
 
-        private static Func<object[], object> GetCreateInstanceFunc(CreateInstanceDefinition definition)
+        private static Func<object[], object> CreateCreateInstanceFunc(CreateInstanceDefinition definition)
         {
             if (definition.Type.IsValueType && definition.ArgTypes.Length == 0)
             {
@@ -694,7 +694,7 @@ namespace Rock.Reflection
             return args => Get(func(UnwrapArgs(args)));
         }
 
-        private static Func<object, object[], object> GetInvokeMethodFunc(InvokeMethodDefinition definition)
+        private static Func<object, object[], object> CreateInvokeMethodFunc(InvokeMethodDefinition definition)
         {
             var methodInfos =
                 definition.Type.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static)
@@ -713,7 +713,7 @@ namespace Rock.Reflection
                     case "NewInstance":
                         var createInstanceFunc = _createInstanceFuncs.GetOrAdd(
                             new CreateInstanceDefinition(definition.Type, definition.ArgTypes),
-                            GetCreateInstanceFunc);
+                            CreateCreateInstanceFunc);
 
                         if (createInstanceFunc == null)
                         {
