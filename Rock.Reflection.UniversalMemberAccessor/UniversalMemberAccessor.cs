@@ -18,6 +18,11 @@ namespace Rock.Reflection
     /// <remarks>This is a very dangerous class - use with caution.</remarks>
     public class UniversalMemberAccessor : DynamicObject
     {
+        private static readonly bool _canSetReadonlyStaticValueType;
+        private static readonly bool _canSetReadonlyStaticReferenceType;
+        private static readonly bool _canSetReadonlyInstanceValueType;
+        private static readonly bool _canSetReadonlyInstanceReferenceType;
+
         private static readonly ConditionalWeakTable<object, UniversalMemberAccessor> _instanceMap = new ConditionalWeakTable<object, UniversalMemberAccessor>();
         private static readonly ConcurrentDictionary<Type, UniversalMemberAccessor> _staticCache = new ConcurrentDictionary<Type, UniversalMemberAccessor>();
         private static readonly ConcurrentDictionary<Type, IEnumerable<string>> _instanceMemberNamesCache = new ConcurrentDictionary<Type, IEnumerable<string>>();
@@ -35,6 +40,33 @@ namespace Rock.Reflection
         private readonly object _instance;
         private readonly Type _type;
         private readonly IEnumerable<string> _memberNames;
+
+        static UniversalMemberAccessor()
+        {
+            var staticValueTypeField = typeof(ReadonlyFields).GetField("_staticValueType", BindingFlags.NonPublic | BindingFlags.Static);
+            var staticReferenceTypeField = typeof(ReadonlyFields).GetField("_staticReferenceType", BindingFlags.NonPublic | BindingFlags.Static);
+            var instanceValueTypeField = typeof(ReadonlyFields).GetField("_instanceValueType", BindingFlags.NonPublic | BindingFlags.Instance);
+            var instanceReferenceTypeField = typeof(ReadonlyFields).GetField("_instanceReferenceType", BindingFlags.NonPublic | BindingFlags.Instance);
+
+            var readonlyFields = new ReadonlyFields();
+
+            var initialStaticValueType = ReadonlyFields.StaticValueType;
+            var initialStaticReferenceType = ReadonlyFields.StaticReferenceType;
+            var initialInstanceValueType = readonlyFields.InstanceValueType;
+            var initialInstanceReferenceType = readonlyFields.InstanceReferenceType;
+
+            // ReSharper disable PossibleNullReferenceException
+            staticValueTypeField.SetValue(null, 9);
+            staticReferenceTypeField.SetValue(null, "Z");
+            instanceValueTypeField.SetValue(readonlyFields, 8);
+            instanceReferenceTypeField.SetValue(readonlyFields, "Y");
+            // ReSharper restore PossibleNullReferenceException
+
+            _canSetReadonlyStaticValueType = (ReadonlyFields.StaticValueType != initialStaticValueType);
+            _canSetReadonlyStaticReferenceType = (ReadonlyFields.StaticReferenceType != initialStaticReferenceType);
+            _canSetReadonlyInstanceValueType = (readonlyFields.InstanceValueType != initialInstanceValueType);
+            _canSetReadonlyInstanceReferenceType = (readonlyFields.InstanceReferenceType != initialInstanceReferenceType);
+        }
 
         private UniversalMemberAccessor(Type type)
         {
@@ -481,6 +513,18 @@ namespace Rock.Reflection
 
                     if (fieldInfo.IsInitOnly)
                     {
+                        if ((fieldInfo.IsStatic && fieldInfo.FieldType.IsValueType && !_canSetReadonlyStaticValueType)
+                            || (fieldInfo.IsStatic && !fieldInfo.FieldType.IsValueType && !_canSetReadonlyStaticReferenceType)
+                            || (!fieldInfo.IsStatic && fieldInfo.FieldType.IsValueType && !_canSetReadonlyInstanceValueType)
+                            || (!fieldInfo.IsStatic && !fieldInfo.FieldType.IsValueType && !_canSetReadonlyInstanceReferenceType))
+                        {
+                            var staticOrInstance = fieldInfo.IsStatic ? "static" : "instance";
+                            var valueOrReference = fieldInfo.FieldType.IsValueType ? "value" : "reference";
+                            var message = string.Format("The current runtime does not allow the (illegal) changing of readonly {0} {1}-type fields.", staticOrInstance, valueOrReference);
+
+                            return (instance, value) => { throw new NotSupportedException(message); };
+                        }
+
                         var dynamicMethod = new DynamicMethod("", typeof(void),
                             new[] { typeof(object), typeof(object) }, fieldInfo.DeclaringType);
 
@@ -1582,6 +1626,34 @@ namespace Rock.Reflection
                     return _argTypes.Aggregate(hashCode, (current, argType) =>
                         (current * 397) ^ (argType == null ? 0 : argType.GetHashCode()));
                 }
+            }
+        }
+
+        private class ReadonlyFields
+        {
+            private static readonly int _staticValueType = 1;
+            private static readonly string _staticReferenceType = "A";
+            private readonly int _instanceValueType = 2;
+            private readonly string _instanceReferenceType = "B";
+
+            public static int StaticValueType
+            {
+                get { return _staticValueType; }
+            }
+
+            public static string StaticReferenceType
+            {
+                get { return _staticReferenceType; }
+            }
+
+            public int InstanceValueType
+            {
+                get { return _instanceValueType; }
+            }
+
+            public string InstanceReferenceType
+            {
+                get { return _instanceReferenceType; }
             }
         }
     }
