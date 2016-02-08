@@ -2,11 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Reflection.Emit;
 
-namespace Rock.Reflection.UnitTests.TypeBuilder
+namespace Rock.Reflection.UnitTests.TypeCreator
 {
     public class ConstructorDefinition : MemberDefinition
     {
-        public ConstructorDefinition(Action<System.Reflection.Emit.TypeBuilder, List<FieldBuilder>> emitTo)
+        public ConstructorDefinition(Action<TypeBuilder, List<FieldBuilder>> emitTo)
             : base(emitTo)
         {
         }

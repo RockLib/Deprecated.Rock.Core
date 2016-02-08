@@ -4,7 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 
-namespace Rock.Reflection.UnitTests.TypeBuilder
+namespace Rock.Reflection.UnitTests.TypeCreator
 {
     public static class Create
     {

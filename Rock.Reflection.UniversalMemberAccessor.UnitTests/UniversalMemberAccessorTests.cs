@@ -5,7 +5,7 @@ using System.Linq;
 using Microsoft.CSharp.RuntimeBinder;
 using NUnit.Framework;
 using System.Reflection;
-using Rock.Reflection.UnitTests.TypeBuilder;
+using Rock.Reflection.UnitTests.TypeCreator;
 
 namespace Rock.Reflection.UnitTests
 {

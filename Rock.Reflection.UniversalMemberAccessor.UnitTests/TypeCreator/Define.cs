@@ -3,7 +3,7 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 
-namespace Rock.Reflection.UnitTests.TypeBuilder
+namespace Rock.Reflection.UnitTests.TypeCreator
 {
     public static class Define
     {
@@ -271,7 +271,7 @@ namespace Rock.Reflection.UnitTests.TypeBuilder
         }
 
         private static MethodBuilder GetGetMethodBuilder(string name, Type type, bool isStatic,
-            System.Reflection.Emit.TypeBuilder tb, MethodAttributes methodAttributes, FieldBuilder fieldBuilder)
+            TypeBuilder tb, MethodAttributes methodAttributes, FieldBuilder fieldBuilder)
         {
             var getMethodBuilder = tb.DefineMethod("get_" + name,
                 methodAttributes, type, Type.EmptyTypes);
@@ -295,7 +295,7 @@ namespace Rock.Reflection.UnitTests.TypeBuilder
         }
 
         private static MethodBuilder GetSetMethodBuilder(string name, Type type, bool isStatic,
-            System.Reflection.Emit.TypeBuilder tb, MethodAttributes methodAttributes, FieldBuilder fieldBuilder)
+            TypeBuilder tb, MethodAttributes methodAttributes, FieldBuilder fieldBuilder)
         {
             var setMethodBuilder = tb.DefineMethod("set_" + name,
                 methodAttributes, null, new[] { type });
