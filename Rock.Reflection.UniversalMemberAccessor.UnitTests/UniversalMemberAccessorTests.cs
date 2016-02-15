@@ -1103,7 +1103,7 @@ namespace Rock.Reflection.UnitTests
         public void AmbiguousInvocationThrowsRuntimeBinderException()
         {
             var foo = new Foo().Unlock();
-
+            
             Assert.That(() => foo.Garply(null),
                 Throws.InstanceOf<RuntimeBinderException>().With.Message.EqualTo(
                 "The call is ambiguous between the following methods or properties: 'Garply(System.String)' and 'Garply(Rock.Reflection.UnitTests.IBaz)'"));
@@ -1615,6 +1615,197 @@ namespace Rock.Reflection.UnitTests
             Assert.That(() => unlockedSpam.PrivateBar(new CountryHam()), Throws.InstanceOf<RuntimeBinderException>());
             Assert.That(() => unlockedSpam.PrivateBar(new Ham()), Throws.Nothing);
             Assert.That(() => unlockedSpam.PrivateBar(new Prosciutto()), Throws.Nothing);
+        }
+
+        [Test]
+        public void CreateInstanceDefinitionEqualsReturnsTrueWhenReferencesAreEqual()
+        {
+            var type = Type.GetType("Rock.Reflection.UniversalMemberAccessor+CreateInstanceDefinition, Rock.Reflection.UniversalMemberAccessor");
+
+            var definition1 = type.New(typeof(int), new[] { typeof(string), typeof(bool) }).Value;
+            var definition2 = definition1;
+
+            Assert.That(definition1.Equals(definition2), Is.True);
+        }
+
+        [Test]
+        public void CreateInstanceDefinitionEqualsReturnsFalseWhenOtherTypeIsNotCreateInstanceDefinition()
+        {
+            var type = Type.GetType("Rock.Reflection.UniversalMemberAccessor+CreateInstanceDefinition, Rock.Reflection.UniversalMemberAccessor");
+
+            var definition1 = type.New(typeof(int), new[] { typeof(string), typeof(bool) }).Value;
+            var definition2 = "abcd";
+
+            Assert.That(definition1.Equals(definition2), Is.False);
+        }
+
+        [Test]
+        public void CreateInstanceDefinitionEqualsReturnsFalseWhenOtherHasDifferentType()
+        {
+            var type = Type.GetType("Rock.Reflection.UniversalMemberAccessor+CreateInstanceDefinition, Rock.Reflection.UniversalMemberAccessor");
+
+            var definition1 = type.New(typeof(int), new[] { typeof(string), typeof(bool) }).Value;
+            var definition2 = type.New(typeof(string), new[] { typeof(string), typeof(bool) }).Value;
+
+            Assert.That(definition1.Equals(definition2), Is.False);
+        }
+
+        [Test]
+        public void CreateInstanceDefinitionEqualsReturnsFalseWhenOtherHasDifferentNumberOfArgTypes()
+        {
+            var type = Type.GetType("Rock.Reflection.UniversalMemberAccessor+CreateInstanceDefinition, Rock.Reflection.UniversalMemberAccessor");
+
+            var definition1 = type.New(typeof(int), new[] { typeof(string), typeof(bool) }).Value;
+            var definition2 = type.New(typeof(int), new[] { typeof(string) }).Value;
+
+            Assert.That(definition1.Equals(definition2), Is.False);
+        }
+
+        [Test]
+        public void CreateInstanceDefinitionEqualsReturnsFalseWhenOtherHasDifferentArgTypes()
+        {
+            var type = Type.GetType("Rock.Reflection.UniversalMemberAccessor+CreateInstanceDefinition, Rock.Reflection.UniversalMemberAccessor");
+
+            var definition1 = type.New(typeof(int), new[] { typeof(string), typeof(bool) }).Value;
+            var definition2 = type.New(typeof(int), new[] { typeof(string), typeof(DateTime) }).Value;
+
+            Assert.That(definition1.Equals(definition2), Is.False);
+        }
+
+        [Test]
+        public void CreateInstanceDefinitionEqualsReturnsTrueWhenTypeAndArgTypesAreTheSame()
+        {
+            var type = Type.GetType("Rock.Reflection.UniversalMemberAccessor+CreateInstanceDefinition, Rock.Reflection.UniversalMemberAccessor");
+
+            var definition1 = type.New(typeof(int), new[] { typeof(string), typeof(bool) }).Value;
+            var definition2 = type.New(typeof(int), new[] { typeof(string), typeof(bool) }).Value;
+
+            Assert.That(definition1.Equals(definition2), Is.True);
+        }
+
+        [Test]
+        public void CreateInstanceDefinitionGetHashCodeIsTheSameForEqualInstances()
+        {
+            var type = Type.GetType("Rock.Reflection.UniversalMemberAccessor+CreateInstanceDefinition, Rock.Reflection.UniversalMemberAccessor");
+
+            var definition1 = type.New(typeof(int), new[] { typeof(string), typeof(bool) }).Value;
+            var definition2 = type.New(typeof(int), new[] { typeof(string), typeof(bool) }).Value;
+
+            Assert.That(definition1.GetHashCode(), Is.EqualTo(definition2.GetHashCode()));
+            Assert.That(definition1.Equals(definition2), Is.True);
+        }
+
+        [Test]
+        public void CreateInstanceDefinitionGetHashCodeIsTheSameForReferenceEqualInstances()
+        {
+            var type = Type.GetType("Rock.Reflection.UniversalMemberAccessor+CreateInstanceDefinition, Rock.Reflection.UniversalMemberAccessor");
+
+            var definition1 = type.New(typeof(int), new[] { typeof(string), typeof(bool) }).Value;
+            var definition2 = definition1;
+
+            Assert.That(definition1.GetHashCode(), Is.EqualTo(definition2.GetHashCode()));
+            Assert.That(definition1.Equals(definition2), Is.True);
+        }
+
+        [Test]
+        public void InvokeMethodDefinitionEqualsReturnsTrueWhenReferencesAreEqual()
+        {
+            var type = Type.GetType("Rock.Reflection.UniversalMemberAccessor+InvokeMethodDefinition, Rock.Reflection.UniversalMemberAccessor");
+
+            var definition1 = type.New(typeof(int), "Foo", new object[] { "abc", true }).Value;
+            var definition2 = definition1;
+
+            Assert.That(definition1.Equals(definition2), Is.True);
+        }
+
+        [Test]
+        public void InvokeMethodDefinitionEqualsReturnsFalseWhenOtherTypeIsNotInvokeMethodDefinition()
+        {
+            var type = Type.GetType("Rock.Reflection.UniversalMemberAccessor+InvokeMethodDefinition, Rock.Reflection.UniversalMemberAccessor");
+
+            var definition1 = type.New(typeof(int), "Foo", new object[] { "abc", true }).Value;
+            var definition2 = "abcd";
+
+            Assert.That(definition1.Equals(definition2), Is.False);
+        }
+
+        [Test]
+        public void InvokeMethodDefinitionEqualsReturnsFalseWhenOtherHasDifferentType()
+        {
+            var type = Type.GetType("Rock.Reflection.UniversalMemberAccessor+InvokeMethodDefinition, Rock.Reflection.UniversalMemberAccessor");
+
+            var definition1 = type.New(typeof(int), "Foo", new object[] { "abc", true }).Value;
+            var definition2 = type.New(typeof(string), "Foo", new object[] { "abc", true }).Value;
+
+            Assert.That(definition1.Equals(definition2), Is.False);
+        }
+
+        [Test]
+        public void InvokeMethodDefinitionEqualsReturnsFalseWhenOtherHasName()
+        {
+            var type = Type.GetType("Rock.Reflection.UniversalMemberAccessor+InvokeMethodDefinition, Rock.Reflection.UniversalMemberAccessor");
+
+            var definition1 = type.New(typeof(int), "Foo", new object[] { "abc", true }).Value;
+            var definition2 = type.New(typeof(int), "Bar", new object[] { "abc", true }).Value;
+
+            Assert.That(definition1.Equals(definition2), Is.False);
+        }
+
+        [Test]
+        public void InvokeMethodDefinitionEqualsReturnsFalseWhenOtherHasDifferentNumberOfArgTypes()
+        {
+            var type = Type.GetType("Rock.Reflection.UniversalMemberAccessor+InvokeMethodDefinition, Rock.Reflection.UniversalMemberAccessor");
+
+            var definition1 = type.New(typeof(int), "Foo", new object[] { "abc", true }).Value;
+            var definition2 = type.New(typeof(int), "Foo", new object[] { "abc" }).Value;
+
+            Assert.That(definition1.Equals(definition2), Is.False);
+        }
+
+        [Test]
+        public void InvokeMethodDefinitionEqualsReturnsFalseWhenOtherHasDifferentArgTypes()
+        {
+            var type = Type.GetType("Rock.Reflection.UniversalMemberAccessor+InvokeMethodDefinition, Rock.Reflection.UniversalMemberAccessor");
+
+            var definition1 = type.New(typeof(int), "Foo", new object[] { "abc", true }).Value;
+            var definition2 = type.New(typeof(int), "Foo", new object[] { "abc", DateTime.Now }).Value;
+
+            Assert.That(definition1.Equals(definition2), Is.False);
+        }
+
+        [Test]
+        public void InvokeMethodDefinitionEqualsReturnsTrueWhenTypeAndArgTypesAreTheSame()
+        {
+            var type = Type.GetType("Rock.Reflection.UniversalMemberAccessor+InvokeMethodDefinition, Rock.Reflection.UniversalMemberAccessor");
+
+            var definition1 = type.New(typeof(int), "Foo", new object[] { "abc", true }).Value;
+            var definition2 = type.New(typeof(int), "Foo", new object[] { "abc", true }).Value;
+
+            Assert.That(definition1.Equals(definition2), Is.True);
+        }
+
+        [Test]
+        public void InvokeMethodDefinitionGetHashCodeIsTheSameForEqualInstances()
+        {
+            var type = Type.GetType("Rock.Reflection.UniversalMemberAccessor+InvokeMethodDefinition, Rock.Reflection.UniversalMemberAccessor");
+
+            var definition1 = type.New(typeof(int), "Foo", new object[] { "abc", true }).Value;
+            var definition2 = type.New(typeof(int), "Foo", new object[] { "abc", true }).Value;
+
+            Assert.That(definition1.GetHashCode(), Is.EqualTo(definition2.GetHashCode()));
+            Assert.That(definition1.Equals(definition2), Is.True);
+        }
+
+        [Test]
+        public void InvokeMethodDefinitionGetHashCodeIsTheSameForReferenceEqualInstances()
+        {
+            var type = Type.GetType("Rock.Reflection.UniversalMemberAccessor+InvokeMethodDefinition, Rock.Reflection.UniversalMemberAccessor");
+
+            var definition1 = type.New(typeof(int), "Foo", new object[] { "abc", true }).Value;
+            var definition2 = definition1;
+
+            Assert.That(definition1.GetHashCode(), Is.EqualTo(definition2.GetHashCode()));
+            Assert.That(definition1.Equals(definition2), Is.True);
         }
 
         public interface IPork { }
