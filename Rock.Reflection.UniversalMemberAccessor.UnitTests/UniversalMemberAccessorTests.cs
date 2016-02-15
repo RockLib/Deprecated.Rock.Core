@@ -777,19 +777,29 @@ namespace Rock.Reflection.UnitTests
             Assert.That(bar, Is.EqualTo(fieldValue));
         }
 
-        [TestCase(typeof(int), 123)]
-        [TestCase(typeof(int), (short)456)]
-        [TestCase(typeof(string), "abc")]
-        public void CanSetReadonlyStaticField(Type fieldType, object fieldValue)
+        [Test]
+        public void CanSetReadonlyReferenceTypeStaticField()
         {
-            var type = Create.Class("Foo", Define.Field("_bar", fieldType, true, true));
+            var type = Create.Class("Foo", Define.Field("_bar", typeof(string), true, true));
 
             var foo = UniversalMemberAccessor.GetStatic(type);
 
-            foo._bar = fieldValue;
+            foo._bar = "abc";
 
             var bar = foo._bar;
-            Assert.That(bar, Is.EqualTo(fieldValue));
+            Assert.That(bar, Is.EqualTo("abc"));
+        }
+
+        [Test]
+        public void CannotSetReadonlyValueTypeStaticField()
+        {
+            var type = Create.Class("Foo", Define.Field("_bar", typeof(int), true, true));
+
+            var foo = UniversalMemberAccessor.GetStatic(type);
+
+            Assert.That(() => foo._bar = 123,
+                Throws.InstanceOf<NotSupportedException>().With.Message.EqualTo(
+                "The current runtime does not allow the (illegal) changing of readonly static value-type fields."));
         }
 
         [Test]
