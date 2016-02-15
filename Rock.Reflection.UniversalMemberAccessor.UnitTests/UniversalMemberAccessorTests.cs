@@ -593,6 +593,72 @@ namespace Rock.Reflection.UnitTests
         }
 
         [Test]
+        public void CanCallMethodWithNullableTypeRefParameterReturningVoid()
+        {
+            var type = Create.Class("Foo", Define.EchoRefMethod("Bar", typeof(int?), true));
+
+            var foo = type.New();
+
+            int? i = -1;
+            foo.Bar(123, ref i);
+
+            Assert.That(i, Is.EqualTo(123));
+        }
+
+        [Test]
+        public void CanCallMethodWithNullableTypeRefParameterReturningValue()
+        {
+            var type = Create.Class("Foo", Define.EchoRefMethod("Bar", typeof(int?), true));
+
+            var foo = type.New();
+
+            int? i = -1;
+            int dummy = foo.Bar(123, ref i);
+
+            Assert.That(i, Is.EqualTo(123));
+            Assert.That(dummy, Is.EqualTo(123));
+        }
+
+        [Test]
+        public void CanCallMethodWithNullableTypeOutParameterReturningVoid()
+        {
+            var type = Create.Class("Foo", Define.EchoOutMethod("Bar", typeof(int?), true));
+
+            var foo = type.New();
+
+            int? i;
+            foo.Bar(123, out i);
+
+            Assert.That(i, Is.EqualTo(123));
+        }
+
+        [Test]
+        public void CanCallMethodWithNullableTypeOutParameterReturningValue()
+        {
+            var type = Create.Class("Foo", Define.EchoOutMethod("Bar", typeof(int?)));
+
+            var foo = type.New();
+
+            int? i;
+            int dummy = foo.Bar(123, out i);
+
+            Assert.That(i, Is.EqualTo(123));
+            Assert.That(dummy, Is.EqualTo(123));
+        }
+
+        [Test]
+        public void CanCallMethodWithNullableParameterWithNull()
+        {
+            var type = Create.Class("Foo", Define.EchoMethod("Bar", typeof(int?)));
+
+            var foo = type.New();
+
+            int? value = foo.Bar(null);
+
+            Assert.That(value, Is.Null);
+        }
+
+        [Test]
         public void CanCallMethodWithReferenceTypeRefParameterReturningVoid()
         {
             var type = Create.Class("Foo", Define.EchoRefMethod("Bar", typeof(string), true));

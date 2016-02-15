@@ -913,13 +913,23 @@ namespace Rock.Reflection
 
                     if (parameterType.IsValueType)
                     {
-                        Debug.Assert(argTypes[i].IsValueType);
-
-                        arguments[i] = Expression.Unbox(item, argTypes[i]);
-
-                        if (argTypes[i] != parameterType)
+                        if (argTypes[i] == null)
                         {
-                            arguments[i] = Expression.Convert(arguments[i], parameterType);
+                            Debug.Assert(parameterType.IsGenericType
+                                && parameterType.GetGenericTypeDefinition() == typeof(Nullable<>));
+
+                            arguments[i] = Expression.Constant(null, parameterType);
+                        }
+                        else
+                        {
+                            Debug.Assert(argTypes[i].IsValueType);
+
+                            arguments[i] = Expression.Unbox(item, argTypes[i]);
+
+                            if (argTypes[i] != parameterType)
+                            {
+                                arguments[i] = Expression.Convert(arguments[i], parameterType);
+                            }
                         }
                     }
                     else
@@ -1424,15 +1434,16 @@ namespace Rock.Reflection
 
         private static bool GetCanBeAssignedValue(Type targetType, Type valueType)
         {
+            // ref and out parameters need to be unwrapped.
+            if (targetType.IsByRef)
+            {
+                targetType = targetType.GetElementType();
+            }
+
             // Nullable target type needs to be unwrapped.
             if (targetType.IsGenericType && targetType.GetGenericTypeDefinition() == typeof(Nullable<>))
             {
                 targetType = targetType.GetGenericArguments()[0];
-            }
-
-            if (targetType.IsByRef)
-            {
-                targetType = targetType.GetElementType();
             }
 
             if (targetType.IsAssignableFrom(valueType))
