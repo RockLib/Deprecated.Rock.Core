@@ -741,7 +741,7 @@ namespace Rock.Reflection
                             CreateCreateInstanceFunc);
 
                         return (instance, args) =>  createInstanceFunc(args);
-                        }
+                }
 
                 if (candidates.Count == 0)
                 {
@@ -989,8 +989,6 @@ namespace Rock.Reflection
 
         private class Candidate
         {
-            private static readonly object _notADefaultValue = new object();
-
             private readonly MethodBase _method;
             private readonly Type[] _parameters;
             private readonly Type[] _defaultParameterTypes;
@@ -1393,11 +1391,6 @@ namespace Rock.Reflection
 
             private Type[] AddDefaultParameterTypes(Type[] argTypes)
             {
-                if (argTypes.Length == _parameters.Length)
-                {
-                    return argTypes;
-                }
-
                 var newArgTypes = new Type[_parameters.Length];
 
                 for (int i = 0; i < _defaultParameterTypes.Length; i++)
