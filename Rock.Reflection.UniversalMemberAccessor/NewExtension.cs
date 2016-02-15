@@ -22,14 +22,8 @@ namespace Rock.Reflection
         public static dynamic New(this Type type, params object[] args)
         {
             UniversalMemberAccessor factory = UniversalMemberAccessor.GetStatic(type);
-
-            object instance;
-            if (factory.TryCreateInstance(args, out instance))
-            {
-                return instance;
-            }
-
-            throw new RuntimeBinderException("No matching constructor found.");
+            var createInstace = factory.GetCreateInstanceFunc(args);
+            return createInstace(args);
         }
     }
 }

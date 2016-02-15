@@ -9,6 +9,7 @@ using System.Reflection;
 using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
+using Microsoft.CSharp.RuntimeBinder;
 
 namespace Rock.Reflection
 {
@@ -18,6 +19,9 @@ namespace Rock.Reflection
     /// <remarks>This is a very dangerous class - use with caution.</remarks>
     public class UniversalMemberAccessor : DynamicObject
     {
+        const ParameterAttributes HasDefaultValue = 
+            ParameterAttributes.HasDefault | ParameterAttributes.Optional;
+
         private static readonly bool _canSetReadonlyStaticValueType;
         private static readonly bool _canSetReadonlyStaticReferenceType;
         private static readonly bool _canSetReadonlyInstanceValueType;
@@ -269,29 +273,15 @@ namespace Rock.Reflection
                 new InvokeMethodDefinition(_type, binder.Name, args),
                 CreateInvokeMethodFunc);
 
-            if (invokeMethodFunc == null)
-            {
-                return base.TryInvokeMember(binder, args, out result);
-            }
-
             result = invokeMethodFunc(_instance, args);
             return true;
         }
 
-        internal bool TryCreateInstance(object[] args, out object result)
+        internal Func<object[], object> GetCreateInstanceFunc(object[] args)
         {
-            var createInstanceFunc = _createInstanceFuncs.GetOrAdd(
+            return _createInstanceFuncs.GetOrAdd(
                 new CreateInstanceDefinition(_type, args),
                 CreateCreateInstanceFunc);
-
-            if (createInstanceFunc == null)
-            {
-                result = null;
-                return false;
-            }
-
-            result = createInstanceFunc(args);
-            return true;
         }
 
         private static IList<Candidate> GetBetterMethods(Type[] argTypes, IList<Candidate> legalCandidates)
@@ -401,7 +391,8 @@ namespace Rock.Reflection
         {
             if (!binder.ReturnType.IsAssignableFrom(_type))
             {
-                return base.TryConvert(binder, out result);
+                throw new RuntimeBinderException(string.Format(
+                    "Cannot implicitly convert type '{0}' to '{1}'", _type, binder.ReturnType));
             }
 
             result = _instance;
@@ -484,12 +475,14 @@ namespace Rock.Reflection
                 {
                     if (!CanBeAssigned(propertyInfo.PropertyType, valueType))
                     {
-                        return null;
+                        var message = string.Format("Cannot implicitly convert type '{0}' to '{1}'", valueType, propertyInfo.PropertyType);
+                        return (instance, value) => { throw new RuntimeBinderException(message); };
                     }
                 }
                 else if (!CanBeAssignedNull(propertyInfo.PropertyType))
                 {
-                    return null;
+                    var message = string.Format("Cannot convert null to '{0}' because it is a non-nullable value type", propertyInfo.PropertyType);
+                    return (instance, value) => { throw new RuntimeBinderException(message); };
                 }
 
                 propertyOrField = Expression.Property(IsStatic(propertyInfo) ? null : convertInstanceParameter, propertyInfo);
@@ -503,12 +496,14 @@ namespace Rock.Reflection
                     {
                         if (!CanBeAssigned(fieldInfo.FieldType, valueType))
                         {
-                            return null;
+                            var message = string.Format("Cannot implicitly convert type '{0}' to '{1}'", valueType, fieldInfo.FieldType);
+                            return (instance, value) => { throw new RuntimeBinderException(message); };
                         }
                     }
                     else if (!CanBeAssignedNull(fieldInfo.FieldType))
                     {
-                        return null;
+                        var message = string.Format("Cannot convert null to '{0}' because it is a non-nullable value type", fieldInfo.FieldType);
+                        return (instance, value) => { throw new RuntimeBinderException(message); };
                     }
 
                     if (fieldInfo.IsInitOnly)
@@ -640,12 +635,31 @@ namespace Rock.Reflection
             var constructors =
                 definition.Type.GetConstructors(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 
-            var legalCandidates = constructors.Select(c => new Candidate(c))
-                .Where(c => c.IsLegal(definition.ArgTypes)).ToList();
+            var candidates = constructors.Select(c => new Candidate(c))
+                .Where(c => c.HasRequiredNumberOfParameters(definition.ArgTypes)).ToList();
+
+            if (candidates.Count == 0)
+            {
+                var message = string.Format(
+                    "'{0}' does not contain a constructor that takes {1} arguments",
+                    definition.Type,
+                    definition.ArgTypes.Length);
+
+                return args => { throw new RuntimeBinderException(message); };
+            }
+
+            var legalCandidates = candidates.Where(c => c.IsLegal(definition.ArgTypes)).ToList();
 
             if (legalCandidates.Count == 0)
             {
-                return null;
+                var method = candidates[0].Method.ToString();
+
+                var message = string.Format(
+                    "The best overloaded constructor match for '{0}.{1}' has some invalid arguments",
+                    definition.Type,
+                    method.Substring(method.IndexOf(".ctor")).Replace(".ctor", definition.Type.Name));
+
+                return args => { throw new RuntimeBinderException(message); };
             }
 
             Candidate candidate;
@@ -664,7 +678,16 @@ namespace Rock.Reflection
                 }
                 else
                 {
-                    return null;
+                    var method0 = candidates[0].Method.ToString();
+                    var method1 = candidates[1].Method.ToString();
+
+                    var message = string.Format(
+                        "The call is ambiguous between the following methods or properties: '{0}.{1}' and '{0}.{2}'",
+                        definition.Type,
+                        method0.Substring(method0.IndexOf(".ctor")).Replace(".ctor", definition.Type.Name),
+                        method1.Substring(method1.IndexOf(".ctor")).Replace(".ctor", definition.Type.Name));
+
+                    return args => { throw new RuntimeBinderException(message); };
                 }
             }
 
@@ -700,8 +723,10 @@ namespace Rock.Reflection
                 definition.Type.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static)
                     .Where(m => m.Name == definition.Name);
 
-            var legalCandidates = methodInfos.Select(m => new Candidate(m))
-                .Where(c => c.IsLegal(definition.ArgTypes)).ToList();
+            var candidates = methodInfos.Select(c => new Candidate(c))
+                .Where(c => c.HasRequiredNumberOfParameters(definition.ArgTypes)).ToList();
+
+            var legalCandidates = candidates.Where(c => c.IsLegal(definition.ArgTypes)).ToList();
 
             if (legalCandidates.Count == 0)
             {
@@ -715,15 +740,27 @@ namespace Rock.Reflection
                             new CreateInstanceDefinition(definition.Type, definition.ArgTypes),
                             CreateCreateInstanceFunc);
 
-                        if (createInstanceFunc == null)
-                        {
-                            return null;
+                        return (instance, args) =>  createInstanceFunc(args);
                         }
 
-                        return (instance, args) =>  createInstanceFunc(args);
-                }
+                if (candidates.Count == 0)
+                {
+                    var message = string.Format("No overload for method '{0}' takes {1} arguments",
+                        definition.Name, definition.ArgTypes.Length);
 
-                return null;
+                    return (instance, args) => { throw new RuntimeBinderException(message); };
+                }
+                else
+                {
+                    var method = candidates[0].Method.ToString();
+
+                    var message = string.Format(
+                        "The best overloaded method match for '{0}.{1}' has some invalid arguments",
+                        definition.Type,
+                        method.Substring(method.IndexOf(' ') + 1));
+
+                    return (instance, args) => { throw new RuntimeBinderException(message); };
+                }
             }
 
             Candidate candidate;
@@ -742,7 +779,15 @@ namespace Rock.Reflection
                 }
                 else
                 {
-                    return null;
+                    var method0 = legalCandidates[0].Method.ToString();
+                    var method1 = legalCandidates[1].Method.ToString();
+
+                    var message = string.Format(
+                        "The call is ambiguous between the following methods or properties: '{0}' and '{1}'",
+                        method0.Substring(method0.IndexOf(' ') + 1),
+                        method1.Substring(method1.IndexOf(' ') + 1));
+
+                    return (instance, args) => { throw new RuntimeBinderException(message); };
                 }
             }
 
@@ -961,12 +1006,9 @@ namespace Rock.Reflection
                 
                 _defaultParameterTypes = new Type[_parameters.Length];
 
-                const ParameterAttributes hasDefaultValue =
-                    ParameterAttributes.HasDefault | ParameterAttributes.Optional;
-
                 for (int i = 0; i < _defaultParameterTypes.Length; i++)
                 {
-                    if ((parameters[i].Attributes & hasDefaultValue) == hasDefaultValue)
+                    if ((parameters[i].Attributes & HasDefaultValue) == HasDefaultValue)
                     {
                         _defaultParameterTypes[i] =
                             parameters[i].DefaultValue != null
@@ -980,6 +1022,12 @@ namespace Rock.Reflection
             public MethodBase Method
             {
                 get { return _method; }
+            }
+
+            public bool HasRequiredNumberOfParameters(Type[] argTypes)
+            {
+                return argTypes.Length >= (_parameters.Length - _defaultParameterCount)
+                       && argTypes.Length <= _parameters.Length;
             }
 
             public int GetBetterScore(Candidate other, Type[] argTypes)

@@ -84,7 +84,9 @@ namespace Rock.Reflection.UnitTests
 
             Bar bar;
 
-            Assert.That(() => bar = foo, Throws.InstanceOf<RuntimeBinderException>());
+            Assert.That(() => bar = foo,
+                Throws.InstanceOf<RuntimeBinderException>().With.Message.EqualTo(
+                "Cannot implicitly convert type 'Rock.Reflection.UnitTests.Foo' to 'Rock.Reflection.UnitTests.Bar'"));
         }
 
         [Test]
@@ -156,7 +158,9 @@ namespace Rock.Reflection.UnitTests
         {
             var foo = new Foo().Unlock();
 
-            Assert.That(() => foo.DoesNotExist = "abc", Throws.InstanceOf<RuntimeBinderException>());
+            Assert.That(() => foo.DoesNotExist = "abc",
+                Throws.InstanceOf<RuntimeBinderException>().With.Message.EqualTo(
+                "'Rock.Reflection.UniversalMemberAccessor' does not contain a definition for 'DoesNotExist'"));
         }
 
         [Test]
@@ -166,7 +170,9 @@ namespace Rock.Reflection.UnitTests
 
             var foo = type.New();
 
-            Assert.That(() => foo._bar = "abc", Throws.InstanceOf<RuntimeBinderException>());
+            Assert.That(() => foo._bar = "abc",
+                Throws.InstanceOf<RuntimeBinderException>().With.Message.EqualTo(
+                "Cannot implicitly convert type 'System.String' to 'System.Int32'"));
         }
 
         [Test]
@@ -176,7 +182,9 @@ namespace Rock.Reflection.UnitTests
 
             var foo = type.New();
 
-            Assert.That(() => foo.Bar = "abc", Throws.InstanceOf<RuntimeBinderException>());
+            Assert.That(() => foo.Bar = "abc",
+                Throws.InstanceOf<RuntimeBinderException>().With.Message.EqualTo(
+                "Cannot implicitly convert type 'System.String' to 'System.Int32'"));
         }
 
         [Test]
@@ -186,7 +194,9 @@ namespace Rock.Reflection.UnitTests
 
             var foo = type.New();
 
-            Assert.That(() => foo._bar = null, Throws.InstanceOf<RuntimeBinderException>());
+            Assert.That(() => foo._bar = null,
+                Throws.InstanceOf<RuntimeBinderException>().With.Message.EqualTo(
+                "Cannot convert null to 'System.Int32' because it is a non-nullable value type"));
         }
 
         [Test]
@@ -196,7 +206,9 @@ namespace Rock.Reflection.UnitTests
 
             var foo = type.New();
 
-            Assert.That(() => foo.Bar = null, Throws.InstanceOf<RuntimeBinderException>());
+            Assert.That(() => foo.Bar = null,
+                Throws.InstanceOf<RuntimeBinderException>().With.Message.EqualTo(
+                "Cannot convert null to 'System.Int32' because it is a non-nullable value type"));
         }
 
         [Test]
@@ -436,11 +448,23 @@ namespace Rock.Reflection.UnitTests
         }
 
         [Test]
-        public void CannotCreateInstanceOfObjectWithWrongParameters()
+        public void CannotCreateInstanceOfObjectWithWrongNumberOfParameters()
         {
             var type = Create.Class("Foo");
 
-            Assert.That(() => type.New(123, "abc"), Throws.InstanceOf<RuntimeBinderException>());
+            Assert.That(() => type.New(123, "abc"),
+                Throws.InstanceOf<RuntimeBinderException>().With.Message.EqualTo(
+                "'Foo' does not contain a constructor that takes 2 arguments"));
+        }
+
+        [Test]
+        public void CannotCreateInstanceOfObjectWithWrongParameterType()
+        {
+            var type = Create.Class("Foo", Define.Constructor(typeof(int)));
+
+            Assert.That(() => type.New("abc"),
+                Throws.InstanceOf<RuntimeBinderException>().With.Message.EqualTo(
+                "The best overloaded constructor match for 'Foo.Foo(Int32)' has some invalid arguments"));
         }
 
         [Test]
@@ -491,13 +515,27 @@ namespace Rock.Reflection.UnitTests
         }
 
         [Test]
+        public void CannotCallMethodWithWrongNumberOfParameters()
+        {
+            var type = Create.Class("Foo", Define.EchoMethod("Bar", typeof(int)));
+
+            var foo = type.New();
+
+            Assert.That(() => foo.Bar(123, 456),
+                Throws.InstanceOf<RuntimeBinderException>().With.Message.EqualTo(
+                "No overload for method 'Bar' takes 2 arguments"));
+        }
+
+        [Test]
         public void CannotCallMethodWithWrongParameters()
         {
             var type = Create.Class("Foo", Define.EchoMethod("Bar", typeof(int)));
 
             var foo = type.New();
 
-            Assert.That(() => foo.Bar("abc"), Throws.InstanceOf<RuntimeBinderException>());
+            Assert.That(() => foo.Bar("abc"),
+                Throws.InstanceOf<RuntimeBinderException>().With.Message.EqualTo(
+                "The best overloaded method match for 'Foo.Bar(Int32)' has some invalid arguments"));
         }
 
         [Test]
@@ -1016,38 +1054,6 @@ namespace Rock.Reflection.UnitTests
         }
 
         [Test]
-        public void CanIllegallyInvokeEvents()
-        {
-            var bar = new Bar().Unlock();
-
-            var eventHandler1Count = 0;
-            var eventHandler2Count = 0;
-
-            EventHandler eventHandler1 = (sender, args) => eventHandler1Count++;
-            EventHandler eventHandler2 = (sender, args) => eventHandler2Count++;
-
-            bar.Qux += eventHandler1;
-            bar.Qux += eventHandler2;
-
-            // If this were a bar object, we would get a compiler error here:
-            // "The event 'Rock.Reflection.UnitTests.Bar.Qux' can only appear on the left hand side
-            // of += or -= (except when used from within the type 'Rock.Reflection.UnitTests.Bar')"
-
-            // What is returned is a delegate, so it can be invoked directly...
-            bar.Qux(this, EventArgs.Empty);
-
-            // ...or the delegate's Invoke method can be called.
-            bar.Qux.Invoke(this, EventArgs.Empty);
-
-            // You can also assign the event to a delegate variable.
-            EventHandler invokingEventHandler = bar.Qux;
-            invokingEventHandler(this, EventArgs.Empty);
-
-            Assert.That(eventHandler1Count, Is.EqualTo(3));
-            Assert.That(eventHandler2Count, Is.EqualTo(3));
-        }
-
-        [Test]
         public void CanCallPrivateInstanceMethods()
         {
             var foo = new Foo().Unlock();
@@ -1088,7 +1094,9 @@ namespace Rock.Reflection.UnitTests
         {
             var foo = new Foo().Unlock();
 
-            Assert.That(() => foo.Garply(null), Throws.InstanceOf<RuntimeBinderException>());
+            Assert.That(() => foo.Garply(null),
+                Throws.InstanceOf<RuntimeBinderException>().With.Message.EqualTo(
+                "The call is ambiguous between the following methods or properties: 'Garply(System.String)' and 'Garply(Rock.Reflection.UnitTests.IBaz)'"));
         }
 
         [Test]
