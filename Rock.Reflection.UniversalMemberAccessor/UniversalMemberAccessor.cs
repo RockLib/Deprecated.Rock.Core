@@ -27,13 +27,16 @@ namespace Rock.Reflection
         private static readonly bool _canSetReadonlyInstanceValueType;
         private static readonly bool _canSetReadonlyInstanceReferenceType;
 
+        private static readonly Type _cSharpBinderType;
+        private static readonly Func<InvokeMemberBinder, IList<Type>> _getCSharpTypeArguments;
+
         private static readonly ConditionalWeakTable<object, UniversalMemberAccessor> _instanceMap = new ConditionalWeakTable<object, UniversalMemberAccessor>();
         private static readonly ConcurrentDictionary<Type, UniversalMemberAccessor> _staticCache = new ConcurrentDictionary<Type, UniversalMemberAccessor>();
         private static readonly ConcurrentDictionary<Type, IEnumerable<string>> _instanceMemberNamesCache = new ConcurrentDictionary<Type, IEnumerable<string>>();
         private static readonly ConcurrentDictionary<Type, IEnumerable<string>> _staticMemberNamesCache = new ConcurrentDictionary<Type, IEnumerable<string>>();
 
         private static readonly ConcurrentDictionary<Type, bool> _canBeAssignedNullCache = new ConcurrentDictionary<Type, bool>();
-        private static readonly ConcurrentDictionary<Tuple<Type, Type>, bool> _canBeAssignedCache = new ConcurrentDictionary<Tuple<Type, Type>, bool>();
+        private static readonly ConcurrentDictionary<Tuple<Type, Type, Type>, bool> _canBeAssignedCache = new ConcurrentDictionary<Tuple<Type, Type, Type>, bool>();
 
         private static readonly ConcurrentDictionary<Tuple<Type, string>, Func<object, object>> _getMemberFuncs = new ConcurrentDictionary<Tuple<Type, string>, Func<object, object>>();
         private static readonly ConcurrentDictionary<Tuple<Type, string, Type>, Action<object, object>> _setMemberActions = new ConcurrentDictionary<Tuple<Type, string, Type>, Action<object, object>>();
@@ -70,6 +73,26 @@ namespace Rock.Reflection
             _canSetReadonlyStaticReferenceType = (ReadonlyFields.StaticReferenceType != initialStaticReferenceType);
             _canSetReadonlyInstanceValueType = (readonlyFields.InstanceValueType != initialInstanceValueType);
             _canSetReadonlyInstanceReferenceType = (readonlyFields.InstanceReferenceType != initialInstanceReferenceType);
+
+            _cSharpBinderType = Type.GetType("Microsoft.CSharp.RuntimeBinder.ICSharpInvokeOrInvokeMemberBinder, Microsoft.CSharp, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a");
+
+            if (_cSharpBinderType != null)
+            {
+                var property = _cSharpBinderType.GetProperty("TypeArguments");
+
+                if (property != null && property.PropertyType == typeof(IList<Type>))
+                {
+                    var binderParameter = Expression.Parameter(typeof(InvokeMemberBinder), "binder");
+
+                    var lambda = Expression.Lambda<Func<InvokeMemberBinder, IList<Type>>>(
+                        Expression.Property(
+                            Expression.Convert(binderParameter, _cSharpBinderType),
+                            property),
+                        binderParameter);
+
+                    _getCSharpTypeArguments = lambda.Compile();
+                }
+            }
         }
 
         private UniversalMemberAccessor(Type type)
@@ -269,8 +292,15 @@ namespace Rock.Reflection
             object[] args,
             out object result)
         {
+            IList<Type> typeArguments = new Type[0];
+
+            if (_cSharpBinderType != null && _cSharpBinderType.IsInstanceOfType(binder))
+            {
+                typeArguments = _getCSharpTypeArguments(binder);
+            }
+
             var invokeMethodFunc = _invokeMethodFuncs.GetOrAdd(
-                new InvokeMethodDefinition(_type, binder.Name, args),
+                new InvokeMethodDefinition(_type, binder.Name, typeArguments, args),
                 CreateInvokeMethodFunc);
 
             result = invokeMethodFunc(_instance, args);
@@ -473,7 +503,7 @@ namespace Rock.Reflection
             {
                 if (valueType != null)
                 {
-                    if (!CanBeAssigned(propertyInfo.PropertyType, valueType))
+                    if (!CanBeAssigned(propertyInfo.PropertyType, valueType, Type.EmptyTypes))
                     {
                         var message = string.Format("Cannot implicitly convert type '{0}' to '{1}'", valueType, propertyInfo.PropertyType);
                         return (instance, value) => { throw new RuntimeBinderException(message); };
@@ -494,7 +524,7 @@ namespace Rock.Reflection
                 {
                     if (valueType != null)
                     {
-                        if (!CanBeAssigned(fieldInfo.FieldType, valueType))
+                        if (!CanBeAssigned(fieldInfo.FieldType, valueType, Type.EmptyTypes))
                         {
                             var message = string.Format("Cannot implicitly convert type '{0}' to '{1}'", valueType, fieldInfo.FieldType);
                             return (instance, value) => { throw new RuntimeBinderException(message); };
@@ -648,7 +678,7 @@ namespace Rock.Reflection
                 return args => { throw new RuntimeBinderException(message); };
             }
 
-            var legalCandidates = candidates.Where(c => c.IsLegal(definition.ArgTypes)).ToList();
+            var legalCandidates = candidates.Where(c => c.IsLegal(definition.ArgTypes, Type.EmptyTypes)).ToList();
 
             if (legalCandidates.Count == 0)
             {
@@ -726,7 +756,7 @@ namespace Rock.Reflection
             var candidates = methodInfos.Select(c => new Candidate(c))
                 .Where(c => c.HasRequiredNumberOfParameters(definition.ArgTypes)).ToList();
 
-            var legalCandidates = candidates.Where(c => c.IsLegal(definition.ArgTypes)).ToList();
+            var legalCandidates = candidates.Where(c => c.IsLegal(definition.ArgTypes, definition.TypeArguments)).ToList();
 
             if (legalCandidates.Count == 0)
             {
@@ -1003,6 +1033,7 @@ namespace Rock.Reflection
             private readonly Type[] _parameters;
             private readonly Type[] _defaultParameterTypes;
             private readonly int _defaultParameterCount;
+            private readonly Type[] _genericArguments;
 
             public Candidate(MethodBase method)
             {
@@ -1025,6 +1056,10 @@ namespace Rock.Reflection
                         _defaultParameterCount++;
                     }
                 }
+
+                _genericArguments = method.IsGenericMethod
+                    ? method.GetGenericArguments()
+                    : Type.EmptyTypes;
             }
 
             public MethodBase Method
@@ -1366,8 +1401,24 @@ namespace Rock.Reflection
                 return false;
             }
 
-            public bool IsLegal(Type[] argTypes)
+            public bool IsLegal(Type[] argTypes, IList<Type> typeArguments)
             {
+                if (typeArguments.Count > 0)
+                {
+                    if (typeArguments.Count != _genericArguments.Length)
+                    {
+                        return false;
+                    }
+
+                    for (int i = 0; i < _genericArguments.Length; i++)
+                    {
+                        if (!CanBeAssigned(_genericArguments[i], typeArguments[i], Type.EmptyTypes))
+                        {
+                            return false;
+                        }
+                    }
+                }
+
                 if (argTypes.Length != _parameters.Length)
                 {
                     if (argTypes.Length > _parameters.Length
@@ -1385,7 +1436,7 @@ namespace Rock.Reflection
 
                     if (argType != null)
                     {
-                        if (!CanBeAssigned(_parameters[i], argType))
+                        if (!CanBeAssigned(_parameters[i], argType, typeArguments))
                         {
                             return false;
                         }
@@ -1425,14 +1476,59 @@ namespace Rock.Reflection
                 !t.IsValueType || (t.IsGenericType && t.GetGenericTypeDefinition() == typeof(Nullable<>)));
         }
 
-        private static bool CanBeAssigned(Type targetType, Type valueType)
+        private static bool CanBeAssigned(Type targetType, Type valueType, IList<Type> typeArguments)
         {
+            var typeArgument =
+                targetType.IsGenericParameter && typeArguments.Count > 0
+                    ? typeArguments[targetType.GenericParameterPosition]
+                    : null;
+
             return _canBeAssignedCache.GetOrAdd(
-                Tuple.Create(targetType, valueType),
-                tuple => GetCanBeAssignedValue(tuple.Item1, tuple.Item2));
+                Tuple.Create(targetType, valueType, typeArgument),
+                tuple => GetCanBeAssignedValue(tuple.Item1, tuple.Item2, tuple.Item3));
         }
 
-        private static bool GetCanBeAssignedValue(Type targetType, Type valueType)
+        private static bool GetCanBeAssignedValue(Type targetType, Type valueType, Type typeArgument)
+        {
+            if (targetType.IsGenericParameter)
+            {
+                var constraints = targetType.GenericParameterAttributes & GenericParameterAttributes.SpecialConstraintMask;
+
+                if (constraints != GenericParameterAttributes.None)
+                {
+                    if ((constraints & GenericParameterAttributes.DefaultConstructorConstraint) != 0
+                        && !valueType.IsValueType && valueType.GetConstructor(Type.EmptyTypes) == null)
+                    {
+                        return false;
+                    }
+
+                    if ((constraints & GenericParameterAttributes.ReferenceTypeConstraint) != 0
+                        && valueType.IsValueType)
+                    {
+                        return false;
+                    }
+
+                    if ((constraints & GenericParameterAttributes.NotNullableValueTypeConstraint) != 0
+                        && !valueType.IsValueType)
+                    {
+                        return false;
+                    }
+                }
+
+                if (typeArgument != null
+                    && !GetCanNonGenericParameterBeAssignedValue(typeArgument, valueType))
+                {
+                    return false;
+                }
+
+                return targetType.GetGenericParameterConstraints()
+                    .All(constraint => GetCanBeAssignedValue(constraint, valueType, typeArgument));
+            }
+
+            return GetCanNonGenericParameterBeAssignedValue(targetType, valueType);
+        }
+
+        private static bool GetCanNonGenericParameterBeAssignedValue(Type targetType, Type valueType)
         {
             // ref and out parameters need to be unwrapped.
             if (targetType.IsByRef)
@@ -1620,12 +1716,14 @@ namespace Rock.Reflection
         {
             private readonly Type _type;
             private readonly string _name;
+            private readonly IList<Type> _typeArguments; 
             private readonly Type[] _argTypes;
 
-            public InvokeMethodDefinition(Type type, string name, object[] args)
+            public InvokeMethodDefinition(Type type, string name, IList<Type> typeArguments, object[] args)
             {
                 _type = type;
                 _name = name;
+                _typeArguments = typeArguments;
                 _argTypes = args.Select(arg =>
                     arg != null
                         ? arg is UniversalMemberAccessor
@@ -1642,6 +1740,11 @@ namespace Rock.Reflection
             public string Name
             {
                 get { return _name; }
+            }
+
+            public IList<Type> TypeArguments
+            {
+                get { return _typeArguments; }
             }
 
             public Type[] ArgTypes
@@ -1661,12 +1764,14 @@ namespace Rock.Reflection
                 if (other == null
                     || !(_type == other._type)
                     || !string.Equals(_name, other._name)
+                    || _typeArguments.Count != other._typeArguments.Count
                     || _argTypes.Length != other._argTypes.Length)
                 {
                     return false;
                 }
 
-                return !_argTypes.Where((argType, i) => !(argType == other._argTypes[i])).Any();
+                return !_typeArguments.Where((argType, i) => !(argType == other._typeArguments[i])).Any()
+                    && !_argTypes.Where((argType, i) => !(argType == other._argTypes[i])).Any();
             }
 
             public override int GetHashCode()
@@ -1675,6 +1780,8 @@ namespace Rock.Reflection
                 {
                     var hashCode = _type.GetHashCode();
                     hashCode = (hashCode * 397) ^ _name.GetHashCode();
+                    hashCode = _typeArguments.Aggregate(hashCode, (current, typeArgument) =>
+                        (current * 397) ^ (typeArgument == null ? 0 : typeArgument.GetHashCode()));
                     return _argTypes.Aggregate(hashCode, (current, argType) =>
                         (current * 397) ^ (argType == null ? 0 : argType.GetHashCode()));
                 }

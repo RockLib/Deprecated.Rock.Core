@@ -1469,7 +1469,7 @@ namespace Rock.Reflection.UnitTests
 
             var candidate = candidateFactory.New(constructor);
 
-            bool isLegal = candidate.IsLegal(new Type[0]);
+            bool isLegal = candidate.IsLegal(new Type[0], Type.EmptyTypes);
 
             Assert.That(isLegal, Is.False);
         }
@@ -1491,7 +1491,7 @@ namespace Rock.Reflection.UnitTests
 
             var candidate = candidateFactory.New(constructor);
 
-            bool isLegal = candidate.IsLegal(new[] { typeof(string), typeof(int), typeof(bool) });
+            bool isLegal = candidate.IsLegal(new[] { typeof(string), typeof(int), typeof(bool) }, Type.EmptyTypes);
 
             Assert.That(isLegal, Is.True);
         }
@@ -1513,7 +1513,7 @@ namespace Rock.Reflection.UnitTests
 
             var candidate = candidateFactory.New(constructor);
 
-            bool isLegal = candidate.IsLegal(new[] { typeof(string) });
+            bool isLegal = candidate.IsLegal(new[] { typeof(string) }, Type.EmptyTypes);
 
             Assert.That(isLegal, Is.True);
         }
@@ -1535,9 +1535,459 @@ namespace Rock.Reflection.UnitTests
 
             var candidate = candidateFactory.New(constructor);
 
-            bool isLegal = candidate.IsLegal(new[] { typeof(string), typeof(int) });
+            bool isLegal = candidate.IsLegal(new[] { typeof(string), typeof(int) }, Type.EmptyTypes);
 
             Assert.That(isLegal, Is.True);
+        }
+
+        public void Generic<T>(T t)
+        {
+        }
+
+        [Test]
+        public void IsLegalReturnsFalseIfTheArgTypeIsNotAssignableToTheTypeArgument()
+        {
+            var method = GetType().GetMethod("Generic");
+
+            var candidateFactory =
+                UniversalMemberAccessor.GetStatic(
+                    "Rock.Reflection.UniversalMemberAccessor+Candidate");
+
+            var candidate = candidateFactory.New(method);
+
+            bool isLegal = candidate.IsLegal(new[] { typeof(int) }, new[] { typeof(byte) });
+
+            Assert.That(isLegal, Is.False);
+        }
+
+        public void NewConstraint<T>(T t)
+            where T : new()
+        {
+        }
+
+        [Test]
+        public void IsLegalReturnsTrueIfAnObjectWithADefaultConstructorIsMatchedWithTheNewContraint()
+        {
+            var method = GetType().GetMethod("NewConstraint");
+
+            var candidateFactory =
+                UniversalMemberAccessor.GetStatic(
+                    "Rock.Reflection.UniversalMemberAccessor+Candidate");
+
+            var candidate = candidateFactory.New(method);
+
+            bool isLegal = candidate.IsLegal(new[] { typeof(Ham) }, Type.EmptyTypes);
+
+            Assert.That(isLegal, Is.True);
+        }
+
+        [Test]
+        public void IsLegalReturnsTrueIfATypeParameterClassWithADefaultConstructorIsMatchedWithTheNewContraint2()
+        {
+            var method = GetType().GetMethod("NewConstraint");
+
+            var candidateFactory =
+                UniversalMemberAccessor.GetStatic(
+                    "Rock.Reflection.UniversalMemberAccessor+Candidate");
+
+            var candidate = candidateFactory.New(method);
+
+            bool isLegal = candidate.IsLegal(new[] { typeof(CountryHam) }, new[] { typeof(Ham) });
+
+            Assert.That(isLegal, Is.True);
+        }
+
+        [Test]
+        public void IsLegalReturnsTrueIfAValueTypeValueIsMatchedWithTheNewContraint()
+        {
+            var method = GetType().GetMethod("NewConstraint");
+
+            var candidateFactory =
+                UniversalMemberAccessor.GetStatic(
+                    "Rock.Reflection.UniversalMemberAccessor+Candidate");
+
+            var candidate = candidateFactory.New(method);
+
+            bool isLegal = candidate.IsLegal(new[] { typeof(int) }, Type.EmptyTypes);
+
+            Assert.That(isLegal, Is.True);
+        }
+
+        [Test]
+        public void IsLegalReturnsTrueIfATypeParameterValueTypeIsMatchedWithTheNewContraint()
+        {
+            var method = GetType().GetMethod("NewConstraint");
+
+            var candidateFactory =
+                UniversalMemberAccessor.GetStatic(
+                    "Rock.Reflection.UniversalMemberAccessor+Candidate");
+
+            var candidate = candidateFactory.New(method);
+
+            bool isLegal = candidate.IsLegal(new[] { typeof(int) }, new[] { typeof(long) });
+
+            Assert.That(isLegal, Is.True);
+        }
+
+        [Test]
+        public void IsLegalReturnsFalseIfAnObjectWithoutADefaultConstructorIsMatchedWithTheNewContraint()
+        {
+            var method = GetType().GetMethod("NewConstraint");
+
+            var candidateFactory =
+                UniversalMemberAccessor.GetStatic(
+                    "Rock.Reflection.UniversalMemberAccessor+Candidate");
+
+            var candidate = candidateFactory.New(method);
+
+            bool isLegal = candidate.IsLegal(new[] { typeof(Lard) }, Type.EmptyTypes);
+
+            Assert.That(isLegal, Is.False);
+        }
+
+        [Test]
+        public void IsLegalReturnsFalseIfATypeParameterClassWithoutADefaultConstructorIsMatchedWithTheNewContraint()
+        {
+            var method = GetType().GetMethod("NewConstraint");
+
+            var candidateFactory =
+                UniversalMemberAccessor.GetStatic(
+                    "Rock.Reflection.UniversalMemberAccessor+Candidate");
+
+            var candidate = candidateFactory.New(method);
+
+            bool isLegal = candidate.IsLegal(new[] { typeof(Bacon) }, new[] { typeof(Lard) });
+
+            Assert.That(isLegal, Is.False);
+        }
+
+        public void ClassConstraint<T>(T t)
+            where T : class
+        {
+        }
+
+        [Test]
+        public void IsLegalReturnsTrueIfAnObjectIsMatchedWithTheClassContraint()
+        {
+            var method = GetType().GetMethod("ClassConstraint");
+
+            var candidateFactory =
+                UniversalMemberAccessor.GetStatic(
+                    "Rock.Reflection.UniversalMemberAccessor+Candidate");
+
+            var candidate = candidateFactory.New(method);
+
+            bool isLegal = candidate.IsLegal(new[] { typeof(string) }, Type.EmptyTypes);
+
+            Assert.That(isLegal, Is.True);
+        }
+
+        [Test]
+        public void IsLegalReturnsTrueIfATypeParameterClassIsMatchedWithTheClassContraint()
+        {
+            var method = GetType().GetMethod("ClassConstraint");
+
+            var candidateFactory =
+                UniversalMemberAccessor.GetStatic(
+                    "Rock.Reflection.UniversalMemberAccessor+Candidate");
+
+            var candidate = candidateFactory.New(method);
+
+            bool isLegal = candidate.IsLegal(new[] { typeof(string) }, new[] { typeof(string) });
+
+            Assert.That(isLegal, Is.True);
+        }
+
+        [Test]
+        public void IsLegalReturnsFalseIfAValueTypeValueIsMatchedWithTheClassContraint()
+        {
+            var method = GetType().GetMethod("ClassConstraint");
+
+            var candidateFactory =
+                UniversalMemberAccessor.GetStatic(
+                    "Rock.Reflection.UniversalMemberAccessor+Candidate");
+
+            var candidate = candidateFactory.New(method);
+
+            bool isLegal = candidate.IsLegal(new[] { typeof(int) }, Type.EmptyTypes);
+
+            Assert.That(isLegal, Is.False);
+        }
+
+        [Test]
+        public void IsLegalReturnsFalseIfTypeParameterStructIsMatchedWithTheClassContraint()
+        {
+            var method = GetType().GetMethod("ClassConstraint");
+
+            var candidateFactory =
+                UniversalMemberAccessor.GetStatic(
+                    "Rock.Reflection.UniversalMemberAccessor+Candidate");
+
+            var candidate = candidateFactory.New(method);
+
+            bool isLegal = candidate.IsLegal(new[] { typeof(byte) }, new[] { typeof(int) });
+
+            Assert.That(isLegal, Is.False);
+        }
+
+        public void StructConstraint<T>(T t)
+            where T : struct
+        {
+        }
+
+        [Test]
+        public void IsLegalReturnsTrueIfAValueTypeValueIsMatchedWithTheStructContraint()
+        {
+            var method = GetType().GetMethod("StructConstraint");
+
+            var candidateFactory =
+                UniversalMemberAccessor.GetStatic(
+                    "Rock.Reflection.UniversalMemberAccessor+Candidate");
+
+            var candidate = candidateFactory.New(method);
+
+            bool isLegal = candidate.IsLegal(new[] { typeof(int) }, Type.EmptyTypes);
+
+            Assert.That(isLegal, Is.True);
+        }
+
+        [Test]
+        public void IsLegalReturnsTrueIfATypeParameterValueTypeIsMatchedWithTheStructContraint()
+        {
+            var method = GetType().GetMethod("StructConstraint");
+
+            var candidateFactory =
+                UniversalMemberAccessor.GetStatic(
+                    "Rock.Reflection.UniversalMemberAccessor+Candidate");
+
+            var candidate = candidateFactory.New(method);
+
+            bool isLegal = candidate.IsLegal(new[] { typeof(int) }, new[] { typeof(int) });
+
+            Assert.That(isLegal, Is.True);
+        }
+
+        [Test]
+        public void IsLegalReturnsFalseIfAnObjectIsMatchedWithTheStructContraint()
+        {
+            var method = GetType().GetMethod("StructConstraint");
+
+            var candidateFactory =
+                UniversalMemberAccessor.GetStatic(
+                    "Rock.Reflection.UniversalMemberAccessor+Candidate");
+
+            var candidate = candidateFactory.New(method);
+
+            bool isLegal = candidate.IsLegal(new[] { typeof(string) }, Type.EmptyTypes);
+
+            Assert.That(isLegal, Is.False);
+        }
+
+        [Test]
+        public void IsLegalReturnsFalseIfAnTypeParameterClassIsMatchedWithTheStructContraint()
+        {
+            var method = GetType().GetMethod("StructConstraint");
+
+            var candidateFactory =
+                UniversalMemberAccessor.GetStatic(
+                    "Rock.Reflection.UniversalMemberAccessor+Candidate");
+
+            var candidate = candidateFactory.New(method);
+
+            bool isLegal = candidate.IsLegal(new[] { typeof(string) }, new[] { typeof(string) });
+
+            Assert.That(isLegal, Is.False);
+        }
+
+        public void BaseClassContraint<THam>(THam tHam)
+            where THam : Ham
+        {
+        }
+
+        [Test]
+        public void IsLegalReturnsTrueIfADerivedObjectIsMatchedWithItsBaseClassContraint()
+        {
+            var method = GetType().GetMethod("BaseClassContraint");
+
+            var candidateFactory =
+                UniversalMemberAccessor.GetStatic(
+                    "Rock.Reflection.UniversalMemberAccessor+Candidate");
+
+            var candidate = candidateFactory.New(method);
+
+            bool isLegal = candidate.IsLegal(new[] { typeof(CountryHam) }, Type.EmptyTypes);
+
+            Assert.That(isLegal, Is.True);
+        }
+
+        [Test]
+        public void IsLegalReturnsTrueIfATypeParameterDerivedClassIsMatchedWithItsBaseClassContraint()
+        {
+            var method = GetType().GetMethod("BaseClassContraint");
+
+            var candidateFactory =
+                UniversalMemberAccessor.GetStatic(
+                    "Rock.Reflection.UniversalMemberAccessor+Candidate");
+
+            var candidate = candidateFactory.New(method);
+
+            bool isLegal = candidate.IsLegal(new[] { typeof(CountryHam) }, new[] { typeof(CountryHam) });
+
+            Assert.That(isLegal, Is.True);
+        }
+
+        [Test]
+        public void IsLegalReturnsFalseIfAnUnrelatedObjectIsMatchedWithABaseClassContraint()
+        {
+            var method = GetType().GetMethod("BaseClassContraint");
+
+            var candidateFactory =
+                UniversalMemberAccessor.GetStatic(
+                    "Rock.Reflection.UniversalMemberAccessor+Candidate");
+
+            var candidate = candidateFactory.New(method);
+
+            bool isLegal = candidate.IsLegal(new[] { typeof(Spam) }, Type.EmptyTypes);
+
+            Assert.That(isLegal, Is.False);
+        }
+
+        [Test]
+        public void IsLegalReturnsFalseIfAnUnrelatedTypeParameterClassIsMatchedWithABaseClassContraint()
+        {
+            var method = GetType().GetMethod("BaseClassContraint");
+
+            var candidateFactory =
+                UniversalMemberAccessor.GetStatic(
+                    "Rock.Reflection.UniversalMemberAccessor+Candidate");
+
+            var candidate = candidateFactory.New(method);
+
+            bool isLegal = candidate.IsLegal(new[] { typeof(Spam) }, new[] { typeof(Spam) });
+
+            Assert.That(isLegal, Is.False);
+        }
+
+        public void InterfaceContraint<THam>(THam tHam)
+            where THam : IHam
+        {
+        }
+
+        [Test]
+        public void IsLegalReturnsTrueIfAnInterfaceImplementationObjectIsMatchedWithItsInterfaceContraint()
+        {
+            var method = GetType().GetMethod("InterfaceContraint");
+
+            var candidateFactory =
+                UniversalMemberAccessor.GetStatic(
+                    "Rock.Reflection.UniversalMemberAccessor+Candidate");
+
+            var candidate = candidateFactory.New(method);
+
+            bool isLegal = candidate.IsLegal(new[] { typeof(Ham) }, Type.EmptyTypes);
+
+            Assert.That(isLegal, Is.True);
+        }
+
+        [Test]
+        public void IsLegalReturnsTrueIfATypeParameterInterfaceImplementationIsMatchedWithItsInterfaceContraint()
+        {
+            var method = GetType().GetMethod("InterfaceContraint");
+
+            var candidateFactory =
+                UniversalMemberAccessor.GetStatic(
+                    "Rock.Reflection.UniversalMemberAccessor+Candidate");
+
+            var candidate = candidateFactory.New(method);
+
+            bool isLegal = candidate.IsLegal(new[] { typeof(Ham) }, new[] { typeof(Ham) });
+
+            Assert.That(isLegal, Is.True);
+        }
+
+        [Test]
+        public void IsLegalReturnsFalseIfAnUnrelatedClassIsMatchedWithAnInterfaceContraint()
+        {
+            var method = GetType().GetMethod("InterfaceContraint");
+
+            var candidateFactory =
+                UniversalMemberAccessor.GetStatic(
+                    "Rock.Reflection.UniversalMemberAccessor+Candidate");
+
+            var candidate = candidateFactory.New(method);
+
+            bool isLegal = candidate.IsLegal(new[] { typeof(Spam) }, Type.EmptyTypes);
+
+            Assert.That(isLegal, Is.False);
+        }
+
+        [Test]
+        public void IsLegalReturnsFalseIfATypeParameterUnrelatedClassIsMatchedWithAnInterfaceContraint()
+        {
+            var method = GetType().GetMethod("InterfaceContraint");
+
+            var candidateFactory =
+                UniversalMemberAccessor.GetStatic(
+                    "Rock.Reflection.UniversalMemberAccessor+Candidate");
+
+            var candidate = candidateFactory.New(method);
+
+            bool isLegal = candidate.IsLegal(new[] { typeof(Spam) }, new[] { typeof(Spam) });
+
+            Assert.That(isLegal, Is.False);
+        }
+
+        public void TypeParameterContraint<TBase, TDerived>(TBase tBase, TDerived tDerived)
+            where TDerived : TBase
+        {
+        }
+
+        [Test]
+        public void IsLegalReturnsTrueInATypeParameterConstraintScenario1()
+        {
+            var method = GetType().GetMethod("TypeParameterContraint");
+
+            var candidateFactory =
+                UniversalMemberAccessor.GetStatic(
+                    "Rock.Reflection.UniversalMemberAccessor+Candidate");
+
+            var candidate = candidateFactory.New(method);
+
+            bool isLegal = candidate.IsLegal(new[] { typeof(Ham), typeof(CountryHam) }, Type.EmptyTypes);
+
+            Assert.That(isLegal, Is.True);
+        }
+
+        [Test]
+        public void IsLegalReturnsTrueInATypeParameterConstraintScenario2()
+        {
+            var method = GetType().GetMethod("TypeParameterContraint");
+
+            var candidateFactory =
+                UniversalMemberAccessor.GetStatic(
+                    "Rock.Reflection.UniversalMemberAccessor+Candidate");
+
+            var candidate = candidateFactory.New(method);
+
+            bool isLegal = candidate.IsLegal(new[] { typeof(Ham), typeof(CountryHam) }, new[] { typeof(Ham), typeof(CountryHam) });
+
+            Assert.That(isLegal, Is.True);
+        }
+
+        [Test, Ignore("Gives a false positive - no good (read: simple) way of knowing the relationship of one generic paramter to another.")]
+        public void IsLegalReturnsFalseInANonTypeParameterConstraintScenario()
+        {
+            var method = GetType().GetMethod("TypeParameterContraint");
+
+            var candidateFactory =
+                UniversalMemberAccessor.GetStatic(
+                    "Rock.Reflection.UniversalMemberAccessor+Candidate");
+
+            var candidate = candidateFactory.New(method);
+
+            bool isLegal = candidate.IsLegal(new[] { typeof(Ham), typeof(Spam) }, Type.EmptyTypes);
+
+            Assert.That(isLegal, Is.False);
         }
 
         [Test]
@@ -1778,7 +2228,7 @@ namespace Rock.Reflection.UnitTests
         {
             var type = Type.GetType("Rock.Reflection.UniversalMemberAccessor+InvokeMethodDefinition, Rock.Reflection.UniversalMemberAccessor");
 
-            var definition1 = type.New(typeof(int), "Foo", new object[] { "abc", true }).Value;
+            var definition1 = type.New(typeof(int), "Foo", Type.EmptyTypes, new object[] { "abc", true }).Value;
             var definition2 = definition1;
 
             Assert.That(definition1.Equals(definition2), Is.True);
@@ -1789,7 +2239,7 @@ namespace Rock.Reflection.UnitTests
         {
             var type = Type.GetType("Rock.Reflection.UniversalMemberAccessor+InvokeMethodDefinition, Rock.Reflection.UniversalMemberAccessor");
 
-            var definition1 = type.New(typeof(int), "Foo", new object[] { "abc", true }).Value;
+            var definition1 = type.New(typeof(int), "Foo", Type.EmptyTypes, new object[] { "abc", true }).Value;
             var definition2 = "abcd";
 
             Assert.That(definition1.Equals(definition2), Is.False);
@@ -1800,19 +2250,19 @@ namespace Rock.Reflection.UnitTests
         {
             var type = Type.GetType("Rock.Reflection.UniversalMemberAccessor+InvokeMethodDefinition, Rock.Reflection.UniversalMemberAccessor");
 
-            var definition1 = type.New(typeof(int), "Foo", new object[] { "abc", true }).Value;
-            var definition2 = type.New(typeof(string), "Foo", new object[] { "abc", true }).Value;
+            var definition1 = type.New(typeof(int), "Foo", Type.EmptyTypes, new object[] { "abc", true }).Value;
+            var definition2 = type.New(typeof(string), "Foo", Type.EmptyTypes, new object[] { "abc", true }).Value;
 
             Assert.That(definition1.Equals(definition2), Is.False);
         }
 
         [Test]
-        public void InvokeMethodDefinitionEqualsReturnsFalseWhenOtherHasName()
+        public void InvokeMethodDefinitionEqualsReturnsFalseWhenOtherHasDifferentName()
         {
             var type = Type.GetType("Rock.Reflection.UniversalMemberAccessor+InvokeMethodDefinition, Rock.Reflection.UniversalMemberAccessor");
 
-            var definition1 = type.New(typeof(int), "Foo", new object[] { "abc", true }).Value;
-            var definition2 = type.New(typeof(int), "Bar", new object[] { "abc", true }).Value;
+            var definition1 = type.New(typeof(int), "Foo", Type.EmptyTypes, new object[] { "abc", true }).Value;
+            var definition2 = type.New(typeof(int), "Bar", Type.EmptyTypes, new object[] { "abc", true }).Value;
 
             Assert.That(definition1.Equals(definition2), Is.False);
         }
@@ -1822,8 +2272,8 @@ namespace Rock.Reflection.UnitTests
         {
             var type = Type.GetType("Rock.Reflection.UniversalMemberAccessor+InvokeMethodDefinition, Rock.Reflection.UniversalMemberAccessor");
 
-            var definition1 = type.New(typeof(int), "Foo", new object[] { "abc", true }).Value;
-            var definition2 = type.New(typeof(int), "Foo", new object[] { "abc" }).Value;
+            var definition1 = type.New(typeof(int), "Foo", Type.EmptyTypes, new object[] { "abc", true }).Value;
+            var definition2 = type.New(typeof(int), "Foo", Type.EmptyTypes, new object[] { "abc" }).Value;
 
             Assert.That(definition1.Equals(definition2), Is.False);
         }
@@ -1833,8 +2283,30 @@ namespace Rock.Reflection.UnitTests
         {
             var type = Type.GetType("Rock.Reflection.UniversalMemberAccessor+InvokeMethodDefinition, Rock.Reflection.UniversalMemberAccessor");
 
-            var definition1 = type.New(typeof(int), "Foo", new object[] { "abc", true }).Value;
-            var definition2 = type.New(typeof(int), "Foo", new object[] { "abc", DateTime.Now }).Value;
+            var definition1 = type.New(typeof(int), "Foo", Type.EmptyTypes, new object[] { "abc", true }).Value;
+            var definition2 = type.New(typeof(int), "Foo", Type.EmptyTypes, new object[] { "abc", DateTime.Now }).Value;
+
+            Assert.That(definition1.Equals(definition2), Is.False);
+        }
+
+        [Test]
+        public void InvokeMethodDefinitionEqualsReturnsFalseWhenOtherHasDifferentNumberOfTypeArguments()
+        {
+            var type = Type.GetType("Rock.Reflection.UniversalMemberAccessor+InvokeMethodDefinition, Rock.Reflection.UniversalMemberAccessor");
+
+            var definition1 = type.New(typeof(int), "Foo", new[] { typeof(int) }, new object[] { "abc", true }).Value;
+            var definition2 = type.New(typeof(int), "Foo", new[] { typeof(int), typeof(string) }, new object[] { "abc" }).Value;
+
+            Assert.That(definition1.Equals(definition2), Is.False);
+        }
+
+        [Test]
+        public void InvokeMethodDefinitionEqualsReturnsFalseWhenOtherHasDifferentTypeArguments()
+        {
+            var type = Type.GetType("Rock.Reflection.UniversalMemberAccessor+InvokeMethodDefinition, Rock.Reflection.UniversalMemberAccessor");
+
+            var definition1 = type.New(typeof(int), "Foo", new[] { typeof(int), typeof(string) }, new object[] { "abc", true }).Value;
+            var definition2 = type.New(typeof(int), "Foo", new[] { typeof(int), typeof(int) }, new object[] { "abc", DateTime.Now }).Value;
 
             Assert.That(definition1.Equals(definition2), Is.False);
         }
@@ -1844,8 +2316,8 @@ namespace Rock.Reflection.UnitTests
         {
             var type = Type.GetType("Rock.Reflection.UniversalMemberAccessor+InvokeMethodDefinition, Rock.Reflection.UniversalMemberAccessor");
 
-            var definition1 = type.New(typeof(int), "Foo", new object[] { "abc", true }).Value;
-            var definition2 = type.New(typeof(int), "Foo", new object[] { "abc", true }).Value;
+            var definition1 = type.New(typeof(int), "Foo", new[] { typeof(int), typeof(string) }, new object[] { "abc", true }).Value;
+            var definition2 = type.New(typeof(int), "Foo", new[] { typeof(int), typeof(string) }, new object[] { "abc", true }).Value;
 
             Assert.That(definition1.Equals(definition2), Is.True);
         }
@@ -1855,8 +2327,8 @@ namespace Rock.Reflection.UnitTests
         {
             var type = Type.GetType("Rock.Reflection.UniversalMemberAccessor+InvokeMethodDefinition, Rock.Reflection.UniversalMemberAccessor");
 
-            var definition1 = type.New(typeof(int), "Foo", new object[] { "abc", true }).Value;
-            var definition2 = type.New(typeof(int), "Foo", new object[] { "abc", true }).Value;
+            var definition1 = type.New(typeof(int), "Foo", new[] { typeof(int), typeof(string) }, new object[] { "abc", true }).Value;
+            var definition2 = type.New(typeof(int), "Foo", new[] { typeof(int), typeof(string) }, new object[] { "abc", true }).Value;
 
             Assert.That(definition1.GetHashCode(), Is.EqualTo(definition2.GetHashCode()));
             Assert.That(definition1.Equals(definition2), Is.True);
@@ -1867,12 +2339,55 @@ namespace Rock.Reflection.UnitTests
         {
             var type = Type.GetType("Rock.Reflection.UniversalMemberAccessor+InvokeMethodDefinition, Rock.Reflection.UniversalMemberAccessor");
 
-            var definition1 = type.New(typeof(int), "Foo", new object[] { "abc", true }).Value;
+            var definition1 = type.New(typeof(int), "Foo", new[] { typeof(int), typeof(string) }, new object[] { "abc", true }).Value;
             var definition2 = definition1;
 
             Assert.That(definition1.GetHashCode(), Is.EqualTo(definition2.GetHashCode()));
             Assert.That(definition1.Equals(definition2), Is.True);
         }
+
+        // TODO: add feature: support for generic methods/constructors
+        // TODO: add feature: explicitly implemented interface members
+        //       TODO: figure out how to deal with explicit member with same name as other member of same name
+        // TODO: add feature: support for method hiding
+        //       TODO: figure out how to deal with deciding which member (hiding or hidden) to select
+
+        //[Test]
+        //public void Sandbox1()
+        //{
+        //    var foo = new FooGeneric().Unlock();
+
+        //    var bar = foo.Bar<byte>(123);
+        //}
+
+        //[Test]
+        //public void Sandbox2()
+        //{
+        //    dynamic foo = new FooGeneric().Unlock();
+
+        //    var bar = foo.Bar(123);
+        //}
+
+        //[Test]
+        //public void Sandbox3()
+        //{
+        //    dynamic foo = new FooGeneric().Unlock();
+
+        //    var ham = foo.Baz<Ham>();
+        //}
+
+        //public class FooGeneric
+        //{
+        //    public T Bar<T>(T t) where T : struct
+        //    {
+        //        return t;
+        //    }
+
+        //    public THam Baz<THam>() where THam : IHam, new()
+        //    {
+        //        return new THam();
+        //    }
+        //}
 
         public interface IPork { }
         public interface IHam : IPork { }
@@ -1896,6 +2411,21 @@ namespace Rock.Reflection.UnitTests
             private string PrivateBar(Ham ham) { return null; }
             public string PublicBar(ICountryHam countryHam) { return null; }
             public string PublicBar(Ham ham) { return null; }
+        }
+
+        public class Lard
+        {
+            public Lard(bool gross)
+            {
+            }
+        }
+
+        public class Bacon : Lard
+        {
+            public Bacon()
+                : base(false)
+            {
+            }
         }
     }
 
