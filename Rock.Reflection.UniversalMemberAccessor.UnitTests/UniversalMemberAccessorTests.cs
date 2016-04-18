@@ -2367,7 +2367,7 @@ namespace Rock.Reflection.UnitTests
         {
             var foo = new GenericFoo().Unlock();
 
-            var bar = foo.Bar<Ham>("foo", new Ham());
+            var bar = foo.Bar<Ham>("foo", new Ham()).Value;
 
             Assert.That(bar, Is.InstanceOf<Ham>());
         }
@@ -2387,7 +2387,7 @@ namespace Rock.Reflection.UnitTests
         {
             var foo = new GenericFoo().Unlock();
 
-            var bar = foo.Bar("foo", new Ham());
+            var bar = foo.Bar("foo", new Ham()).Value;
 
             Assert.That(bar, Is.InstanceOf<Ham>());
         }
@@ -2407,7 +2407,7 @@ namespace Rock.Reflection.UnitTests
         {
             var foo = new GenericFoo().Unlock();
 
-            var ham = foo.Baz<Ham>();
+            var ham = foo.Baz<Ham>().Value;
 
             Assert.That(ham, Is.InstanceOf<Ham>());
         }
@@ -2444,7 +2444,7 @@ namespace Rock.Reflection.UnitTests
             var ham = new Ham();
 
             Ham outBar;
-            var bar = foo.Qux<Ham>("foo", ham, out outBar);
+            var bar = foo.Qux<Ham>("foo", ham, out outBar).Value;
 
             Assert.That(bar, Is.SameAs(ham));
             Assert.That(outBar, Is.SameAs(ham));
@@ -2458,7 +2458,7 @@ namespace Rock.Reflection.UnitTests
             var ham = new Ham();
 
             var outBar = new Ham();
-            var bar = foo.Qux<Ham>("foo", ham, ref outBar);
+            var bar = foo.Qux<Ham>("foo", ham, ref outBar).Value;
 
             Assert.That(bar, Is.SameAs(ham));
             Assert.That(outBar, Is.SameAs(ham));
@@ -2496,7 +2496,7 @@ namespace Rock.Reflection.UnitTests
             var ham = new Ham();
 
             Ham outBar;
-            var bar = foo.Qux("foo", ham, out outBar);
+            var bar = foo.Qux("foo", ham, out outBar).Value;
 
             Assert.That(bar, Is.SameAs(ham));
             Assert.That(outBar, Is.SameAs(ham));
@@ -2510,7 +2510,7 @@ namespace Rock.Reflection.UnitTests
             var ham = new Ham();
 
             var outBar = new Ham();
-            var bar = foo.Qux("foo", ham, ref outBar);
+            var bar = foo.Qux("foo", ham, ref outBar).Value;
 
             Assert.That(bar, Is.SameAs(ham));
             Assert.That(outBar, Is.SameAs(ham));

@@ -481,10 +481,10 @@ namespace Rock.Reflection
 
             if (ShouldReturnRawValue(type))
             {
-                return func;
+                return obj => func(UnwrapInstance(obj));
             }
 
-            return obj => Get(func(obj));
+            return obj => Get(func(UnwrapInstance(obj)));
         }
 
         private Action<object, object> CreateSetMemberAction(string name, Type valueType)
@@ -634,18 +634,7 @@ namespace Rock.Reflection
                 action = lambda.Compile();
             }
 
-            return (obj, value) =>
-            {
-                var universalMemberAccessor = value as UniversalMemberAccessor;
-
-                if (universalMemberAccessor != null)
-                {
-                    // Unwrap the value if it is a UniversalMemberAccessor.
-                    value = universalMemberAccessor._instance;
-                }
-
-                action(obj, value);
-            };
+            return (obj, value) => action(UnwrapInstance(obj), UnwrapInstance(value));
         }
 
         private static Func<object[], object> CreateCreateInstanceFunc(CreateInstanceDefinition definition)
@@ -961,7 +950,12 @@ namespace Rock.Reflection
 
             var func = lambda.Compile();
 
-            return func;
+            if (methodInfo.ReturnType == typeof(void) || ShouldReturnRawValue(methodInfo.ReturnType))
+            {
+                return (instance, args) => func(UnwrapInstance(instance), UnwrapArgs(args));
+            }
+
+            return (instance, args) => Get(func(UnwrapInstance(instance), UnwrapArgs(args)));
         }
 
         private static Expression[] GetArguments(ParameterInfo[] parameters,
@@ -1109,7 +1103,7 @@ namespace Rock.Reflection
         // Potentially modifies the items of the array and returns it.
         private static object[] UnwrapArgs(object[] args)
         {
-            // Unwrap any unprivates before sending to func.
+            // Unwrap any UniversalMemberAccessor objects before sending to func.
             for (int i = 0; i < args.Length; i++)
             {
                 var universalMemberAccessor = args[i] as UniversalMemberAccessor;
@@ -1120,6 +1114,18 @@ namespace Rock.Reflection
             }
 
             return args;
+        }
+
+        private static object UnwrapInstance(object instance)
+        {
+            var universalMemberAccessor = instance as UniversalMemberAccessor;
+
+            if (universalMemberAccessor != null)
+            {
+                instance = universalMemberAccessor._instance;
+            }
+
+            return instance;
         }
 
         private static bool IsStatic(PropertyInfo propertyInfo)
