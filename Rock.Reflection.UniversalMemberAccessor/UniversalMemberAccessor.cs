@@ -726,7 +726,7 @@ namespace Rock.Reflection
             var argsParameter = Expression.Parameter(typeof(object[]), "args");
 
             var constructorParameters = constructor.GetParameters();
-            var newArguments = GetArguments(constructorParameters, argsParameter, definition.ArgTypes);
+            var newArguments = GetArguments(constructorParameters, argsParameter, definition.ArgTypes, Type.EmptyTypes);
 
             Expression body = Expression.New(constructor, newArguments);
 
@@ -747,7 +747,8 @@ namespace Rock.Reflection
             return args => Get(func(UnwrapArgs(args)));
         }
 
-        private static Func<object, object[], object> CreateInvokeMethodFunc(InvokeMethodDefinition definition)
+        private static Func<object, object[], object> CreateInvokeMethodFunc(
+            InvokeMethodDefinition definition)
         {
             var methodInfos =
                 definition.Type.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static)
@@ -827,7 +828,7 @@ namespace Rock.Reflection
             var argsParameter = Expression.Parameter(typeof(object[]), "args");
 
             var methodInfoParameters = methodInfo.GetParameters();
-            var callArguments = GetArguments(methodInfoParameters, argsParameter, definition.ArgTypes);
+            var callArguments = GetArguments(methodInfoParameters, argsParameter, definition.ArgTypes, definition.TypeArguments);
 
             var localVariables = new List<ParameterExpression>();
             var assignToVariables = new List<Expression>();
@@ -854,6 +855,45 @@ namespace Rock.Reflection
 
                     assignToArgs.Add(Expression.Assign(item, Expression.Convert(localVariable, typeof(object))));
                 }
+            }
+
+            if (methodInfo.IsGenericMethodDefinition)
+            {
+                Type[] typeArguments;
+
+                if (definition.TypeArguments.Count > 0)
+                {
+                    typeArguments = definition.TypeArguments.ToArray();
+                }
+                else
+                {
+                    typeArguments = new Type[methodInfo.GetGenericArguments().Length];
+                    
+                    var paramters = methodInfo.GetParameters();
+
+                    for (int i = 0; i < typeArguments.Length; i++)
+                    {
+                        for (int j = 0; j < paramters.Length; j++)
+                        {
+                            var parameterType = paramters[j].ParameterType;
+
+                            // ref and out parameters need to be unwrapped.
+                            if (parameterType.IsByRef)
+                            {
+                                parameterType = parameterType.GetElementType();
+                            }
+
+                            if (parameterType.IsGenericParameter
+                                && parameterType.GenericParameterPosition == i)
+                            {
+                                typeArguments[i] = definition.ArgTypes[j];
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                methodInfo = methodInfo.MakeGenericMethod(typeArguments);
             }
 
             Expression call;
@@ -924,9 +964,12 @@ namespace Rock.Reflection
             return func;
         }
 
-        private static Expression[] GetArguments(ParameterInfo[] parameters, ParameterExpression argsParameter, Type[] argTypes)
+        private static Expression[] GetArguments(ParameterInfo[] parameters,
+            ParameterExpression argsParameter, Type[] argTypes, IList<Type> typeArguments)
         {
             var arguments = new Expression[parameters.Length];
+
+            var skippedIndexes = new List<int>();
 
             for (var i = 0; i < arguments.Length; i++)
             {
@@ -939,33 +982,25 @@ namespace Rock.Reflection
                         parameterType = parameterType.GetElementType();
                     }
 
-                    var item = Expression.ArrayAccess(argsParameter, Expression.Constant(i));
-
-                    if (parameterType.IsValueType)
+                    if (parameterType.IsGenericParameter)
                     {
-                        if (argTypes[i] == null)
+                        if (typeArguments.Count > 0)
                         {
-                            Debug.Assert(parameterType.IsGenericType
-                                && parameterType.GetGenericTypeDefinition() == typeof(Nullable<>));
-
-                            arguments[i] = Expression.Constant(null, parameterType);
+                            parameterType = typeArguments[parameterType.GenericParameterPosition];
                         }
                         else
                         {
-                            Debug.Assert(argTypes[i].IsValueType);
-
-                            arguments[i] = Expression.Unbox(item, argTypes[i]);
-
-                            if (argTypes[i] != parameterType)
+                            if (argTypes[i] == null)
                             {
-                                arguments[i] = Expression.Convert(arguments[i], parameterType);
+                                skippedIndexes.Add(i);
+                                continue;
                             }
+
+                            parameterType = argTypes[i];
                         }
                     }
-                    else
-                    {
-                        arguments[i] = Expression.Convert(item, parameterType);
-                    }
+
+                    SetArgumentsItem(argsParameter, argTypes, i, parameterType, arguments);
                 }
                 else
                 {
@@ -973,7 +1008,79 @@ namespace Rock.Reflection
                 }
             }
 
+            if (skippedIndexes.Count > 0)
+            {
+                // We have a generic out parameter that couldn't be resolved. Look at
+                // the other parameters to figure out what type to use.
+
+                foreach (var i in skippedIndexes)
+                {
+                    var parameterType = parameters[i].ParameterType;
+
+                    Debug.Assert(parameterType.IsByRef);
+
+                    parameterType = parameterType.GetElementType();
+
+                    Debug.Assert(parameterType.IsGenericParameter);
+                    Debug.Assert(typeArguments.Count == 0);
+
+                    for (int j = 0; j < parameters.Length; j++)
+                    {
+                        if (i == j)
+                        {
+                            continue;
+                        }
+
+                        if (parameterType == parameters[j].ParameterType)
+                        {
+                            argTypes[i] = argTypes[j];
+                            break;
+                        }
+                    }
+
+                    if (argTypes[i] == null)
+                    {
+                        // TODO: throw exception
+                    }
+
+                    SetArgumentsItem(argsParameter, argTypes, i, argTypes[i], arguments);
+                }
+            }
+
             return arguments;
+        }
+
+        private static void SetArgumentsItem(
+            ParameterExpression argsParameter, Type[] argTypes, int i, Type parameterType,
+            Expression[] arguments)
+        {
+            var item = Expression.ArrayAccess(argsParameter, Expression.Constant(i));
+
+            if (parameterType.IsValueType)
+            {
+                if (argTypes[i] == null)
+                {
+                    Debug.Assert(parameterType.IsGenericType
+                        && parameterType.GetGenericTypeDefinition() == typeof(Nullable<>));
+
+                    arguments[i] = Expression.Constant(null, parameterType);
+                }
+                else
+                {
+                    Debug.Assert(argTypes[i].IsValueType);
+
+                    arguments[i] = Expression.Unbox(item, argTypes[i]);
+
+                    if (argTypes[i] != parameterType)
+                    {
+                        arguments[i] = Expression.Convert(arguments[i], parameterType);
+                    }
+                }
+            }
+            else
+            {
+                arguments[i] = Expression.Convert(item, parameterType);
+            }
         }
 
         private static bool ShouldReturnRawValue(Type type)
@@ -1478,6 +1585,12 @@ namespace Rock.Reflection
 
         private static bool CanBeAssigned(Type targetType, Type valueType, IList<Type> typeArguments)
         {
+            // ref and out parameters need to be unwrapped.
+            if (targetType.IsByRef)
+            {
+                targetType = targetType.GetElementType();
+            }
+
             var typeArgument =
                 targetType.IsGenericParameter && typeArguments.Count > 0
                     ? typeArguments[targetType.GenericParameterPosition]
@@ -1530,12 +1643,6 @@ namespace Rock.Reflection
 
         private static bool GetCanNonGenericParameterBeAssignedValue(Type targetType, Type valueType)
         {
-            // ref and out parameters need to be unwrapped.
-            if (targetType.IsByRef)
-            {
-                targetType = targetType.GetElementType();
-            }
-
             // Nullable target type needs to be unwrapped.
             if (targetType.IsGenericType && targetType.GetGenericTypeDefinition() == typeof(Nullable<>))
             {

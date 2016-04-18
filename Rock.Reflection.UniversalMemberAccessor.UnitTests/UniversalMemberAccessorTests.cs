@@ -2352,42 +2352,188 @@ namespace Rock.Reflection.UnitTests
         // TODO: add feature: support for method hiding
         //       TODO: figure out how to deal with deciding which member (hiding or hidden) to select
 
-        //[Test]
-        //public void Sandbox1()
-        //{
-        //    var foo = new FooGeneric().Unlock();
+        [Test]
+        public void CanCallGenericMethodWithExplicitStructGenericArgument()
+        {
+            var foo = new GenericFoo().Unlock();
 
-        //    var bar = foo.Bar<byte>(123);
-        //}
+            var bar = foo.Bar<int>("foo", 123);
 
-        //[Test]
-        //public void Sandbox2()
-        //{
-        //    dynamic foo = new FooGeneric().Unlock();
+            Assert.That(bar, Is.EqualTo(123));
+        }
 
-        //    var bar = foo.Bar(123);
-        //}
+        [Test]
+        public void CanCallGenericMethodWithExplicitClassGenericArgument()
+        {
+            var foo = new GenericFoo().Unlock();
 
-        //[Test]
-        //public void Sandbox3()
-        //{
-        //    dynamic foo = new FooGeneric().Unlock();
+            var bar = foo.Bar<Ham>("foo", new Ham());
 
-        //    var ham = foo.Baz<Ham>();
-        //}
+            Assert.That(bar, Is.InstanceOf<Ham>());
+        }
 
-        //public class FooGeneric
-        //{
-        //    public T Bar<T>(T t) where T : struct
-        //    {
-        //        return t;
-        //    }
+        [Test]
+        public void CanCallGenericMethodWithImplicitStructGenericArgument()
+        {
+            var foo = new GenericFoo().Unlock();
 
-        //    public THam Baz<THam>() where THam : IHam, new()
-        //    {
-        //        return new THam();
-        //    }
-        //}
+            var bar = foo.Bar("foo", 123);
+
+            Assert.That(bar, Is.EqualTo(123));
+        }
+
+        [Test]
+        public void CanCallGenericMethodWithImplicitClassGenericArgument()
+        {
+            var foo = new GenericFoo().Unlock();
+
+            var bar = foo.Bar("foo", new Ham());
+
+            Assert.That(bar, Is.InstanceOf<Ham>());
+        }
+
+        [Test]
+        public void CanCallGenericMethodWithExplicitStructGenericArgumentAndNoGenericParameter()
+        {
+            var foo = new GenericFoo().Unlock();
+
+            var ham = foo.Baz<int>();
+
+            Assert.That(ham, Is.EqualTo(0));
+        }
+
+        [Test]
+        public void CanCallGenericMethodWithExplicitClassGenericArgumentAndNoGenericParameter()
+        {
+            var foo = new GenericFoo().Unlock();
+
+            var ham = foo.Baz<Ham>();
+
+            Assert.That(ham, Is.InstanceOf<Ham>());
+        }
+
+        [Test]
+        public void CanCallGenericMethodWithExplicitStructGenericArgumentAndGenericOutParameter()
+        {
+            var foo = new GenericFoo().Unlock();
+
+            int outBar;
+            var bar = foo.Qux<int>("foo", 123, out outBar);
+
+            Assert.That(bar, Is.EqualTo(123));
+            Assert.That(outBar, Is.EqualTo(123));
+        }
+
+        [Test]
+        public void CanCallGenericMethodWithExplicitStructGenericArgumentAndGenericRefParameter()
+        {
+            var foo = new GenericFoo().Unlock();
+
+            var outBar = 456;
+            var bar = foo.Qux<int>("foo", 123, ref outBar);
+
+            Assert.That(bar, Is.EqualTo(123));
+            Assert.That(outBar, Is.EqualTo(123));
+        }
+
+        [Test]
+        public void CanCallGenericMethodWithExplicitClassGenericArgumentAndGenericOutParameter()
+        {
+            var foo = new GenericFoo().Unlock();
+
+            var ham = new Ham();
+
+            Ham outBar;
+            var bar = foo.Qux<Ham>("foo", ham, out outBar);
+
+            Assert.That(bar, Is.SameAs(ham));
+            Assert.That(outBar, Is.SameAs(ham));
+        }
+
+        [Test]
+        public void CanCallGenericMethodWithExplicitClassGenericArgumentAndGenericRefParameter()
+        {
+            var foo = new GenericFoo().Unlock();
+
+            var ham = new Ham();
+
+            var outBar = new Ham();
+            var bar = foo.Qux<Ham>("foo", ham, ref outBar);
+
+            Assert.That(bar, Is.SameAs(ham));
+            Assert.That(outBar, Is.SameAs(ham));
+        }
+
+        [Test]
+        public void CanCallGenericMethodWithImplicitStructGenericArgumentAndGenericOutParameter()
+        {
+            var foo = new GenericFoo().Unlock();
+
+            int outBar;
+            var bar = foo.Qux("foo", 123, out outBar);
+
+            Assert.That(bar, Is.EqualTo(123));
+            Assert.That(outBar, Is.EqualTo(123));
+        }
+
+        [Test]
+        public void CanCallGenericMethodWithImplicitStructGenericArgumentAndGenericRefParameter()
+        {
+            var foo = new GenericFoo().Unlock();
+
+            var outBar = 456;
+            var bar = foo.Qux("foo", 123, ref outBar);
+
+            Assert.That(bar, Is.EqualTo(123));
+            Assert.That(outBar, Is.EqualTo(123));
+        }
+
+        [Test]
+        public void CanCallGenericMethodWithImplicitClassGenericArgumentAndGenericOutParameter()
+        {
+            var foo = new GenericFoo().Unlock();
+
+            var ham = new Ham();
+
+            Ham outBar;
+            var bar = foo.Qux("foo", ham, out outBar);
+
+            Assert.That(bar, Is.SameAs(ham));
+            Assert.That(outBar, Is.SameAs(ham));
+        }
+
+        [Test]
+        public void CanCallGenericMethodWithImplicitClassGenericArgumentAndGenericRefParameter()
+        {
+            var foo = new GenericFoo().Unlock();
+
+            var ham = new Ham();
+
+            var outBar = new Ham();
+            var bar = foo.Qux("foo", ham, ref outBar);
+
+            Assert.That(bar, Is.SameAs(ham));
+            Assert.That(outBar, Is.SameAs(ham));
+        }
+
+        public class GenericFoo
+        {
+            public T Bar<T>(string s, T t)
+            {
+                return t;
+            }
+
+            public T Baz<T>() where T : new()
+            {
+                return new T();
+            }
+
+            public T Qux<T>(string s, T tIn, ref T tOut)
+            {
+                tOut = tIn;
+                return tIn;
+            }
+        }
 
         public interface IPork { }
         public interface IHam : IPork { }
