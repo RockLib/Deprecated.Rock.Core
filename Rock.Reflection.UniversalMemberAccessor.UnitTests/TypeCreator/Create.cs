@@ -51,11 +51,11 @@ namespace Rock.Reflection.UnitTests.TypeCreator
 
         public static Type Struct(string name, Type[] interfaces, params MemberDefinition[] memberDefinitions)
         {
-            const TypeAttributes classTypeAttributes =
+            const TypeAttributes structTypeAttributes =
                 TypeAttributes.NotPublic | TypeAttributes.Class | TypeAttributes.SequentialLayout | TypeAttributes.Sealed
                 | TypeAttributes.AnsiClass | TypeAttributes.BeforeFieldInit | TypeAttributes.AutoLayout;
 
-            return Type(name, interfaces, memberDefinitions, classTypeAttributes, typeof(ValueType));
+            return Type(name, interfaces, memberDefinitions, structTypeAttributes, typeof(ValueType));
         }
 
         private static Type Type(
@@ -89,7 +89,7 @@ namespace Rock.Reflection.UnitTests.TypeCreator
             return typeBuilder.CreateType();
         }
 
-        private static string RandomName()
+        internal static string RandomName()
         {
             const int min = 97;
             const int max = 123;

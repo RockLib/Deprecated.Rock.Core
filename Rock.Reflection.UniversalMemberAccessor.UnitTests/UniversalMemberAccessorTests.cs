@@ -1262,39 +1262,43 @@ namespace Rock.Reflection.UnitTests
         [Test]
         public void CanGetPrivateEnumValue()
         {
-            var wibbleType = Type.GetType("Rock.Reflection.UnitTests.Waldo+Wibble");
-            var Wibble = UniversalMemberAccessor.GetStatic(wibbleType);
+            var fooType = Create.Class("Foo", Define.NestedEnum("Bar", "Baz", "Qux"));
+            
+            var barType = (Type)fooType.GetMember("Bar", BindingFlags.NonPublic | BindingFlags.Static)[0];
+            var Bar = UniversalMemberAccessor.GetStatic(barType);
 
             // Note that these variables are declared as object. (see below)
-            object wubble = Wibble.Wubble;
-            object wobble = Wibble.Wobble;
+            object baz = Bar.Baz;
+            object qux = Bar.Qux;
 
-            Assert.That(wubble.GetType(), Is.EqualTo(wibbleType));
-            Assert.That(wobble.GetType(), Is.EqualTo(wibbleType));
+            Assert.That(baz.GetType(), Is.EqualTo(barType));
+            Assert.That(qux.GetType(), Is.EqualTo(barType));
 
-            // If the wubble and wobble variables had been declared dynamic,
+            // If the baz and qux variables had been declared dynamic,
             // then these conversions would fail.
-            var wubbleInt = (int)wubble;
-            var wobbleInt = (int)wobble;
+            var bazInt = (int)baz;
+            var quxInt = (int)qux;
 
-            Assert.That(wubbleInt, Is.EqualTo(0));
-            Assert.That(wobbleInt, Is.EqualTo(1));
+            Assert.That(bazInt, Is.EqualTo(0));
+            Assert.That(quxInt, Is.EqualTo(1));
         }
 
         [Test]
         public void CanGetDefaultValueOfPrivateEnum()
         {
-            var wibbleType = Type.GetType("Rock.Reflection.UnitTests.Waldo+Wibble");
-            var Wibble = UniversalMemberAccessor.GetStatic(wibbleType);
+            var fooType = Create.Class("Foo", Define.NestedEnum("Bar", "Baz", "Qux"));
+            
+            var barType = (Type)fooType.GetMember("Bar", BindingFlags.NonPublic | BindingFlags.Static)[0];
+            var Bar = UniversalMemberAccessor.GetStatic(barType);
 
             // Note that the variable is declared as object. (see below)
-            object defaultWibble = Wibble.New();
+            object defaultBar = Bar.New();
 
-            Assert.That(defaultWibble.GetType(), Is.EqualTo(wibbleType));
+            Assert.That(defaultBar.GetType(), Is.EqualTo(barType));
 
-            // If the defaultWibble variable had been declared dynamic,
+            // If the defaultBar variable had been declared dynamic,
             // then this conversion would fail.
-            var defaultInt = (int)defaultWibble;
+            var defaultInt = (int)defaultBar;
 
             Assert.That(defaultInt, Is.EqualTo(0));
         }
@@ -2726,12 +2730,6 @@ namespace Rock.Reflection.UnitTests
         {
             Wubble,
             Wibble
-        }
-
-        private enum Wibble
-        {
-            Wubble,
-            Wobble
         }
 
         private static void FooHandler(object sender, EventArgs args)

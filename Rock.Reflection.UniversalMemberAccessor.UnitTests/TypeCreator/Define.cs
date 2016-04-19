@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
@@ -393,6 +394,197 @@ namespace Rock.Reflection.UnitTests.TypeCreator
             }
 
             return fieldAttributes;
+        }
+
+        public static MemberDefinition NestedClass(params MemberDefinition[] memberDefinitions)
+        {
+            return NestedClass(Create.RandomName(), new Type[0], Visibility.Private, memberDefinitions);
+        }
+
+        public static MemberDefinition NestedClass(Visibility visibility,
+            params MemberDefinition[] memberDefinitions)
+        {
+            return NestedClass(Create.RandomName(), new Type[0], visibility, memberDefinitions);
+        }
+
+        public static MemberDefinition NestedClass(Type[] interfaces,
+            params MemberDefinition[] memberDefinitions)
+        {
+            return NestedClass(Create.RandomName(), interfaces, Visibility.Private, memberDefinitions);
+        }
+
+        public static MemberDefinition NestedClass(Type[] interfaces, Visibility visibility,
+            params MemberDefinition[] memberDefinitions)
+        {
+            return NestedClass(Create.RandomName(), interfaces, visibility, memberDefinitions);
+        }
+
+        public static MemberDefinition NestedClass(string name,
+            params MemberDefinition[] memberDefinitions)
+        {
+            return NestedClass(name, new Type[0], Visibility.Private, memberDefinitions);
+        }
+
+        public static MemberDefinition NestedClass(string name, Visibility visibility = Visibility.Private,
+            params MemberDefinition[] memberDefinitions)
+        {
+            return NestedClass(name, new Type[0], visibility, memberDefinitions);
+        }
+
+        public static MemberDefinition NestedClass(string name, Type[] interfaces,
+            params MemberDefinition[] memberDefinitions)
+        {
+            return NestedClass(name, interfaces, Visibility.Private, memberDefinitions);
+        }
+
+        public static MemberDefinition NestedClass(string name, Type[] interfaces,
+            Visibility visibility = Visibility.Private, params MemberDefinition[] memberDefinitions)
+        {
+            const TypeAttributes classTypeAttributes =
+                TypeAttributes.Class | TypeAttributes.AutoClass | TypeAttributes.AnsiClass
+                | TypeAttributes.BeforeFieldInit | TypeAttributes.AutoLayout;
+
+            return NestedType(name, interfaces, memberDefinitions, classTypeAttributes, visibility);
+        }
+
+        public static MemberDefinition NestedStruct(params MemberDefinition[] memberDefinitions)
+        {
+            return NestedStruct(Create.RandomName(), new Type[0], Visibility.Private, memberDefinitions);
+        }
+
+        public static MemberDefinition NestedStruct(Visibility visibility = Visibility.Private,
+            params MemberDefinition[] memberDefinitions)
+        {
+            return NestedStruct(Create.RandomName(), new Type[0], visibility, memberDefinitions);
+        }
+
+        public static MemberDefinition NestedStruct(Type[] interfaces,
+            params MemberDefinition[] memberDefinitions)
+        {
+            return NestedStruct(Create.RandomName(), interfaces, Visibility.Private, memberDefinitions);
+        }
+
+        public static MemberDefinition NestedStruct(Type[] interfaces, Visibility visibility = Visibility.Private,
+            params MemberDefinition[] memberDefinitions)
+        {
+            return NestedStruct(Create.RandomName(), interfaces, visibility, memberDefinitions);
+        }
+
+        public static MemberDefinition NestedStruct(string name, Visibility visibility = Visibility.Private,
+            params MemberDefinition[] memberDefinitions)
+        {
+            return NestedStruct(name, new Type[0], visibility, memberDefinitions);
+        }
+
+        public static MemberDefinition NestedStruct(string name,
+            params MemberDefinition[] memberDefinitions)
+        {
+            return NestedStruct(name, new Type[0], Visibility.Private, memberDefinitions);
+        }
+
+        public static MemberDefinition NestedStruct(string name, Type[] interfaces,
+            params MemberDefinition[] memberDefinitions)
+        {
+            return NestedStruct(name, interfaces, Visibility.Private, memberDefinitions);
+        }
+
+        public static MemberDefinition NestedStruct(string name, Type[] interfaces,
+            Visibility visibility = Visibility.Private, params MemberDefinition[] memberDefinitions)
+        {
+            const TypeAttributes structTypeAttributes =
+                TypeAttributes.Class | TypeAttributes.SequentialLayout | TypeAttributes.Sealed
+                | TypeAttributes.AnsiClass | TypeAttributes.BeforeFieldInit | TypeAttributes.AutoLayout;
+
+            return NestedType(name, interfaces, memberDefinitions, structTypeAttributes, visibility, typeof(ValueType));
+        }
+
+        private static MemberDefinition NestedType(string name, Type[] interfaces,
+            MemberDefinition[] memberDefinitions, TypeAttributes typeAttributes,
+            Visibility visibility, Type baseType = null)
+        {
+            if (name == null) throw new ArgumentNullException("name");
+            if (interfaces == null) throw new ArgumentNullException("interfaces");
+            if (memberDefinitions == null) throw new ArgumentNullException("memberDefinitions");
+
+            typeAttributes |= GetNestedVisibility(visibility);
+
+            return new MemberDefinition((tb, fields) =>
+            {
+                var nestedTypeBuilder = tb.DefineNestedType(name, typeAttributes, baseType, interfaces);
+
+                var nestedFields = new List<FieldBuilder>();
+
+                foreach (var definition in memberDefinitions.OrderBy(d => d is ConstructorDefinition))
+                {
+                    definition.EmitTo(nestedTypeBuilder, nestedFields);
+                }
+
+                if (baseType != typeof(ValueType)
+                    && !memberDefinitions.Any(d => d is ConstructorDefinition))
+                {
+                    // ReSharper disable once RedundantNameQualifier
+                    Define.Constructor().EmitTo(nestedTypeBuilder, nestedFields);
+                }
+
+                nestedTypeBuilder.CreateType();
+            });
+        }
+
+        public static MemberDefinition NestedEnum(string name, params EnumValue[] enumValues)
+        {
+            return NestedEnum(name, Visibility.Private, enumValues);
+        }
+
+        public static MemberDefinition NestedEnum(string name, Visibility visibility,
+            params EnumValue[] enumValues)
+        {
+            if (name == null) throw new ArgumentNullException("name");
+            if (enumValues == null) throw new ArgumentNullException("enumValues");
+
+            var enumTypeAttributes = GetNestedVisibility(visibility) | TypeAttributes.Sealed;
+            const FieldAttributes valueTypeAttributes = FieldAttributes.Private | FieldAttributes.SpecialName;
+            const FieldAttributes fieldTypeAttributes = FieldAttributes.Public | FieldAttributes.Literal | FieldAttributes.Static;
+
+            return new MemberDefinition((tb, fields) =>
+            {
+                var eb = tb.DefineNestedType(name, enumTypeAttributes, typeof(Enum), null);
+
+                eb.DefineField("value__", typeof(int), valueTypeAttributes);
+
+                var value = 0;
+
+                foreach (var enumValue in enumValues)
+                {
+                    if (enumValue.Value.HasValue)
+                    {
+                        value = enumValue.Value.Value;
+                    }
+
+                    var fb = eb.DefineField(enumValue.Name, eb, fieldTypeAttributes);
+                    fb.SetConstant(value);
+
+                    value++;
+                }
+
+                eb.CreateType();
+            });
+        }
+
+        private static TypeAttributes GetNestedVisibility(Visibility visibility)
+        {
+            switch (visibility)
+            {
+                case Visibility.Private:
+                    return TypeAttributes.NestedPrivate;
+                case Visibility.Protected:
+                    return TypeAttributes.NestedFamily;
+                case Visibility.Internal:
+                    return TypeAttributes.NestedAssembly;
+                case Visibility.Public:
+                    return TypeAttributes.NestedPublic;
+                default:
+                    throw new ArgumentOutOfRangeException("visibility");
+            }
         }
     }
 }

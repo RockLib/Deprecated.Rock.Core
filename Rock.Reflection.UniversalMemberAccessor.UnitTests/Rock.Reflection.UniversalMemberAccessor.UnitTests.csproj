@@ -45,6 +45,7 @@
     <Compile Include="TypeCreator\ConstructorDefinition.cs" />
     <Compile Include="TypeCreator\Define.cs" />
     <Compile Include="TypeCreator\Create.cs" />
+    <Compile Include="TypeCreator\EnumValue.cs" />
     <Compile Include="TypeCreator\MemberDefinition.cs" />
     <Compile Include="TypeCreator\Parameter.cs" />
     <Compile Include="UniversalMemberAccessorTests.cs" />
