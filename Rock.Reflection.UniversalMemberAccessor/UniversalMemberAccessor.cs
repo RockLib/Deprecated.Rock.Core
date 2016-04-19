@@ -442,6 +442,13 @@ namespace Rock.Reflection
 
         private Func<object, object> CreateGetMemberFunc(string name)
         {
+            var nestedType = _type.GetNestedType(name, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static);
+            if (nestedType != null)
+            {
+                var staticAccessor = GetStatic(nestedType);
+                return obj => staticAccessor;
+            }
+
             var parameter = Expression.Parameter(typeof(object), "instance");
             var convertParameter = Expression.Convert(parameter, _type);
 
