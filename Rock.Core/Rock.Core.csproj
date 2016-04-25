@@ -62,11 +62,8 @@
     <Compile Include="Conversion\ConvertFuncFactory.cs" />
     <Compile Include="Conversion\ConvertsToDictionaryOfStringToTValue.cs" />
     <Compile Include="Conversion\ToDictionaryOfStringToStringExtension.cs" />
-    <Compile Include="Extensions\ActionExtensions.cs" />
     <Compile Include="Extensions\DateTimeTruncateExtension.cs" />
     <Compile Include="Extensions\EnumGetDescriptionExtension.cs" />
-    <Compile Include="Extensions\FuncExtensions.async.cs" />
-    <Compile Include="Extensions\FuncExtensions.cs" />
     <Compile Include="Extensions\StringExtensions.cs" />
     <Compile Include="Extensions\TimeSection.cs" />
     <Compile Include="Extensions\ToUnixTimestampExtension.cs" />
@@ -78,6 +75,8 @@
     <Compile Include="Reflection\GetTypesSafelyExtension.cs" />
     <Compile Include="Reflection\InternalExtensions.cs" />
     <Compile Include="Reflection\IsDefinedInThisAssemblyExtension.cs" />
+    <Compile Include="Rock.StaticDependencyInjection\ModuleInitializer.cs" />
+    <Compile Include="Rock.StaticDependencyInjection\StaticDependencyInjection.Generated.cs" />
     <Compile Include="Serialization\DefaultBinarySerializer.cs" />
     <Compile Include="Serialization\DefaultJsonSerializer.cs" />
     <Compile Include="Serialization\DefaultXmlSerializer.cs" />
@@ -91,8 +90,6 @@
     <Compile Include="Reflection\SlowFactory.cs" />
     <Compile Include="Rock.StaticDependencyInjection\CompositionRoot.cs" />
     <Compile Include="Rock.StaticDependencyInjection\ExportAttribute.cs" />
-    <Compile Include="Rock.StaticDependencyInjection\ModuleInitializer.cs" />
-    <Compile Include="Rock.StaticDependencyInjection\StaticDependencyInjection.Generated.cs" />
     <Compile Include="Serialization\XmlDeserializationProxy.cs" />
     <Compile Include="StringFormatting\ToHexStringExtensions.cs" />
     <Compile Include="StringFormatting\ToOctetStringExtension.cs" />
@@ -165,14 +162,12 @@
     <Compile Include="Serialization\ToXmlExtension.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
     <None Include="Extensions\README.txt" />
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="InjectModuleInitializer" AfterTargets="AfterBuild" Condition="'$(UseInjectModuleInitializer)' == 'true'">
-    <Exec Command="..\packages\Rock.StaticDependencyInjection.1.1.0\tools\InjectModuleInitializer.exe &quot;$(TargetPath)&quot;" />
+    <Exec Command="..\packages\Rock.StaticDependencyInjection.1.1.5\tools\InjectModuleInitializer.exe &quot;$(TargetPath)&quot;" />
   </Target>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

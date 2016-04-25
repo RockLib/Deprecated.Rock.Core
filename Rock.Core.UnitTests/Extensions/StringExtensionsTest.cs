@@ -62,13 +62,20 @@ namespace Rock.Core.UnitTests.Extensions
 			Assert.IsTrue(foo.IsNotNullAndEquals("foo"));
 		}
 
-        [Test]
+	    public class JsonTestClass
+	    {
+		    public string key1;
+			public string key2;
+		}
+
+		[Test]
         public void String_Extension_Can_Deserialize_Json()
         {
             string json = @"{""key1"":""value1"",""key2"":""value2""}";
 
-            var dict = json.FromJson<Dictionary<string, string>>();
-            Assert.IsTrue(dict.ContainsKey("key2"));
+            var value = json.FromJson<JsonTestClass>();
+			Assert.AreEqual(value.key1, "value1");
+			Assert.AreEqual(value.key2, "value2");
         }
 
 	    // ReSharper disable once ClassNeverInstantiated.Global
@@ -197,16 +204,16 @@ namespace Rock.Core.UnitTests.Extensions
 			Assert.IsTrue("the text is English".Contains("text", StringComparison.OrdinalIgnoreCase));
 		}
 
-		[Test, ExpectedException(typeof(ArgumentOutOfRangeException))]
+		[Test]
 	    public void ContainsWithInvalidStringComparisionThrowsException()
-	    {
-		    "X".Contains("x", (StringComparison)int.MaxValue);
-	    }
+		{
+			Assert.Throws<ArgumentOutOfRangeException>(() => "X".Contains("x", (StringComparison) int.MaxValue));
+		}
 
-		[Test, ExpectedException(typeof(ArgumentNullException))]
+		[Test]
 	    public void ContainsWithNullSearchTextThrowsException()
 	    {
-		    "x".Contains(null, StringComparison.CurrentCulture);
+		    Assert.Throws<ArgumentNullException>(() => "x".Contains(null, StringComparison.CurrentCulture));
 	    }
 
 	    [Test]
