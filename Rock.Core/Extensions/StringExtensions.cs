@@ -12,8 +12,6 @@ namespace Rock.Extensions
     /// </summary>
     public static class StringExtensions
     {
-		private const string SsnRegexPattern = "<SSN>[0-9-]+</SSN>";
-        private static readonly Regex SsnRegex = new Regex(SsnRegexPattern, RegexOptions.IgnoreCase);
         /// <summary>
         /// Determines whether a string [is not null or empty].
         /// </summary>
@@ -89,27 +87,6 @@ namespace Rock.Extensions
         public static string ToHash(this string value, HashType hashType)
         {
             return hashType.ComputeHash(value);
-        }
-
-        /// <summary>
-        /// Takes in xml notation that may or may not contain an SSN element, and removes it from the string.
-        /// </summary>
-        /// <param name="message">Original message that may contain an XML formatted SSN</param>
-        /// <returns>Original message with SSN ommited</returns>
-        /// <remarks>
-        /// <list type="bullet">
-        /// <listheader>The following examples that will result in the SSN being omitted.</listheader>
-        /// <item><SSN>123-45-6789</SSN></item>
-        /// <item><SSN>123456789</SSN></item>
-        /// <item><SSN>123-456789</SSN></item>
-        /// <item><ssn>123-45-6789</ssn></item>
-        /// <item><ssn>123456789</ssn></item>
-        /// <item><ssn>123-456789</ssn></item>
-        /// </list>
-        /// </remarks>
-        public static string OmitXmlSsn(this string message)
-        {
-            return SsnRegex.Replace(message, "<SSN>*** SSN Omitted ***</SSN>");
         }
 
 		/// <summary>

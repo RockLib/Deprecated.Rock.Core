@@ -95,54 +95,6 @@ namespace Rock.Core.UnitTests.Extensions
 		}
 
         [Test]
-        public void SSN_Is_Ommited_From_String_Format1()
-        {
-            string ssn = "<SSN>123-45-6789</SSN>";
-            var ssnOmit = ssn.OmitXmlSsn();
-
-            Assert.IsFalse(ssnOmit.Contains("<SSN>123-45-6789</SSN>"));
-        }
-
-        [Test]
-        public void SSN_Is_Ommited_From_String_Format2()
-        {
-            string ssn = "<SSN>123456789</SSN>";
-            var ssnOmit = ssn.OmitXmlSsn();
-
-            Assert.IsFalse(ssnOmit.Contains("<SSN>123456789</SSN>"));
-        }
-
-        [Test]
-        public void SSN_Is_Ommited_From_String_Format3()
-        {
-            string ssn = "<SSN>123-456789</SSN>";
-            var ssnOmit = ssn.OmitXmlSsn();
-
-            Assert.IsFalse(ssnOmit.Contains("<SSN>123-456789</SSN>"));
-        }
-
-        [Test]
-        public void SSN_Is_Ommited_From_String_Lower_Case()
-        {
-            string ssn = "<ssn>123-45-6789</ssn>";
-            var ssnOmit = ssn.OmitXmlSsn();
-
-            Assert.IsFalse(ssnOmit.Contains("<ssn>123-45-6789</ssn>"));
-        }
-
-        [Test]
-        public void SSN_Is_Ommited_From_String_With_More_Than_Just_SSN()
-        {
-            string ssn = @"<Name>Test</Name>
-                            <Number>123456789</Number>
-                            <SSN>123-45-6789</SSN>
-                            <Boolean>False</Boolean>";
-            var ssnOmit = ssn.OmitXmlSsn();
-
-            Assert.IsFalse(ssnOmit.Contains("<SSN>123-45-6789</SSN>"));
-        }
-
-        [Test]
         public void StringExtensions_ToHash_Returns_Correct_Hash()
         {
             var hash = "Hello, world!".ToHash(HashType.MD5);
