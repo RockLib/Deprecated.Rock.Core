@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using NUnit.Framework;
 using Rock.Extensions;
+using Rock.Serialization;
 using HashType = Rock.Cryptography.HashType;
 
 namespace Rock.Core.UnitTests.Extensions
