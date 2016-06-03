@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using NUnit.Framework;
-using Rock.Extensions;
+using Rock.Extensions.String;
 using Rock.Serialization;
 using HashType = Rock.Cryptography.HashType;
 

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Rock
+namespace Rock.Extensions.DateTime
 {
     /// <summary>
     /// Defines a <see cref="Truncate"/> extension method for the <see cref="DateTime"/> struct.
@@ -13,7 +13,7 @@ namespace Rock
         /// <param name="dateTime">The <see cref="DateTime"/> to truncate.</param>
         /// <param name="timeSectionToTruncate">A <see cref="TimeSection"/> that defines which component of the DateTime will be truncated.</param>
         /// <returns>A truncated <see cref="DateTime"/>.</returns>
-        public static DateTime Truncate(this DateTime dateTime, TimeSection timeSectionToTruncate)
+        public static System.DateTime Truncate(this System.DateTime dateTime, TimeSection timeSectionToTruncate)
         {
             long ticks;
 

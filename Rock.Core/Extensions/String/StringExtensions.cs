@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Linq;
 using System.Text;
-using System.Text.RegularExpressions;
 using Rock.Cryptography;
-using Rock.Serialization;
 
-namespace Rock.Extensions
+namespace Rock.Extensions.String
 {
     /// <summary>
     /// string extensions
@@ -96,7 +94,7 @@ namespace Rock.Extensions
 		{
 			if (source == null) return false;
 			if (toCheck == null) throw new ArgumentNullException("toCheck");
-			if (!Enum.IsDefined(typeof(StringComparison), comp)) throw new ArgumentOutOfRangeException("comp");
+			if (!System.Enum.IsDefined(typeof(StringComparison), comp)) throw new ArgumentOutOfRangeException("comp");
 
 			return source.IndexOf(toCheck, comp) >= 0;
 		}
