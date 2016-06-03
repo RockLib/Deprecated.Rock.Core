@@ -48,7 +48,7 @@ namespace Rock.Net
             {
                 try
                 {
-                    var socket = await ConnectSocket();
+                    var socket = await ConnectSocket().ConfigureAwait(false);
 
                     if (socket == null)
                     {
@@ -67,11 +67,11 @@ namespace Rock.Net
                         if (_isHttps)
                         {
                             var sslStream = new SslStream(networkStream);
-                            await sslStream.AuthenticateAsClientAsync(_server);
+                            await sslStream.AuthenticateAsClientAsync(_server).ConfigureAwait(false);
                             stream = sslStream;
                         }
 
-                        endpointStatus = await GetStatus(stream);
+                        endpointStatus = await GetStatus(stream).ConfigureAwait(false);
                     }
 
                     return endpointStatus;
@@ -89,7 +89,7 @@ namespace Rock.Net
                 var sendBuffer = Encoding.ASCII.GetBytes(request);
                 var receiveBuffer = new Byte[256];
 
-                await stream.WriteAsync(sendBuffer, 0, sendBuffer.Length);
+                await stream.WriteAsync(sendBuffer, 0, sendBuffer.Length).ConfigureAwait(false);
 
                 int receiveBufferLength;
                 var rawResponse = new StringBuilder();
@@ -98,7 +98,7 @@ namespace Rock.Net
 
                 do
                 {
-                    receiveBufferLength = await stream.ReadAsync(receiveBuffer, 0, receiveBuffer.Length);
+                    receiveBufferLength = await stream.ReadAsync(receiveBuffer, 0, receiveBuffer.Length).ConfigureAwait(false);
 
                     rawResponse.Append(Encoding.ASCII.GetString(receiveBuffer, 0, receiveBufferLength));
 
@@ -124,7 +124,7 @@ namespace Rock.Net
                     var ipe = new IPEndPoint(address, _port);
                     var socket = new Socket(ipe.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
 
-                    await Task.Factory.FromAsync((callback, state) => socket.BeginConnect(ipe, callback, state), socket.EndConnect, null);
+                    await Task.Factory.FromAsync((callback, state) => socket.BeginConnect(ipe, callback, state), socket.EndConnect, null).ConfigureAwait(false);
 
                     if (socket.Connected)
                     {
