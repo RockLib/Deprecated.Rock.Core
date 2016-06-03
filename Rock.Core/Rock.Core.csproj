@@ -65,7 +65,7 @@
     <Compile Include="Extensions\DateTimeSocialDateExtensions.cs" />
     <Compile Include="Extensions\DateTimeTruncateExtension.cs" />
     <Compile Include="Extensions\EnumGetDescriptionExtension.cs" />
-    <Compile Include="Extensions\StringIsNullExtensions.cs" />
+    <Compile Include="Extensions\StringExtensions.cs" />
     <Compile Include="Extensions\TimeSection.cs" />
     <Compile Include="Extensions\ToUnixTimestampExtension.cs" />
     <Compile Include="Net\EndpointDetector.cs" />
@@ -81,6 +81,7 @@
     <Compile Include="Serialization\DefaultBinarySerializer.cs" />
     <Compile Include="Serialization\DefaultJsonSerializer.cs" />
     <Compile Include="Serialization\DefaultXmlSerializer.cs" />
+    <Compile Include="Serialization\SerializationExtensions.cs" />
     <Compile Include="StringFormatting\FormatToStringExtension.cs" />
     <Compile Include="Immutable\Semimutable.cs" />
     <Compile Include="Net\Http\DefaultHttpClientFactory.cs" />
