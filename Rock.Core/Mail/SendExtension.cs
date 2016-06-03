@@ -10,7 +10,7 @@ namespace Rock.Mail
             using (var smtpClient = new SmtpClient())
             {
                 (deliveryMethod ?? DeliveryMethod.Default).ConfigureSmtpClient(smtpClient);
-                await smtpClient.SendMailAsync(mailMessage);
+                await smtpClient.SendMailAsync(mailMessage).ConfigureAwait(false);
             }
         }
     }
