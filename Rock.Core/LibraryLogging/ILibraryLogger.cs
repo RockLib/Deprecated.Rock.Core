@@ -1,4 +1,4 @@
-﻿namespace Rock.Logging.Library
+﻿namespace Rock.LibraryLogging
 {
     /// <summary>
     /// Defines various logging methods for libraries to use.

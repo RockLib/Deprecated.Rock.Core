@@ -1,4 +1,4 @@
-﻿namespace Rock.Logging.Library
+﻿namespace Rock.LibraryLogging
 {
     /// <summary>
     /// An implementation of <see cref="ILibraryLogger"/> that does nothing.

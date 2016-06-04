@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Rock.Logging.Library
+namespace Rock.LibraryLogging
 {
     /// <summary>
     /// Defines the various properties of a log message.

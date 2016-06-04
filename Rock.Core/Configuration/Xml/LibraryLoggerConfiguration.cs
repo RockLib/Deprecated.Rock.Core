@@ -1,4 +1,4 @@
-﻿using Rock.Logging.Library;
+﻿using Rock.LibraryLogging;
 
 namespace Rock.Configuration.Xml
 {

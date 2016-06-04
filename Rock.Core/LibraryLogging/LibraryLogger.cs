@@ -4,7 +4,7 @@ using System.Runtime.CompilerServices;
 using Rock.Configuration.Xml;
 using Rock.Immutable;
 
-namespace Rock.Logging.Library
+namespace Rock.LibraryLogging
 {
     // ReSharper disable ExplicitCallerInfoArgument
     public static class LibraryLogger
@@ -48,7 +48,7 @@ namespace Rock.Logging.Library
 
         private static ILibraryLogger GetDefaultLibraryLogger()
         {
-            var configurationProxy = (LibraryLoggerConfigurationProxy)ConfigurationManager.GetSection("rock.logging.library");
+            var configurationProxy = (LibraryLoggerConfigurationProxy)ConfigurationManager.GetSection("rock.librarylogging");
 
             if (configurationProxy != null)
             {
@@ -65,7 +65,7 @@ namespace Rock.Logging.Library
 
         private static bool GetDefaultIsDebugEnabled()
         {
-            var isDebugEnabledString = ConfigurationManager.AppSettings["Rock.Logging.Library.LibraryLogger.IsDebugEnabled"];
+            var isDebugEnabledString = ConfigurationManager.AppSettings["Rock.LibraryLogging.LibraryLogger.IsDebugEnabled"];
 
             if (!string.IsNullOrEmpty(isDebugEnabledString))
             {

@@ -1,7 +1,7 @@
 ﻿using System;
 using Rock.StringFormatting;
 
-namespace Rock.Logging.Library
+namespace Rock.LibraryLogging
 {
     /// <summary>
     /// An implementation of <see cref="ILibraryLogger"/> that records log messages with

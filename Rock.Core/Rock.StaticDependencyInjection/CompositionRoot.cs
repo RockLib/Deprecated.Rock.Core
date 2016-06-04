@@ -3,7 +3,7 @@ using Rock.DependencyInjection;
 using Rock.DependencyInjection.Heuristics;
 using Rock.IO;
 using Rock.KeyValueStores;
-using Rock.Logging.Library;
+using Rock.LibraryLogging;
 using Rock.Net;
 using Rock.Net.Http;
 using Rock.Serialization;
