@@ -105,7 +105,7 @@ namespace Rock.Rock.StaticDependencyInjection
         /// class with a public parameterless constructor is found that implements or
         /// inherits from either <typeparamref name="TTargetType"/> or
         /// <typeparamref name="TFactoryType"/>, then an instance of that class is created. 
-        /// If that instance is a <see cref="TTargetType"/>, than that instance will be
+        /// If that instance is a <typeparamref name="TTargetType"/>, than that instance will be
         /// passed to the <paramref name="importAction"/> callback. If the instance is a
         /// <typeparamref name="TFactoryType"/>, then an instance of
         /// <typeparamref name="TTargetType"/> is obtained by using the 
@@ -184,7 +184,7 @@ namespace Rock.Rock.StaticDependencyInjection
         /// class with a public parameterless constructor is found that implements or
         /// inherits from either <typeparamref name="TTargetType"/> or
         /// <typeparamref name="TFactoryType"/>, then an instance of the highest priority
-        /// class is created. If that instance is a <see cref="TTargetType"/>, than that 
+        /// class is created. If that instance is a <typeparamref name="TTargetType"/>, than that 
         /// instance will be passed to the <paramref name="importAction"/> callback. If the 
         /// instance is a <typeparamref name="TFactoryType"/>, then an instance of
         /// <typeparamref name="TTargetType"/> is obtained by using the 
@@ -263,7 +263,7 @@ namespace Rock.Rock.StaticDependencyInjection
         /// constructor are found that implements or inherits from either 
         /// <typeparamref name="TTargetType"/> or <typeparamref name="TFactoryType"/>, 
         /// then instances of those classes are created. If an instance is a 
-        /// <see cref="TTargetType"/>, than that instance will be passed as part of a 
+        /// <typeparamref name="TTargetType"/>, than that instance will be passed as part of a 
         /// collection to the <paramref name="importAction"/> callback. If an instance is a
         /// <typeparamref name="TFactoryType"/>, then an instance of
         /// <typeparamref name="TTargetType"/> is obtained by using the 
@@ -796,14 +796,44 @@ namespace Rock.Rock.StaticDependencyInjection
         {
             try
             {
+                var constructors = GetConstructors(type);
+
                 return
-                    type.GetConstructor(Type.EmptyTypes) != null
-                    || type.GetConstructors().Any(ctor => ctor.GetParameters().All(HasDefaultValue));
+                    constructors.Any(
+                        ctor =>
+                        {
+                            var parameters = ctor.GetParameters();
+                            return parameters.Length == 0 || parameters.All(HasDefaultValue);
+                        });
             }
             catch
             {
                 return false;
             }
+        }
+
+        private static IEnumerable<ConstructorInfo> GetConstructors(Type type)
+        {
+            // Retreiving constructors via TypeInfo.DeclaredConstructors is less likely to throw an
+            // an exception, but TypeInfo doesn't exist in .NET 4.0. So use reflection to attempt
+            // to try to get a TypeInfo. If we're unable to get it, just return type.GetConstructors()
+
+            var introspectionExtensionsType = Type.GetType("System.Reflection.IntrospectionExtensions, mscorlib");
+            if (introspectionExtensionsType == null)
+            {
+                return type.GetConstructors();
+            }
+
+            var getTypeInfo = introspectionExtensionsType.GetMethod("GetTypeInfo");
+            if (getTypeInfo == null)
+            {
+                return type.GetConstructors();
+            }
+
+            dynamic typeInfo = getTypeInfo.Invoke(null, new object[] { type });
+            IEnumerable<ConstructorInfo> constructors = typeInfo.DeclaredConstructors;
+
+            return constructors.Where(ctor => ctor.IsPublic);
         }
 
         private static bool HasDefaultValue(ParameterInfo parameter)

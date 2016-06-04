@@ -1,10 +1,8 @@
-﻿using System;
-
-namespace Rock
+﻿namespace Rock.Extensions.DateTime
 {
     public static class ToUnixTimestampExtension
     {
-        private static readonly DateTime _unixEpoch = new System.DateTime(1970, 1, 1);
+        private static readonly System.DateTime _unixEpoch = new System.DateTime(1970, 1, 1);
 
         /// <summary>
         /// Creates a unix timestamp from the given DateTime
