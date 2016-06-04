@@ -22,11 +22,6 @@ namespace Rock.LibraryLogging
             _current.Value = value ?? GetDefaultLibraryLogger();
         }
 
-        public static bool IsEnabled
-        {
-            get { return Current != NullLibraryLogger.Instance; }
-        }
-
         public static bool IsDebugEnabled
         {
             get
@@ -141,12 +136,15 @@ namespace Rock.LibraryLogging
 
         public static void Debug(ILibraryLogMessage message)
         {
-            try
+            if (IsDebugEnabled)
             {
-                Current.Debug(message);
-            } // ReSharper disable once EmptyGeneralCatchClause
-            catch
-            {
+                try
+                {
+                    Current.Debug(message);
+                } // ReSharper disable once EmptyGeneralCatchClause
+                catch
+                {
+                }
             }
         }
     }
