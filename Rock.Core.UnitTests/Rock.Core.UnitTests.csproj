@@ -52,6 +52,7 @@
   <ItemGroup>
     <Compile Include="Collections\DeepEqualityComparerTests.cs" />
     <Compile Include="Collections\MemberLocatorTests.cs" />
+    <Compile Include="Compression\CompressionTests.cs" />
     <Compile Include="Conversion\ConvertFuncFactoryTests.cs" />
     <Compile Include="Conversion\ConvertsToDictionaryOfStringToTValueTests.cs" />
     <Compile Include="Extensions\StringExtensionsTest.cs" />
