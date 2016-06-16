@@ -72,6 +72,7 @@
     <Compile Include="Extensions\String\StringExtensions.cs" />
     <Compile Include="Extensions\DateTime\TimeSection.cs" />
     <Compile Include="Extensions\DateTime\ToUnixTimestampExtension.cs" />
+    <Compile Include="LibraryLogging\CompositeLibraryLogger.cs" />
     <Compile Include="LibraryLogging\ConsoleLibraryLogger.cs" />
     <Compile Include="LibraryLogging\ILibraryLogger.cs" />
     <Compile Include="LibraryLogging\LibraryLogger.cs" />
