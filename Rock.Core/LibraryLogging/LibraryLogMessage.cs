@@ -4,9 +4,9 @@ using System.Runtime.CompilerServices;
 namespace Rock.LibraryLogging
 {
     /// <summary>
-    /// Defines the various properties of a log message.
+    /// Defines a log message.
     /// </summary>
-    public class LibraryLogMessage : ILibraryLogMessage
+    public class LibraryLogMessage
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="LibraryLogMessage"/> class.

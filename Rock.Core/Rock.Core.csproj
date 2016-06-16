@@ -74,7 +74,6 @@
     <Compile Include="Extensions\DateTime\ToUnixTimestampExtension.cs" />
     <Compile Include="LibraryLogging\ConsoleLibraryLogger.cs" />
     <Compile Include="LibraryLogging\ILibraryLogger.cs" />
-    <Compile Include="LibraryLogging\ILibraryLogMessage.cs" />
     <Compile Include="LibraryLogging\LibraryLogger.cs" />
     <Compile Include="LibraryLogging\LibraryLogMessage.cs" />
     <Compile Include="LibraryLogging\NullLibraryLogger.cs" />

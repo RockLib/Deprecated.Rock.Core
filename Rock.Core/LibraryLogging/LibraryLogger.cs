@@ -97,7 +97,7 @@ namespace Rock.LibraryLogging
             });
         }
 
-        public static void Log(ILibraryLogMessage message)
+        public static void Log(LibraryLogMessage message)
         {
             try
             {
@@ -134,7 +134,7 @@ namespace Rock.LibraryLogging
             });
         }
 
-        public static void Debug(ILibraryLogMessage message)
+        public static void Debug(LibraryLogMessage message)
         {
             if (IsDebugEnabled)
             {

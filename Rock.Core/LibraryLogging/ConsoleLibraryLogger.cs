@@ -13,7 +13,7 @@ namespace Rock.LibraryLogging
         /// Logs the specified message.
         /// </summary>
         /// <param name="message">The message.</param>
-        public void Log(ILibraryLogMessage message)
+        public void Log(LibraryLogMessage message)
         {
             Console.Write("LOG");
             WriteMessage(message);
@@ -23,13 +23,13 @@ namespace Rock.LibraryLogging
         /// Logs the specified debug message.
         /// </summary>
         /// <param name="message">The message.</param>
-        public void Debug(ILibraryLogMessage message)
+        public void Debug(LibraryLogMessage message)
         {
             Console.Write("DEBUG");
             WriteMessage(message);
         }
 
-        private static void WriteMessage(ILibraryLogMessage message)
+        private static void WriteMessage(LibraryLogMessage message)
         {
             Console.WriteLine(" {0:O} {1}", message.CreateTime, message.LibraryName);
             Console.WriteLine("    {0}", message.Message);

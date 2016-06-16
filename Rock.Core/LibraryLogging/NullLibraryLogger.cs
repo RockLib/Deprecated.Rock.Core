@@ -23,7 +23,7 @@
         /// Does nothing.
         /// </summary>
         /// <param name="message">Ignored.</param>
-        public void Log(ILibraryLogMessage message)
+        public void Log(LibraryLogMessage message)
         {
         }
 
@@ -31,7 +31,7 @@
         /// Does nothing.
         /// </summary>
         /// <param name="message">Ignored.</param>
-        public void Debug(ILibraryLogMessage message)
+        public void Debug(LibraryLogMessage message)
         {
         }
     }
