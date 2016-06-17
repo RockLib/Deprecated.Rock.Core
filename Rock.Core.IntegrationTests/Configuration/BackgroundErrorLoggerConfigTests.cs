@@ -1,7 +1,7 @@
 ﻿using NUnit.Framework;
 using Rock.BackgroundErrorLogging;
 
-namespace Rock.Core.IntegrationTests.Configuration.Xml
+namespace Rock.Core.IntegrationTests.Configuration
 {
     public class BackgroundErrorLoggerConfigTests
     {
