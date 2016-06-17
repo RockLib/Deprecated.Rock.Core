@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
+using System.Text;
+using Rock.StringFormatting;
 
 namespace Rock.BackgroundErrorLogging
 {
@@ -56,5 +58,41 @@ namespace Rock.BackgroundErrorLogging
         /// Gets or sets the line number in the source file where the log message originated.
         /// </summary>
         public int CallerLineNumber { get; set; }
+
+        public virtual string Format()
+        {
+            var sb = new StringBuilder();
+
+            string message;
+
+            if (Message != null)
+            {
+                message = Message;
+            }
+            else if (Exception != null)
+            {
+                message = Exception.Message;
+            }
+            else
+            {
+                message = null;
+            }
+
+            sb.AppendFormat("ERROR: {0:O} {1}", CreateTime, LibraryName).AppendLine();
+
+            if (message != null)
+            {
+                sb.AppendFormat("    {0}", message).AppendLine();
+            }
+
+            sb.AppendFormat("    {0}:{1}({2})", CallerFilePath, CallerMemberName, CallerLineNumber);
+
+            if (Exception != null)
+            {
+                sb.AppendLine().Append(Exception.FormatToString());
+            }
+
+            return sb.ToString();
+        }
     }
 }
