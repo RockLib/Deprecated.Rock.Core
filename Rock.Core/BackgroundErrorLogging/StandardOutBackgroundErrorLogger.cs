@@ -3,10 +3,10 @@
 namespace Rock.BackgroundErrorLogging
 {
     /// <summary>
-    /// An implementation of <see cref="IBackgroundErrorLogger"/> that records log messages with
-    /// the <see cref="Console"/> class.
+    /// An implementation of <see cref="IBackgroundErrorLogger"/> that records log messages to
+    /// Standard Out.
     /// </summary>
-    public class ConsoleBackgroundErrorLogger : IBackgroundErrorLogger
+    public class StandardOutBackgroundErrorLogger : IBackgroundErrorLogger
     {
         /// <summary>
         /// Logs the specified message.

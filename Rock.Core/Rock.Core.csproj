@@ -48,6 +48,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ApplicationId.cs" />
+    <Compile Include="BackgroundErrorLogging\StandardErrorBackgroundErrorLogger.cs" />
     <Compile Include="Collections\AddSafelyExtension.cs" />
     <Compile Include="Collections\ForEachExtension.cs" />
     <Compile Include="Collections\SerializableDictionary.cs" />
@@ -76,7 +77,7 @@
     <Compile Include="Extensions\DateTime\TimeSection.cs" />
     <Compile Include="Extensions\DateTime\ToUnixTimestampExtension.cs" />
     <Compile Include="BackgroundErrorLogging\CompositeBackgroundErrorLogger.cs" />
-    <Compile Include="BackgroundErrorLogging\ConsoleBackgroundErrorLogger.cs" />
+    <Compile Include="BackgroundErrorLogging\StandardOutBackgroundErrorLogger.cs" />
     <Compile Include="BackgroundErrorLogging\IBackgroundErrorLogger.cs" />
     <Compile Include="BackgroundErrorLogging\BackgroundErrorLogger.cs" />
     <Compile Include="BackgroundErrorLogging\BackgroundErrorLog.cs" />

@@ -8,7 +8,7 @@ namespace Rock.Core.IntegrationTests.Configuration
         [Test]
         public void TheBackgroundErrorLoggerDefinedInConfigIsUsed()
         {
-            Assert.That(BackgroundErrorLogger.Current, Is.InstanceOf<ConsoleBackgroundErrorLogger>());
+            Assert.That(BackgroundErrorLogger.Current, Is.InstanceOf<StandardOutBackgroundErrorLogger>());
         }
     }
 }
