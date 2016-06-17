@@ -4,22 +4,22 @@ using Rock.StringFormatting;
 namespace Rock.BackgroundErrorLogging
 {
     /// <summary>
-    /// An implementation of <see cref="ILibraryLogger"/> that records log messages with
+    /// An implementation of <see cref="IBackgroundErrorLogger"/> that records log messages with
     /// the <see cref="Console"/> class.
     /// </summary>
-    public class ConsoleLibraryLogger : ILibraryLogger
+    public class ConsoleBackgroundErrorLogger : IBackgroundErrorLogger
     {
         /// <summary>
         /// Logs the specified message.
         /// </summary>
         /// <param name="message">The message.</param>
-        public void Log(LibraryLogMessage message)
+        public void Log(BackgroundErrorLogMessage message)
         {
             Console.Write("LOG");
             WriteMessage(message);
         }
 
-        private static void WriteMessage(LibraryLogMessage message)
+        private static void WriteMessage(BackgroundErrorLogMessage message)
         {
             Console.WriteLine(" {0:O} {1}", message.CreateTime, message.LibraryName);
             Console.WriteLine("    {0}", message.Message);

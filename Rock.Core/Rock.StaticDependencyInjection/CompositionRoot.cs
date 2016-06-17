@@ -20,7 +20,7 @@ namespace Rock.Rock.StaticDependencyInjection
     {
         public override void Bootstrap()
         {
-            TryImportFirst<ILibraryLogger>(LibraryLogger.SetCurrent);
+            TryImportFirst<IBackgroundErrorLogger>(BackgroundErrorLogger.SetCurrent);
             
             TryImportFirst<IApplicationIdProvider>(ApplicationId.SetCurrent);
             
@@ -38,7 +38,7 @@ namespace Rock.Rock.StaticDependencyInjection
             TryImportFirst<ISerializer>(DefaultJsonSerializer.SetCurrent, "JsonSerializer");
             TryImportFirst<ISerializer>(DefaultXmlSerializer.SetCurrent, "XmlSerializer");
 
-            LibraryLogger.UnlockCurrent();
+            BackgroundErrorLogger.UnlockCurrent();
         }
 
         private void TryImportFirst<TTargetType>(
@@ -53,7 +53,7 @@ namespace Rock.Rock.StaticDependencyInjection
             }
             catch (Exception ex)
             {
-                LibraryLogger.Log(ex, "Exception caught in static dependency injection.", "Rock.Core");
+                BackgroundErrorLogger.Log(ex, "Exception caught in static dependency injection.", "Rock.Core");
 
                 var message =
                     string.Format(

@@ -4,14 +4,14 @@ using System.Runtime.CompilerServices;
 namespace Rock.BackgroundErrorLogging
 {
     /// <summary>
-    /// Defines a log message.
+    /// Defines a log message for a background error.
     /// </summary>
-    public class LibraryLogMessage
+    public class BackgroundErrorLogMessage
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="LibraryLogMessage"/> class.
+        /// Initializes a new instance of the <see cref="BackgroundErrorLogMessage"/> class.
         /// </summary>
-        public LibraryLogMessage(
+        public BackgroundErrorLogMessage(
             [CallerMemberName] string callerMemberName = null,
             [CallerFilePath] string callerFilePath = null,
             [CallerLineNumber] int callerLineNumber = 0)

@@ -3,21 +3,21 @@ using System.Linq;
 
 namespace Rock.BackgroundErrorLogging
 {
-    public class CompositeLibraryLogger : ILibraryLogger
+    public class CompositeBackgroundErrorLogger : IBackgroundErrorLogger
     {
-        private readonly ILibraryLogger[] _loggers;
+        private readonly IBackgroundErrorLogger[] _loggers;
 
-        public CompositeLibraryLogger(IEnumerable<ILibraryLogger> loggers)
+        public CompositeBackgroundErrorLogger(IEnumerable<IBackgroundErrorLogger> loggers)
             : this(loggers.ToArray())
         {
         }
 
-        public CompositeLibraryLogger(params ILibraryLogger[] loggers)
+        public CompositeBackgroundErrorLogger(params IBackgroundErrorLogger[] loggers)
         {
             _loggers = loggers;
         }
 
-        public void Log(LibraryLogMessage message)
+        public void Log(BackgroundErrorLogMessage message)
         {
             foreach (var logger in _loggers)
             {
