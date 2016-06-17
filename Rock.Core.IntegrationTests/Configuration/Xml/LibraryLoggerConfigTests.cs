@@ -10,11 +10,5 @@ namespace Rock.Core.IntegrationTests.Configuration.Xml
         {
             Assert.That(LibraryLogger.Current, Is.InstanceOf<ConsoleLibraryLogger>());
         }
-
-        [Test]
-        public void DebugEnabledIsSetFromConfig()
-        {
-            Assert.That(LibraryLogger.IsDebugEnabled, Is.True);
-        }
     }
 }

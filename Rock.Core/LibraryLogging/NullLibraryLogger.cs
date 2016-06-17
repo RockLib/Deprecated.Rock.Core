@@ -26,13 +26,5 @@
         public void Log(LibraryLogMessage message)
         {
         }
-
-        /// <summary>
-        /// Does nothing.
-        /// </summary>
-        /// <param name="message">Ignored.</param>
-        public void Debug(LibraryLogMessage message)
-        {
-        }
     }
 }

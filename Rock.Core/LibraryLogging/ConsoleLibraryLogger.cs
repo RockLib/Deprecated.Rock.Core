@@ -19,16 +19,6 @@ namespace Rock.LibraryLogging
             WriteMessage(message);
         }
 
-        /// <summary>
-        /// Logs the specified debug message.
-        /// </summary>
-        /// <param name="message">The message.</param>
-        public void Debug(LibraryLogMessage message)
-        {
-            Console.Write("DEBUG");
-            WriteMessage(message);
-        }
-
         private static void WriteMessage(LibraryLogMessage message)
         {
             Console.WriteLine(" {0:O} {1}", message.CreateTime, message.LibraryName);

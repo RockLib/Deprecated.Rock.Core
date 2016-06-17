@@ -30,19 +30,5 @@ namespace Rock.LibraryLogging
                 }
             }
         }
-
-        public void Debug(LibraryLogMessage message)
-        {
-            foreach (var logger in _loggers)
-            {
-                try
-                {
-                    logger.Debug(message);
-                } // ReSharper disable once EmptyGeneralCatchClause
-                catch
-                {
-                }
-            }
-        }
     }
 }
