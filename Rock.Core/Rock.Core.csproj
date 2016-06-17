@@ -49,6 +49,7 @@
   <ItemGroup>
     <Compile Include="ApplicationId.cs" />
     <Compile Include="BackgroundErrorLogging\StandardErrorBackgroundErrorLogger.cs" />
+    <Compile Include="BackgroundErrorLogging\WindowsEventLogBackgroundErrorLogger.cs" />
     <Compile Include="Collections\AddSafelyExtension.cs" />
     <Compile Include="Collections\ForEachExtension.cs" />
     <Compile Include="Collections\SerializableDictionary.cs" />
