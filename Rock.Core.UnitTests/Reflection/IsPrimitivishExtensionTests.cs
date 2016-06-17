@@ -111,32 +111,32 @@ namespace IsPrimitivishExtensionTests
                 Assert.That(IsPrimitivish(nonPrimitivishType), Is.False);
             }
 
-            protected static IEnumerable<Type> GetPrimitiveTypes()
+            protected IEnumerable<Type> GetPrimitiveTypes()
             {
                 return _primitiveTypes;
             }
 
-            protected static IEnumerable<Type> GetDefaultPrimitivishTypes()
+            protected IEnumerable<Type> GetDefaultPrimitivishTypes()
             {
                 return IsPrimitivishExtension._defaultPrimitivishTypes;
             }
 
-            protected static IEnumerable<Type> GetExtraPrimitivishTypes()
+            protected IEnumerable<Type> GetExtraPrimitivishTypes()
             {
                 yield return typeof(Foo);
             }
 
-            protected static IEnumerable<Type> GetNullablePrimitiveTypes()
+            protected IEnumerable<Type> GetNullablePrimitiveTypes()
             {
                 return _primitiveTypes.Select(t => typeof(Nullable<>).MakeGenericType(t));
             }
 
-            protected static IEnumerable<Type> GetNullableDefaultPrimitivishTypes()
+            protected IEnumerable<Type> GetNullableDefaultPrimitivishTypes()
             {
                 return GetDefaultPrimitivishTypes().Where(t => t.IsValueType).Select(t => typeof(Nullable<>).MakeGenericType(t));
             }
 
-            protected static IEnumerable<Type> GetNullableExtraPrimitivishTypes()
+            protected IEnumerable<Type> GetNullableExtraPrimitivishTypes()
             {
                 return GetExtraPrimitivishTypes().Where(t => t.IsValueType).Select(t => typeof(Nullable<>).MakeGenericType(t));
             }

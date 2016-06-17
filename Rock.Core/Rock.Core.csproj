@@ -51,6 +51,13 @@
     <Compile Include="Collections\AddSafelyExtension.cs" />
     <Compile Include="Collections\ForEachExtension.cs" />
     <Compile Include="Collections\SerializableDictionary.cs" />
+    <Compile Include="Compression\CompressionExtensions.cs" />
+    <Compile Include="Compression\DeflateCompressor.cs" />
+    <Compile Include="Compression\DeflateDecompressor.cs" />
+    <Compile Include="Compression\GZipCompressor.cs" />
+    <Compile Include="Compression\GZipDecompressor.cs" />
+    <Compile Include="Compression\ICompressor.cs" />
+    <Compile Include="Compression\IDecompressor.cs" />
     <Compile Include="Cryptography\HashType.cs" />
     <Compile Include="Cryptography\HashTypeExtensions.cs" />
     <Compile Include="DefaultApplicationIdProvider.cs" />
