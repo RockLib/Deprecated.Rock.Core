@@ -11,7 +11,7 @@ namespace Rock.BackgroundErrorLogging
     /// </summary>
     public static class BackgroundErrorLogger
     {
-        private static readonly Semimutable<IBackgroundErrorLogger> _current = new Semimutable<IBackgroundErrorLogger>(GetDefaultLibraryLogger, true);
+        private static readonly Semimutable<IBackgroundErrorLogger> _current = new Semimutable<IBackgroundErrorLogger>(GetDefaultBackgroundErrorLogger, true);
 
         /// <summary>
         /// Gets the current <see cref="IBackgroundErrorLogger"/>.
@@ -27,7 +27,7 @@ namespace Rock.BackgroundErrorLogging
         /// <param name="value">An instance of <see cref="IBackgroundErrorLogger"/>.</param>
         public static void SetCurrent(IBackgroundErrorLogger value)
         {
-            _current.Value = value ?? GetDefaultLibraryLogger();
+            _current.Value = value ?? GetDefaultBackgroundErrorLogger();
         }
 
         internal static void UnlockCurrent()
@@ -35,20 +35,20 @@ namespace Rock.BackgroundErrorLogging
             _current.UnlockValue();
         }
 
-        private static IBackgroundErrorLogger GetDefaultLibraryLogger()
+        private static IBackgroundErrorLogger GetDefaultBackgroundErrorLogger()
         {
-            var libraryLoggerTypeString = ConfigurationManager.AppSettings["Rock.BackgroundErrorLogging.BackgroundErrorLogger.Current"];
+            var backgroundErrorLoggerTypeString = ConfigurationManager.AppSettings["Rock.BackgroundErrorLogging.BackgroundErrorLogger.Current"];
 
             IBackgroundErrorLogger backgroundErrorLogger = null;
 
-            if (libraryLoggerTypeString != null)
+            if (backgroundErrorLoggerTypeString != null)
             {
-                var libraryLoggerType = Type.GetType(libraryLoggerTypeString);
-                if (libraryLoggerType != null && typeof(IBackgroundErrorLogger).IsAssignableFrom(libraryLoggerType))
+                var backgroundErrorLoggerType = Type.GetType(backgroundErrorLoggerTypeString);
+                if (backgroundErrorLoggerType != null && typeof(IBackgroundErrorLogger).IsAssignableFrom(backgroundErrorLoggerType))
                 {
                     try
                     {
-                        backgroundErrorLogger = (IBackgroundErrorLogger)Activator.CreateInstance(libraryLoggerType);
+                        backgroundErrorLogger = (IBackgroundErrorLogger)Activator.CreateInstance(backgroundErrorLoggerType);
                     }
                     catch
                     {
@@ -64,18 +64,18 @@ namespace Rock.BackgroundErrorLogging
         /// Logs the specified background error message.
         /// </summary>
         /// <param name="message">A message describing the background error.</param>
-        /// <param name="libraryId">The id of the library that is logging the error.</param>
+        /// <param name="libraryName">The name of the library that is logging the error.</param>
         /// <param name="callerMemberName">Do not provide a value for this parameter.</param>
         /// <param name="callerFilePath">Do not provide a value for this parameter.</param>
         /// <param name="callerLineNumber">Do not provide a value for this parameter.</param>
         public static void Log(
             string message,
-            string libraryId = null,
+            string libraryName = null,
             [CallerMemberName] string callerMemberName = null,
             [CallerFilePath] string callerFilePath = null,
             [CallerLineNumber] int callerLineNumber = 0)
         {
-            Log(null, message, libraryId, callerMemberName, callerFilePath, callerLineNumber);
+            Log(null, message, libraryName, callerMemberName, callerFilePath, callerLineNumber);
         }
 
         /// <summary>
@@ -83,14 +83,14 @@ namespace Rock.BackgroundErrorLogging
         /// </summary>
         /// <param name="exception">The background error.</param>
         /// <param name="message">An optional message.</param>
-        /// <param name="libraryId">The id of the library that is logging the error.</param>
+        /// <param name="libraryName">The name of the library that is logging the error.</param>
         /// <param name="callerMemberName">Do not provide a value for this parameter.</param>
         /// <param name="callerFilePath">Do not provide a value for this parameter.</param>
         /// <param name="callerLineNumber">Do not provide a value for this parameter.</param>
         public static void Log(
             Exception exception,
             string message = null,
-            string libraryId = null,
+            string libraryName = null,
             [CallerMemberName] string callerMemberName = null,
             [CallerFilePath] string callerFilePath = null,
             [CallerLineNumber] int callerLineNumber = 0)
@@ -99,7 +99,7 @@ namespace Rock.BackgroundErrorLogging
             {
                 Message = message,
                 Exception = exception,
-                LibraryName = libraryId
+                LibraryName = libraryName
             });
         }
 

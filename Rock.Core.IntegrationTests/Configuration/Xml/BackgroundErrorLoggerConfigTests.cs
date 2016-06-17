@@ -3,10 +3,10 @@ using Rock.BackgroundErrorLogging;
 
 namespace Rock.Core.IntegrationTests.Configuration.Xml
 {
-    public class LibraryLoggerConfigTests
+    public class BackgroundErrorLoggerConfigTests
     {
         [Test]
-        public void TheLibraryLoggerDefinedInConfigIsUsed()
+        public void TheBackgroundErrorLoggerDefinedInConfigIsUsed()
         {
             Assert.That(BackgroundErrorLogger.Current, Is.InstanceOf<ConsoleBackgroundErrorLogger>());
         }

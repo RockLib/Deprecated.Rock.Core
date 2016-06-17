@@ -54,7 +54,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Configuration\XmlSerializerSectionHandlerTests.cs" />
-    <Compile Include="Configuration\Xml\LibraryLoggerConfigTests.cs" />
+    <Compile Include="Configuration\Xml\BackgroundErrorLoggerConfigTests.cs" />
     <Compile Include="EntryAssemblyApplicationIdProviderTests.cs" />
     <Compile Include="KeyValueStores\File\DirectoryBucketTestBase.cs" />
     <Compile Include="KeyValueStores\File\DirectoryBucketTests.cs" />
