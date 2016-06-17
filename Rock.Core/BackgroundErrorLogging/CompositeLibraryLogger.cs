@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 
-namespace Rock.LibraryLogging
+namespace Rock.BackgroundErrorLogging
 {
     public class CompositeLibraryLogger : ILibraryLogger
     {

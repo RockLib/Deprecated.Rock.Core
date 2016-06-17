@@ -3,7 +3,7 @@ using System.Configuration;
 using System.Runtime.CompilerServices;
 using Rock.Immutable;
 
-namespace Rock.LibraryLogging
+namespace Rock.BackgroundErrorLogging
 {
     // ReSharper disable ExplicitCallerInfoArgument
     public static class LibraryLogger
@@ -27,7 +27,7 @@ namespace Rock.LibraryLogging
 
         private static ILibraryLogger GetDefaultLibraryLogger()
         {
-            var libraryLoggerTypeString = ConfigurationManager.AppSettings["Rock.LibraryLogging.LibraryLogger.Current"];
+            var libraryLoggerTypeString = ConfigurationManager.AppSettings["Rock.BackgroundErrorLogging.LibraryLogger.Current"];
 
             ILibraryLogger libraryLogger = null;
 

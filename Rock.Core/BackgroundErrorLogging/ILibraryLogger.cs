@@ -1,4 +1,4 @@
-﻿namespace Rock.LibraryLogging
+﻿namespace Rock.BackgroundErrorLogging
 {
     /// <summary>
     /// Defines various logging methods for libraries to use.

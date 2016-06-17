@@ -1,5 +1,5 @@
 ﻿using NUnit.Framework;
-using Rock.LibraryLogging;
+using Rock.BackgroundErrorLogging;
 
 namespace Rock.Core.IntegrationTests.Configuration.Xml
 {

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
 
-namespace Rock.LibraryLogging
+namespace Rock.BackgroundErrorLogging
 {
     /// <summary>
     /// Defines a log message.
