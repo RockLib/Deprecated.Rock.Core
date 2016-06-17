@@ -39,8 +39,6 @@ namespace Rock.BackgroundErrorLogging
         {
             var backgroundErrorLoggerTypeString = ConfigurationManager.AppSettings["Rock.BackgroundErrorLogging.BackgroundErrorLogger.Current"];
 
-            IBackgroundErrorLogger backgroundErrorLogger = null;
-
             if (backgroundErrorLoggerTypeString != null)
             {
                 var backgroundErrorLoggerType = Type.GetType(backgroundErrorLoggerTypeString);
@@ -48,16 +46,17 @@ namespace Rock.BackgroundErrorLogging
                 {
                     try
                     {
-                        backgroundErrorLogger = (IBackgroundErrorLogger)Activator.CreateInstance(backgroundErrorLoggerType);
-                    }
+                        return (IBackgroundErrorLogger)Activator.CreateInstance(backgroundErrorLoggerType);
+                    } // ReSharper disable once EmptyGeneralCatchClause
                     catch
                     {
-                        backgroundErrorLogger = null;
                     }
                 }
             }
 
-            return backgroundErrorLogger ?? NullBackgroundErrorLogger.Instance;
+            return new CompositeBackgroundErrorLogger(
+                new StandardErrorBackgroundErrorLogger(),
+                new WindowsEventLogBackgroundErrorLogger());
         }
 
         /// <summary>
