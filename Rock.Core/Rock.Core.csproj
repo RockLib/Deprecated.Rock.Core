@@ -51,10 +51,6 @@
     <Compile Include="Collections\AddSafelyExtension.cs" />
     <Compile Include="Collections\ForEachExtension.cs" />
     <Compile Include="Collections\SerializableDictionary.cs" />
-    <Compile Include="Configuration\Xml\ILibraryLoggerConfiguration.cs" />
-    <Compile Include="Configuration\Xml\LibraryLoggerConfiguration.cs" />
-    <Compile Include="Configuration\Xml\LibraryLoggerConfigurationProxy.cs" />
-    <Compile Include="Configuration\Xml\LibraryLoggerSectionHandler.cs" />
     <Compile Include="Cryptography\HashType.cs" />
     <Compile Include="Cryptography\HashTypeExtensions.cs" />
     <Compile Include="DefaultApplicationIdProvider.cs" />

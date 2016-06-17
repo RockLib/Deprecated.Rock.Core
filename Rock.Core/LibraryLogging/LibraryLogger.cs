@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Configuration;
 using System.Runtime.CompilerServices;
-using Rock.Configuration.Xml;
 using Rock.Immutable;
 
 namespace Rock.LibraryLogging
@@ -28,15 +27,27 @@ namespace Rock.LibraryLogging
 
         private static ILibraryLogger GetDefaultLibraryLogger()
         {
-            var configurationProxy = (LibraryLoggerConfigurationProxy)ConfigurationManager.GetSection("rock.librarylogging");
+            var libraryLoggerTypeString = ConfigurationManager.AppSettings["Rock.LibraryLogging.LibraryLogger.Current"];
 
-            if (configurationProxy != null)
+            ILibraryLogger libraryLogger = null;
+
+            if (libraryLoggerTypeString != null)
             {
-                var configuration = configurationProxy.CreateInstance();
-                return configuration.LibraryLogger ?? NullLibraryLogger.Instance;
+                var libraryLoggerType = Type.GetType(libraryLoggerTypeString);
+                if (libraryLoggerType != null && typeof(ILibraryLogger).IsAssignableFrom(libraryLoggerType))
+                {
+                    try
+                    {
+                        libraryLogger = (ILibraryLogger)Activator.CreateInstance(libraryLoggerType);
+                    }
+                    catch
+                    {
+                        libraryLogger = null;
+                    }
+                }
             }
 
-            return NullLibraryLogger.Instance;
+            return libraryLogger ?? NullLibraryLogger.Instance;
         }
 
         public static void Log(
