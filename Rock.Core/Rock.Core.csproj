@@ -79,7 +79,7 @@
     <Compile Include="BackgroundErrorLogging\ConsoleBackgroundErrorLogger.cs" />
     <Compile Include="BackgroundErrorLogging\IBackgroundErrorLogger.cs" />
     <Compile Include="BackgroundErrorLogging\BackgroundErrorLogger.cs" />
-    <Compile Include="BackgroundErrorLogging\BackgroundErrorLogMessage.cs" />
+    <Compile Include="BackgroundErrorLogging\BackgroundErrorLog.cs" />
     <Compile Include="BackgroundErrorLogging\NullBackgroundErrorLogger.cs" />
     <Compile Include="Net\EndpointDetector.cs" />
     <Compile Include="Net\EndpointSelector.cs" />

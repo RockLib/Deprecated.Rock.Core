@@ -95,7 +95,7 @@ namespace Rock.BackgroundErrorLogging
             [CallerFilePath] string callerFilePath = null,
             [CallerLineNumber] int callerLineNumber = 0)
         {
-            Log(new BackgroundErrorLogMessage(callerMemberName, callerFilePath, callerLineNumber)
+            Log(new BackgroundErrorLog(callerMemberName, callerFilePath, callerLineNumber)
             {
                 Message = message,
                 Exception = exception,
@@ -106,12 +106,12 @@ namespace Rock.BackgroundErrorLogging
         /// <summary>
         /// Logs the specified background error message.
         /// </summary>
-        /// <param name="message">The message.</param>
-        public static void Log(BackgroundErrorLogMessage message)
+        /// <param name="log">The error log.</param>
+        public static void Log(BackgroundErrorLog log)
         {
             try
             {
-                Current.Log(message);
+                Current.Log(log);
             } // ReSharper disable once EmptyGeneralCatchClause
             catch
             {

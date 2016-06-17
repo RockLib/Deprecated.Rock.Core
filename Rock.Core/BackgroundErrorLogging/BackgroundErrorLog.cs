@@ -8,12 +8,12 @@ namespace Rock.BackgroundErrorLogging
     /// <summary>
     /// Defines a log message for a background error.
     /// </summary>
-    public class BackgroundErrorLogMessage
+    public class BackgroundErrorLog
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="BackgroundErrorLogMessage"/> class.
+        /// Initializes a new instance of the <see cref="BackgroundErrorLog"/> class.
         /// </summary>
-        public BackgroundErrorLogMessage(
+        public BackgroundErrorLog(
             [CallerMemberName] string callerMemberName = null,
             [CallerFilePath] string callerFilePath = null,
             [CallerLineNumber] int callerLineNumber = 0)

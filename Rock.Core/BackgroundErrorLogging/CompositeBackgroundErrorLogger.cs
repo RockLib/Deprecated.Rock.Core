@@ -17,13 +17,13 @@ namespace Rock.BackgroundErrorLogging
             _loggers = loggers;
         }
 
-        public void Log(BackgroundErrorLogMessage message)
+        public void Log(BackgroundErrorLog log)
         {
             foreach (var logger in _loggers)
             {
                 try
                 {
-                    logger.Log(message);
+                    logger.Log(log);
                 } // ReSharper disable once EmptyGeneralCatchClause
                 catch
                 {

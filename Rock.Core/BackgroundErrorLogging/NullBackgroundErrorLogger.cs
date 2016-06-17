@@ -22,8 +22,8 @@
         /// <summary>
         /// Does nothing.
         /// </summary>
-        /// <param name="message">Ignored.</param>
-        public void Log(BackgroundErrorLogMessage message)
+        /// <param name="log">Ignored.</param>
+        public void Log(BackgroundErrorLog log)
         {
         }
     }

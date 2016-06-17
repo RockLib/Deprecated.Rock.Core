@@ -8,7 +8,7 @@
         /// <summary>
         /// Logs the specified background error message.
         /// </summary>
-        /// <param name="message">The message.</param>
-        void Log(BackgroundErrorLogMessage message);
+        /// <param name="log">The error log.</param>
+        void Log(BackgroundErrorLog log);
     }
 }

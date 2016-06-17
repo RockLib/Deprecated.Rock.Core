@@ -11,10 +11,10 @@ namespace Rock.BackgroundErrorLogging
         /// <summary>
         /// Logs the specified message.
         /// </summary>
-        /// <param name="message">The message.</param>
-        public void Log(BackgroundErrorLogMessage message)
+        /// <param name="log">The error log.</param>
+        public void Log(BackgroundErrorLog log)
         {
-            Console.Out.WriteLine(message.Format());
+            Console.Out.WriteLine(log.Format());
             Console.Out.WriteLine();
             Console.Out.WriteLine("--------------------------------------------------------------------------------");
             Console.Out.WriteLine();
