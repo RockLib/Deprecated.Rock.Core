@@ -89,7 +89,6 @@
     <Compile Include="Reflection\GetTypesSafelyExtension.cs" />
     <Compile Include="Reflection\InternalExtensions.cs" />
     <Compile Include="Reflection\IsDefinedInThisAssemblyExtension.cs" />
-    <Compile Include="Rock.StaticDependencyInjection\CompositionRootException.cs" />
     <Compile Include="Rock.StaticDependencyInjection\ModuleInitializer.cs" />
     <Compile Include="Rock.StaticDependencyInjection\StaticDependencyInjection.Generated.cs" />
     <Compile Include="Serialization\DefaultBinarySerializer.cs" />

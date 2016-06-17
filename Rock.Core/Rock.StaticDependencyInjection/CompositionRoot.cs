@@ -63,7 +63,7 @@ namespace Rock.Rock.StaticDependencyInjection
                             ? string.Format(" Import name: {0}.", importName)
                             : "");
 
-                throw new CompositionRootException(message, ex);
+                throw new InvalidOperationException(message, ex);
             }
         }
 
