@@ -9,7 +9,7 @@ namespace Rock.BackgroundErrorLogging
     public class StandardOutBackgroundErrorLogger : IBackgroundErrorLogger
     {
         /// <summary>
-        /// Logs the specified message.
+        /// Logs the specified error to Standard Out.
         /// </summary>
         /// <param name="log">The error log.</param>
         public void Log(BackgroundErrorLog log)

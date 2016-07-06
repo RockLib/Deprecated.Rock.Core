@@ -6,7 +6,7 @@
     public interface IBackgroundErrorLogger
     {
         /// <summary>
-        /// Logs the specified background error message.
+        /// Logs the specified error.
         /// </summary>
         /// <param name="log">The error log.</param>
         void Log(BackgroundErrorLog log);
