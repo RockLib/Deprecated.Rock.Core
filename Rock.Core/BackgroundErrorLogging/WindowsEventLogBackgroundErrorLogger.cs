@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 
 namespace Rock.BackgroundErrorLogging
 {
@@ -8,6 +9,35 @@ namespace Rock.BackgroundErrorLogging
     /// </summary>
     public class WindowsEventLogBackgroundErrorLogger : IBackgroundErrorLogger
     {
+        private readonly Lazy<Action<BackgroundErrorLog>> _logAction;
+
+        public WindowsEventLogBackgroundErrorLogger()
+        {
+            _logAction = new Lazy<Action<BackgroundErrorLog>>(() =>
+            {
+                try
+                {
+                    if (!EventLog.SourceExists(Source))
+                    {
+                        EventLog.CreateEventSource(Source, LogName);
+                    }
+
+                    var eventLog = new EventLog(Source)
+                    {
+                        Source = Source,
+                    };
+
+                    var eventLogEntryType = EventLogEntryType;
+
+                    return log => eventLog.WriteEntry(log.Format(), eventLogEntryType);
+                }
+                catch
+                {
+                    return log => {};
+                }
+            });
+        }
+
         /// <summary>
         /// Gets the Windows Event Log source name by which the application is registered on the local computer.
         /// </summary>
@@ -26,22 +56,20 @@ namespace Rock.BackgroundErrorLogging
         }
 
         /// <summary>
+        /// Gets the event type to use when writing to the Windows Event Log.
+        /// </summary>
+        protected virtual EventLogEntryType EventLogEntryType
+        {
+            get { return EventLogEntryType.Error; }
+        }
+
+        /// <summary>
         /// Logs the specified error to the Windows Event Log.
         /// </summary>
         /// <param name="log">The error log.</param>
         public void Log(BackgroundErrorLog log)
         {
-            if (!EventLog.SourceExists(Source))
-            {
-                EventLog.CreateEventSource(Source, LogName);
-            }
-
-            var eventLog = new EventLog("Application")
-            {
-                Source = Source,
-            };
-
-            eventLog.WriteEntry(log.Format(), EventLogEntryType.Error);
+            _logAction.Value(log);
         }
     }
 }
