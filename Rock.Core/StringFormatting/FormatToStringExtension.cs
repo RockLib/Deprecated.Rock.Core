@@ -351,7 +351,7 @@ namespace Rock.StringFormatting
             }
         }
 
-        public static Func<Type, Type> GetGetObjectTypeFunc(MethodInfo getObjectTypeMethod)
+        private static Func<Type, Type> GetGetObjectTypeFunc(MethodInfo getObjectTypeMethod)
         {
             var typeParameter = Expression.Parameter(typeof(Type), "type");
 
