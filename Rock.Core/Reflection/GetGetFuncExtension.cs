@@ -11,7 +11,7 @@ namespace Rock.Reflection
     public static class GetGetFuncExtension
     {
         /// <summary>
-        /// Gets a Func&gt;object, object&lt; that, when invoked, returns the value
+        /// Gets a Func&lt;object, object&gt; that, when invoked, returns the value
         /// of the property represented by <paramref name="propertyInfo"/>.
         /// </summary>
         /// <param name="propertyInfo">
@@ -19,7 +19,7 @@ namespace Rock.Reflection
         /// is returned by the return function.
         /// </param>
         /// <returns>
-        /// A Func&gt;object, object&lt; that, when invoked, returns the value
+        /// A Func&lt;object, object&gt; that, when invoked, returns the value
         /// of the property represented by <paramref name="propertyInfo"/>.
         /// </returns>
         public static Func<object, object> GetGetFunc(this PropertyInfo propertyInfo)

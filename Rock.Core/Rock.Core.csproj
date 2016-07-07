@@ -97,6 +97,7 @@
     <Compile Include="Serialization\DefaultJsonSerializer.cs" />
     <Compile Include="Serialization\DefaultXmlSerializer.cs" />
     <Compile Include="Serialization\SerializationExtensions.cs" />
+    <Compile Include="StringFormatting\BlockIndentExtension.cs" />
     <Compile Include="StringFormatting\FormatToStringExtension.cs" />
     <Compile Include="Immutable\Semimutable.cs" />
     <Compile Include="Net\Http\DefaultHttpClientFactory.cs" />
