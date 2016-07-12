@@ -11,6 +11,9 @@ namespace Rock.BackgroundErrorLogging
     {
         private readonly Lazy<Action<BackgroundErrorLog>> _logAction;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="WindowsEventLogBackgroundErrorLogger"/> class.
+        /// </summary>
         public WindowsEventLogBackgroundErrorLogger()
         {
             _logAction = new Lazy<Action<BackgroundErrorLog>>(() =>
@@ -22,7 +25,7 @@ namespace Rock.BackgroundErrorLogging
                         EventLog.CreateEventSource(Source, LogName);
                     }
 
-                    var eventLog = new EventLog(Source)
+                    var eventLog = new EventLog(LogName)
                     {
                         Source = Source,
                     };
