@@ -15,9 +15,7 @@ namespace Rock.BackgroundErrorLogging
         public void Log(BackgroundErrorLog log)
         {
             Console.Error.WriteLine(log.Format());
-            Console.Error.WriteLine();
             Console.Error.WriteLine("--------------------------------------------------------------------------------");
-            Console.Error.WriteLine();
         }
     }
 }
