@@ -48,6 +48,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ApplicationId.cs" />
+    <Compile Include="BackgroundErrorLogging\BackgroundErrorLogFactory.cs" />
+    <Compile Include="BackgroundErrorLogging\IBackgroundErrorLogFactory.cs" />
     <Compile Include="BackgroundErrorLogging\StandardErrorBackgroundErrorLogger.cs" />
     <Compile Include="BackgroundErrorLogging\WindowsEventLogBackgroundErrorLogger.cs" />
     <Compile Include="Collections\AddSafelyExtension.cs" />

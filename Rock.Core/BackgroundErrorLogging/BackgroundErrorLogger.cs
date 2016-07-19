@@ -12,6 +12,7 @@ namespace Rock.BackgroundErrorLogging
     public static class BackgroundErrorLogger
     {
         private static readonly Semimutable<IBackgroundErrorLogger> _current = new Semimutable<IBackgroundErrorLogger>(GetDefaultBackgroundErrorLogger, true);
+        private static readonly Semimutable<IBackgroundErrorLogFactory> _backgroundErrorLogFactory = new Semimutable<IBackgroundErrorLogFactory>(new BackgroundErrorLogFactory(CreateDefaultBackgroundErrorLog), true);
 
         /// <summary>
         /// Gets the current <see cref="IBackgroundErrorLogger"/>.
@@ -19,6 +20,11 @@ namespace Rock.BackgroundErrorLogging
         public static IBackgroundErrorLogger Current
         {
             get { return _current.Value; }
+        }
+
+        public static IBackgroundErrorLogFactory BackgroundErrorLogFactory
+        {
+            get { return _backgroundErrorLogFactory.Value; }
         }
 
         /// <summary>
@@ -30,9 +36,19 @@ namespace Rock.BackgroundErrorLogging
             _current.Value = value ?? GetDefaultBackgroundErrorLogger();
         }
 
+        public static void SetBackgroundErrorLogFactory(IBackgroundErrorLogFactory factory)
+        {
+            _backgroundErrorLogFactory.Value = factory;
+        }
+
         internal static void UnlockCurrent()
         {
             _current.UnlockValue();
+        }
+
+        internal static void UnlockBackgroundErrorLogFactory()
+        {
+            _backgroundErrorLogFactory.UnlockValue();
         }
 
         private static IBackgroundErrorLogger GetDefaultBackgroundErrorLogger()
@@ -57,6 +73,14 @@ namespace Rock.BackgroundErrorLogging
             return new CompositeBackgroundErrorLogger(
                 new StandardErrorBackgroundErrorLogger(),
                 new WindowsEventLogBackgroundErrorLogger());
+        }
+
+        private static BackgroundErrorLog CreateDefaultBackgroundErrorLog(
+            string callerMemberName,
+            string callerFilePath,
+            int callerLineNumber)
+        {
+            return new BackgroundErrorLog(callerMemberName, callerFilePath, callerLineNumber);
         }
 
         /// <summary>
@@ -98,13 +122,14 @@ namespace Rock.BackgroundErrorLogging
             [CallerFilePath] string callerFilePath = null,
             [CallerLineNumber] int callerLineNumber = 0)
         {
-            Log(new BackgroundErrorLog(callerMemberName, callerFilePath, callerLineNumber)
-            {
-                Message = message,
-                Exception = exception,
-                LibraryName = libraryName,
-                AdditionalInformation = additionalInformation
-            });
+            var errorLog = BackgroundErrorLogFactory.Create(callerMemberName, callerFilePath, callerLineNumber);
+
+            errorLog.Message = message;
+            errorLog.Exception = exception;
+            errorLog.LibraryName = libraryName;
+            errorLog.AdditionalInformation = additionalInformation;
+
+            Log(errorLog);
         }
 
         /// <summary>

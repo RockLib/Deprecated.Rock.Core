@@ -21,6 +21,7 @@ namespace Rock.Rock.StaticDependencyInjection
         public override void Bootstrap()
         {
             TryImportFirst<IBackgroundErrorLogger>(BackgroundErrorLogger.SetCurrent);
+            TryImportFirst<IBackgroundErrorLogFactory>(BackgroundErrorLogger.SetBackgroundErrorLogFactory);
             
             TryImportFirst<IApplicationIdProvider>(ApplicationId.SetCurrent);
             
@@ -39,6 +40,7 @@ namespace Rock.Rock.StaticDependencyInjection
             TryImportFirst<ISerializer>(DefaultXmlSerializer.SetCurrent, "XmlSerializer");
 
             BackgroundErrorLogger.UnlockCurrent();
+            BackgroundErrorLogger.UnlockBackgroundErrorLogFactory();
         }
 
         private void TryImportFirst<TTargetType>(
