@@ -20,53 +20,34 @@ namespace Rock.Rock.StaticDependencyInjection
     {
         public override void Bootstrap()
         {
-            TryImportFirst<IBackgroundErrorLogger>(BackgroundErrorLogger.SetCurrent);
-            TryImportFirst<IBackgroundErrorLogFactory>(BackgroundErrorLogger.SetBackgroundErrorLogFactory);
+            ImportFirst<IBackgroundErrorLogger>(BackgroundErrorLogger.SetCurrent);
+            ImportFirst<IBackgroundErrorLogFactory>(BackgroundErrorLogger.SetBackgroundErrorLogFactory);
             
-            TryImportFirst<IApplicationIdProvider>(ApplicationId.SetCurrent);
+            ImportFirst<IApplicationIdProvider>(ApplicationId.SetCurrent);
             
-            TryImportFirst<IResolverConstructorSelector>(AutoContainer.SetDefaultResolverConstructorSelector);
+            ImportFirst<IResolverConstructorSelector>(AutoContainer.SetDefaultResolverConstructorSelector);
             
-            TryImportFirst<IConvertsTo<IDictionary<string, string>>>(ToDictionaryOfStringToStringExtension.SetConverter);
-            TryImportFirst<IConvertsTo<ExpandoObject>>(ToExpandoObjectExtension.SetConverter);
+            ImportFirst<IConvertsTo<IDictionary<string, string>>>(ToDictionaryOfStringToStringExtension.SetConverter);
+            ImportFirst<IConvertsTo<ExpandoObject>>(ToExpandoObjectExtension.SetConverter);
             
-            TryImportFirst<IKeyValueStore>(TempStorage.SetKeyValueStore, "TempStorage");
+            ImportFirst<IKeyValueStore>(TempStorage.SetKeyValueStore, "TempStorage");
             
-            TryImportFirst<ISerializer>(DefaultBinarySerializer.SetCurrent, "BinarySerializer");
-            TryImportFirst<IEndpointDetector>(DefaultEndpointDetector.SetCurrent);
-            TryImportFirst<IEndpointSelector>(DefaultEndpointSelector.SetCurrent);
-            TryImportFirst<IHttpClientFactory>(DefaultHttpClientFactory.SetCurrent);
-            TryImportFirst<ISerializer>(DefaultJsonSerializer.SetCurrent, "JsonSerializer");
-            TryImportFirst<ISerializer>(DefaultXmlSerializer.SetCurrent, "XmlSerializer");
+            ImportFirst<ISerializer>(DefaultBinarySerializer.SetCurrent, "BinarySerializer");
+            ImportFirst<IEndpointDetector>(DefaultEndpointDetector.SetCurrent);
+            ImportFirst<IEndpointSelector>(DefaultEndpointSelector.SetCurrent);
+            ImportFirst<IHttpClientFactory>(DefaultHttpClientFactory.SetCurrent);
+            ImportFirst<ISerializer>(DefaultJsonSerializer.SetCurrent, "JsonSerializer");
+            ImportFirst<ISerializer>(DefaultXmlSerializer.SetCurrent, "XmlSerializer");
 
             BackgroundErrorLogger.UnlockCurrent();
             BackgroundErrorLogger.UnlockBackgroundErrorLogFactory();
         }
 
-        private void TryImportFirst<TTargetType>(
-            Action<TTargetType> importAction,
-            string importName = null,
-            ImportOptions options = null)
-            where TTargetType : class
+        protected override void OnError(string message, Exception exception, ImportInfo import)
         {
-            try
-            {
-                ImportFirst(importAction, importName, options);
-            }
-            catch (Exception ex)
-            {
-                BackgroundErrorLogger.Log(ex, "Exception caught in static dependency injection.", "Rock.Core");
+            BackgroundErrorLogger.Log(exception, message, "Rock.Core", import.ToString());
 
-                var message =
-                    string.Format(
-                        "Error while importing type '{0}'.{1}",
-                        typeof(TTargetType),
-                        importName != null
-                            ? string.Format(" Import name: {0}.", importName)
-                            : "");
-
-                throw new InvalidOperationException(message, ex);
-            }
+            base.OnError(message, exception, import);
         }
 
         /// <summary>
