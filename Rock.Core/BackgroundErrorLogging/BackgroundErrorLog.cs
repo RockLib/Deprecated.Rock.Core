@@ -10,6 +10,7 @@ namespace Rock.BackgroundErrorLogging
     /// </summary>
     public class BackgroundErrorLog
     {
+        // ReSharper disable ExplicitCallerInfoArgument
         /// <summary>
         /// Initializes a new instance of the <see cref="BackgroundErrorLog"/> class. The <see cref="CreateTime"/>
         /// property is initialized as <see cref="DateTime.UtcNow"/>.
@@ -21,8 +22,28 @@ namespace Rock.BackgroundErrorLogging
             [CallerMemberName] string callerMemberName = null,
             [CallerFilePath] string callerFilePath = null,
             [CallerLineNumber] int callerLineNumber = 0)
+            : this(() => DateTime.UtcNow, callerMemberName, callerFilePath, callerLineNumber)
         {
-            CreateTime = DateTime.UtcNow;
+        }
+        // ReSharper restore ExplicitCallerInfoArgument
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="BackgroundErrorLog"/> class. The <see cref="CreateTime"/>
+        /// property is initialized as the value returned by the <paramref name="getNow"/> function.
+        /// </summary>
+        /// <param name="getNow">A function that returns a <see cref="DateTime"/> representing "now".</param>
+        /// <param name="callerMemberName">The method or property name of the caller to a background error logger method.</param>
+        /// <param name="callerFilePath">The full path of the source file that contains the caller to a background error logger method.</param>
+        /// <param name="callerLineNumber">The line number in the source file at which a background error logger method is called.</param>
+        public BackgroundErrorLog(
+            Func<DateTime> getNow,
+            [CallerMemberName] string callerMemberName = null,
+            [CallerFilePath] string callerFilePath = null,
+            [CallerLineNumber] int callerLineNumber = 0)
+        {
+            if (getNow == null) throw new ArgumentNullException("getNow");
+
+            CreateTime = getNow();
             CallerMemberName = callerMemberName;
             CallerFilePath = callerFilePath;
             CallerLineNumber = callerLineNumber;
