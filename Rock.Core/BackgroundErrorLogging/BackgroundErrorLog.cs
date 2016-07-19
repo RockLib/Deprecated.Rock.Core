@@ -10,6 +10,8 @@ namespace Rock.BackgroundErrorLogging
     /// </summary>
     public class BackgroundErrorLog
     {
+        private string _dateTimeFormat;
+
         // ReSharper disable ExplicitCallerInfoArgument
         /// <summary>
         /// Initializes a new instance of the <see cref="BackgroundErrorLog"/> class. The <see cref="CreateTime"/>
@@ -47,6 +49,8 @@ namespace Rock.BackgroundErrorLogging
             CallerMemberName = callerMemberName;
             CallerFilePath = callerFilePath;
             CallerLineNumber = callerLineNumber;
+
+            _dateTimeFormat = "yyyy'-'MM'-'dd HH':'mm':'ss'.'fffK";
         }
 
         /// <summary>
@@ -84,6 +88,18 @@ namespace Rock.BackgroundErrorLogging
         /// </summary>
         public int CallerLineNumber { get; set; }
 
+        /// <summary>
+        /// Sets the <see cref="DateTime"/> format used to convert <see cref="CreateTime"/> to a string.
+        /// This value is used by the <see cref="Format"/> method.
+        /// </summary>
+        /// <param name="format">A <see cref="DateTime"/> format string.</param>
+        public void SetDateTimeFormat(string format)
+        {
+            if (format == null) throw new ArgumentNullException("format");
+
+            _dateTimeFormat = format;
+        }
+
         public virtual string Format()
         {
             var sb = new StringBuilder();
@@ -103,7 +119,7 @@ namespace Rock.BackgroundErrorLogging
                 message = null;
             }
 
-            sb.AppendFormat("ERROR: {0:O} {1}", CreateTime, LibraryName).AppendLine();
+            sb.AppendFormat("ERROR: {0} {1}", CreateTime.ToString(_dateTimeFormat), LibraryName).AppendLine();
 
             if (message != null)
             {
