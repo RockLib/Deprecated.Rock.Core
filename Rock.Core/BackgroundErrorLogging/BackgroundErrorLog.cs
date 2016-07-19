@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using Rock.StringFormatting;
@@ -109,38 +110,59 @@ namespace Rock.BackgroundErrorLogging
         {
             var sb = new StringBuilder();
 
-            string message;
+            sb.Append(CreateTime.ToString(_dateTimeFormat));
+
+            if (LibraryName != null)
+            {
+                sb.AppendFormat(" [{0}]", LibraryName);
+            }
 
             if (Message != null)
             {
-                message = Message;
-            }
-            else if (Exception != null)
-            {
-                message = Exception.Message;
-            }
-            else
-            {
-                message = null;
-            }
-
-            sb.AppendFormat("ERROR: {0} {1}", CreateTime.ToString(_dateTimeFormat), LibraryName).AppendLine();
-
-            if (message != null)
-            {
-                sb.AppendFormat("    {0}", message).AppendLine();
+                if (Message.Contains('\n'))
+                {
+                    sb.AppendLine()
+                        .AppendLine("Message:")
+                        .Append(Message.BlockIndent("   "));
+                }
+                else
+                {
+                    sb.AppendLine()
+                        .Append("Message: ")
+                        .Append(Message);
+                }
             }
 
-            sb.AppendFormat("    {0}:{1}({2})", CallerFilePath, CallerMemberName, CallerLineNumber);
+            sb.AppendLine()
+                .Append("Call Site: ")
+                .Append(CallerFilePath)
+                .Append(':')
+                .Append(CallerMemberName)
+                .Append('(')
+                .Append(CallerLineNumber)
+                .Append(')');
 
             if (Exception != null)
             {
-                sb.AppendLine().Append(Exception.FormatToString());
+                sb.AppendLine()
+                    .AppendLine("Exception:")
+                    .Append(Exception.FormatToString().BlockIndent("   "));
             }
 
             if (AdditionalInformation != null)
             {
-                sb.AppendLine().Append(AdditionalInformation);
+                if (AdditionalInformation.Contains('\n'))
+                {
+                    sb.AppendLine()
+                        .AppendLine("Additional Information:")
+                        .Append(AdditionalInformation.BlockIndent("   "));
+                }
+                else
+                {
+                    sb.AppendLine()
+                        .Append("Additional Information: ")
+                        .Append(AdditionalInformation);
+                }
             }
 
             return sb.ToString();
