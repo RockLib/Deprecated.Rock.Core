@@ -64,25 +64,28 @@ namespace Rock.BackgroundErrorLogging
         /// </summary>
         /// <param name="message">A message describing the background error.</param>
         /// <param name="libraryName">The name of the library that is logging the error.</param>
+        /// <param name="additionalInformation">Additional information about the error.</param>
         /// <param name="callerMemberName">Do not provide a value for this parameter.</param>
         /// <param name="callerFilePath">Do not provide a value for this parameter.</param>
         /// <param name="callerLineNumber">Do not provide a value for this parameter.</param>
         public static void Log(
             string message,
             string libraryName = null,
+            string additionalInformation = null,
             [CallerMemberName] string callerMemberName = null,
             [CallerFilePath] string callerFilePath = null,
             [CallerLineNumber] int callerLineNumber = 0)
         {
-            Log(null, message, libraryName, callerMemberName, callerFilePath, callerLineNumber);
+            Log(null, message, libraryName, additionalInformation, callerMemberName, callerFilePath, callerLineNumber);
         }
 
         /// <summary>
         /// Logs the specified background error message.
         /// </summary>
         /// <param name="exception">The background error.</param>
-        /// <param name="message">An optional message.</param>
+        /// <param name="message">A message describing the background error.</param>
         /// <param name="libraryName">The name of the library that is logging the error.</param>
+        /// <param name="additionalInformation">Additional information about the error.</param>
         /// <param name="callerMemberName">Do not provide a value for this parameter.</param>
         /// <param name="callerFilePath">Do not provide a value for this parameter.</param>
         /// <param name="callerLineNumber">Do not provide a value for this parameter.</param>
@@ -90,6 +93,7 @@ namespace Rock.BackgroundErrorLogging
             Exception exception,
             string message = null,
             string libraryName = null,
+            string additionalInformation = null,
             [CallerMemberName] string callerMemberName = null,
             [CallerFilePath] string callerFilePath = null,
             [CallerLineNumber] int callerLineNumber = 0)
@@ -98,7 +102,8 @@ namespace Rock.BackgroundErrorLogging
             {
                 Message = message,
                 Exception = exception,
-                LibraryName = libraryName
+                LibraryName = libraryName,
+                AdditionalInformation = additionalInformation
             });
         }
 

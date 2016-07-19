@@ -74,6 +74,11 @@ namespace Rock.BackgroundErrorLogging
         public Exception Exception { get; set; }
 
         /// <summary>
+        /// Gets or sets additional information about the error log.
+        /// </summary>
+        public string AdditionalInformation { get; set; }
+
+        /// <summary>
         /// Gets or sets the method or property name where the error log originated.
         /// </summary>
         public string CallerMemberName { get; set; }
@@ -131,6 +136,11 @@ namespace Rock.BackgroundErrorLogging
             if (Exception != null)
             {
                 sb.AppendLine().Append(Exception.FormatToString());
+            }
+
+            if (AdditionalInformation != null)
+            {
+                sb.AppendLine().Append(AdditionalInformation);
             }
 
             return sb.ToString();
