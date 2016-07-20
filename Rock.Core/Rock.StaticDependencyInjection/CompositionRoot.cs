@@ -45,7 +45,7 @@ namespace Rock.Rock.StaticDependencyInjection
 
         protected override void OnError(string message, Exception exception, ImportInfo import)
         {
-            BackgroundErrorLogger.Log(exception, message, "Rock.Core", import.ToString());
+            BackgroundErrorLogger.Log(exception, "Static Dependency Injection - " + message, "Rock.Core", "ImportInfo:\r\n" + import);
 
             base.OnError(message, exception, import);
         }
