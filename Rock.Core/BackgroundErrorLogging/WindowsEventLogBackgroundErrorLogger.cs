@@ -46,6 +46,12 @@ namespace Rock.BackgroundErrorLogging
         /// </summary>
         protected virtual string Source
         {
+            // We need a good default value for the event log source - one that should
+            // "always exist". Unless an application is running as Administrator, when
+            // a source does not exist, a call to EventLog.SourceExists will throw a
+            // SecurityException. We want to avoid this. Since whatever is running this
+            // code *is* a .NET application (obviously), the ".NET Runtime" source
+            // *should* exist.
             get { return ".NET Runtime"; }
         }
 
@@ -55,6 +61,7 @@ namespace Rock.BackgroundErrorLogging
         /// </summary>
         protected virtual string LogName
         {
+            // The ".NET Runtime" source exists in the "Application" log.
             get { return "Application"; }
         }
 
