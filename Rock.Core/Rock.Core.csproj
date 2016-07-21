@@ -48,6 +48,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ApplicationId.cs" />
+    <Compile Include="BackgroundErrorLogging\BackgroundErrorLogFactory.cs" />
+    <Compile Include="BackgroundErrorLogging\IBackgroundErrorLogFactory.cs" />
+    <Compile Include="BackgroundErrorLogging\StandardErrorBackgroundErrorLogger.cs" />
+    <Compile Include="BackgroundErrorLogging\WindowsEventLogBackgroundErrorLogger.cs" />
     <Compile Include="Collections\AddSafelyExtension.cs" />
     <Compile Include="Collections\ForEachExtension.cs" />
     <Compile Include="Collections\SerializableDictionary.cs" />
@@ -75,6 +79,12 @@
     <Compile Include="Extensions\String\StringExtensions.cs" />
     <Compile Include="Extensions\DateTime\TimeSection.cs" />
     <Compile Include="Extensions\DateTime\ToUnixTimestampExtension.cs" />
+    <Compile Include="BackgroundErrorLogging\CompositeBackgroundErrorLogger.cs" />
+    <Compile Include="BackgroundErrorLogging\StandardOutBackgroundErrorLogger.cs" />
+    <Compile Include="BackgroundErrorLogging\IBackgroundErrorLogger.cs" />
+    <Compile Include="BackgroundErrorLogging\BackgroundErrorLogger.cs" />
+    <Compile Include="BackgroundErrorLogging\BackgroundErrorLog.cs" />
+    <Compile Include="BackgroundErrorLogging\NullBackgroundErrorLogger.cs" />
     <Compile Include="Net\EndpointDetector.cs" />
     <Compile Include="Net\EndpointSelector.cs" />
     <Compile Include="Net\Http\HttpClientFactory.cs" />
@@ -177,7 +187,7 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="InjectModuleInitializer" AfterTargets="AfterBuild" Condition="'$(UseInjectModuleInitializer)' == 'true'">
-    <Exec Command="..\packages\Rock.StaticDependencyInjection.1.1.6\tools\InjectModuleInitializer.exe &quot;$(TargetPath)&quot;" />
+    <Exec Command="..\packages\Rock.StaticDependencyInjection.1.1.7\tools\InjectModuleInitializer.exe &quot;$(TargetPath)&quot;" />
   </Target>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
