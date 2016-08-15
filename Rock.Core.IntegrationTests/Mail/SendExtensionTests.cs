@@ -10,6 +10,82 @@ namespace SendExtensionsTests
 {
     public class SendExtensionTests
     {
+        public class TheSendAsyncExtensionMethod
+        {
+            private MailMessage _mailMessage;
+
+            [SetUp]
+            public void Setup()
+            {
+                _mailMessage = new MailMessage(
+                    "brian.friesen@gmail.com",
+                    "brianfriesen@quickenloans.com",
+                    "Hello, World!",
+                    "Such hello. Very world.");
+            }
+
+            [Test]
+            public async void UsesTheDeliveryMethodSpecifiedInConfigurationWhenNoDeliveryMethodParameterIsSpecified()
+            {
+                string mailData;
+
+                using (var server = LocalMailServer.StartNew(7777)) // port 7777 defined in app.config
+                {
+                    await _mailMessage.SendAsync();
+
+                    mailData = await server.GetMailDataAsync();
+                }
+
+                Assert.That(mailData.Contains("Hello, World!"));
+            }
+
+            [Test]
+            public async void UsesTheDeliveryMethodSpecifiedInConfigurationWhenTheDefaultDeliveryMethodIsSpecified()
+            {
+                string mailData;
+
+                using (var server = LocalMailServer.StartNew(7777)) // port 7777 defined in app.config
+                {
+                    await _mailMessage.SendAsync(DeliveryMethod.Default);
+
+                    mailData = await server.GetMailDataAsync();
+                }
+
+                Assert.That(mailData.Contains("Hello, World!"));
+            }
+
+            [Test]
+            public async void UsesTheNetworkDeliveryMethodWhenSpecified()
+            {
+                string mailData;
+
+                using (var server = LocalMailServer.StartNew(7778))
+                {
+                    await _mailMessage.SendAsync(DeliveryMethod.Network("localhost", 7778));
+
+                    mailData = await server.GetMailDataAsync();
+                }
+
+                Assert.That(mailData.Contains("Hello, World!"));
+            }
+
+            [Test]
+            public async void UsesTheSpecifiedPickupDirectoryDeliveryMethodWhenSpecified()
+            {
+                var dir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+                Directory.CreateDirectory(dir);
+
+                Assume.That(Directory.GetFiles(dir), Is.Empty);
+
+                await _mailMessage.SendAsync(DeliveryMethod.SpecifiedPickupDirectory(dir));
+
+                Assert.That(Directory.GetFiles(dir), Is.Not.Empty);
+
+                // Cleanup
+                Directory.Delete(dir, true);
+            }
+        }
+
         public class TheSendExtensionMethod
         {
             private MailMessage _mailMessage;
@@ -25,45 +101,45 @@ namespace SendExtensionsTests
             }
 
             [Test]
-            public void UsesTheDeliveryMethodSpecifiedInConfigurationWhenNoDeliveryMethodParameterIsSpecified()
+            public async void UsesTheDeliveryMethodSpecifiedInConfigurationWhenNoDeliveryMethodParameterIsSpecified()
             {
                 string mailData;
 
                 using (var server = LocalMailServer.StartNew(7777)) // port 7777 defined in app.config
                 {
-                    _mailMessage.SendAsync().Wait();
+                    _mailMessage.Send();
 
-                    mailData = server.GetMailData().Result;
+                    mailData = await server.GetMailDataAsync();
                 }
 
                 Assert.That(mailData.Contains("Hello, World!"));
             }
 
             [Test]
-            public void UsesTheDeliveryMethodSpecifiedInConfigurationWhenTheDefaultDeliveryMethodIsSpecified()
+            public async void UsesTheDeliveryMethodSpecifiedInConfigurationWhenTheDefaultDeliveryMethodIsSpecified()
             {
                 string mailData;
 
                 using (var server = LocalMailServer.StartNew(7777)) // port 7777 defined in app.config
                 {
-                    _mailMessage.SendAsync(DeliveryMethod.Default).Wait();
+                    _mailMessage.Send(DeliveryMethod.Default);
 
-                    mailData = server.GetMailData().Result;
+                    mailData = await server.GetMailDataAsync();
                 }
 
                 Assert.That(mailData.Contains("Hello, World!"));
             }
 
             [Test]
-            public void UsesTheNetworkDeliveryMethodWhenSpecified()
+            public async void UsesTheNetworkDeliveryMethodWhenSpecified()
             {
                 string mailData;
 
                 using (var server = LocalMailServer.StartNew(7778))
                 {
-                    _mailMessage.SendAsync(DeliveryMethod.Network("localhost", 7778)).Wait();
+                    _mailMessage.Send(DeliveryMethod.Network("localhost", 7778));
 
-                    mailData = server.GetMailData().Result;
+                    mailData = await server.GetMailDataAsync();
                 }
 
                 Assert.That(mailData.Contains("Hello, World!"));
@@ -75,9 +151,9 @@ namespace SendExtensionsTests
                 var dir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
                 Directory.CreateDirectory(dir);
 
-                Assert.That(Directory.GetFiles(dir), Is.Empty);
+                Assume.That(Directory.GetFiles(dir), Is.Empty);
 
-                _mailMessage.SendAsync(DeliveryMethod.SpecifiedPickupDirectory(dir)).Wait();
+                _mailMessage.Send(DeliveryMethod.SpecifiedPickupDirectory(dir));
 
                 Assert.That(Directory.GetFiles(dir), Is.Not.Empty);
 

@@ -31,7 +31,7 @@ namespace Rock.Core.IntegrationTests.Mail
             get { return _server.Port; }
         }
 
-        public Task<string> GetMailData(int timeoutMilliseconds = 30000)
+        public Task<string> GetMailDataAsync(int timeoutMilliseconds = 30000)
         {
             StartTimeoutTimer(timeoutMilliseconds);
 
