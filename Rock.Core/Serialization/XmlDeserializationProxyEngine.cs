@@ -224,10 +224,10 @@ namespace Rock.Serialization
         {
             var properties =
                 _proxyInstance.GetType().GetProperties()
-                    .Where(
-                        p =>
-                            (_baseClassType == null || p.DeclaringType != _baseClassType) &&
-                            p.Name.Equals(name, StringComparison.OrdinalIgnoreCase) && p.PropertyType == type)
+                    .Where(p =>
+                            (_baseClassType == null || p.DeclaringType != _baseClassType)
+                            && p.Name.Equals(name, StringComparison.OrdinalIgnoreCase)
+                            && p.PropertyType == type)
                     .OrderBy(p => p.Name, new CaseSensitiveEqualityFirstAsComparedTo(name));
 
             foreach (var property in properties)

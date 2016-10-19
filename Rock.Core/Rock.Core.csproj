@@ -62,6 +62,7 @@
     <Compile Include="Compression\GZipDecompressor.cs" />
     <Compile Include="Compression\ICompressor.cs" />
     <Compile Include="Compression\IDecompressor.cs" />
+    <Compile Include="Configuration\LateBoundConfigurationElement.cs" />
     <Compile Include="Cryptography\HashType.cs" />
     <Compile Include="Cryptography\HashTypeExtensions.cs" />
     <Compile Include="DefaultApplicationIdProvider.cs" />
