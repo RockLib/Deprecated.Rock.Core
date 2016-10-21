@@ -14,12 +14,14 @@ namespace Rock.Serialization
 {
     internal class XmlDeserializationProxyEngine<TTarget>
     {
+        private const BindingFlags PublicInstance = BindingFlags.Public | BindingFlags.Instance;
+
         // ReSharper disable once StaticFieldInGenericType
         private static readonly Regex _enumFlagsRegex = new Regex(@"(?:\s*\|\s*)|(?:\s+or\s+)",
             RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
         private readonly object _proxyInstance;
-        private readonly Lazy<Type> _type;
+        private readonly Lazy<Type> _concreteTargetType;
         private readonly Type _baseClassType;
         private XmlAttribute[] _additionalXmlAttributes = new XmlAttribute[0];
         private XmlElement[] _additionalXmlElements = new XmlElement[0];
@@ -39,7 +41,7 @@ namespace Rock.Serialization
             }
 
             _proxyInstance = proxyInstance;
-            _type = new Lazy<Type>(() => Type.GetType(TypeAssemblyQualifiedName, true));
+            _concreteTargetType = new Lazy<Type>(() => Type.GetType(TypeAssemblyQualifiedName, true));
             _baseClassType = baseClassType;
             TypeAssemblyQualifiedName =
                 defaultType != null
@@ -71,24 +73,47 @@ namespace Rock.Serialization
             get { return _additionalXElements; }
         }
 
-        public IEnumerable<XObject> AllAdditionalNodes
+        public TTarget CreateInstance(IResolver resolver)
         {
-            get
+            var targetCreationScenario = GetTargetCreationScenario(GetConcreteTargetType(), resolver);
+            var args = CreateConstructorArgs(targetCreationScenario.Parameters, resolver);
+            var targetInstance = targetCreationScenario.Constructor.Invoke(args);
+
+            foreach (var targetMember in targetCreationScenario.Members)
             {
-                return AdditionalXAttributes.Cast<XObject>()
-                    .Concat(AdditionalXmlAttributes.Select(x => new XAttribute(XName.Get(x.LocalName, x.NamespaceURI), x.Value)))
-                    .Concat(AdditionalXElements)
-                    .Concat(AdditionalXmlElements.Select(x => XElement.Load(x.CreateNavigator().ReadSubtree())));
+                SetTargetMemberValue(targetInstance, targetMember);
+            }
+
+            return (TTarget)targetInstance;
+        }
+
+        private void SetTargetMemberValue(object targetInstance, MemberInfo targetMember)
+        {
+            object targetMemberValue;
+
+            var targetProperty = targetMember as PropertyInfo;
+            if (targetProperty != null)
+            {
+                if (TryGetTargetMemberValue(targetProperty.Name, targetProperty.PropertyType, out targetMemberValue))
+                {
+                    targetProperty.SetValue(targetInstance, targetMemberValue);
+                }
+            }
+            else
+            {
+                var targetField = (FieldInfo)targetMember;
+                if (TryGetTargetMemberValue(targetField.Name, targetField.FieldType, out targetMemberValue))
+                {
+                    targetField.SetValue(targetInstance, targetMemberValue);
+                }
             }
         }
 
-        public TTarget CreateInstance(IResolver resolver)
+        private Type GetConcreteTargetType()
         {
-            Type type;
-
             try
             {
-                type = _type.Value;
+                return _concreteTargetType.Value;
             }
             catch (Exception ex)
             {
@@ -101,22 +126,6 @@ namespace Rock.Serialization
                     "The value provided for the required 'type' attribute, '{0}', is not a valid assembly-qualified type name.",
                     TypeAssemblyQualifiedName), ex);
             }
-
-            var creationScenario = GetCreationScenario(type, resolver);
-            var args = CreateArgs(creationScenario.Parameters, resolver);
-            var instance = creationScenario.Constructor.Invoke(args);
-
-            foreach (var property in creationScenario.Properties)
-            {
-                object value;
-
-                if (TryGetValueForInstance(property.Name, property.PropertyType, out value))
-                {
-                    property.SetValue(instance, value, null);
-                }
-            }
-
-            return (TTarget)instance;
         }
 
         private static void ThrowIfNotAssignableToT(Type type)
@@ -130,18 +139,18 @@ namespace Rock.Serialization
             }
         }
 
-        private CreationScenario GetCreationScenario(Type type, IResolver resolver)
+        private TargetCreationScenario GetTargetCreationScenario(Type concreteTargetType, IResolver resolver)
         {
-            return new CreationScenario(GetConstructor(type, resolver), type);
+            return new TargetCreationScenario(GetConstructor(concreteTargetType, resolver), concreteTargetType);
         }
 
-        private ConstructorInfo GetConstructor(Type type, IResolver resolver)
+        private ConstructorInfo GetConstructor(Type concreteTargetType, IResolver resolver)
         {
             // The constructor with the most resolvable parameters wins.
             // If tied, the constructor with fewest parameters wins.
 
             return
-                (from ctor in type.GetConstructors()
+                (from ctor in concreteTargetType.GetConstructors()
                  let parameters = ctor.GetParameters()
                  orderby
                          parameters.Count(p => CanResolveParameterValue(p, resolver)) descending,
@@ -152,15 +161,15 @@ namespace Rock.Serialization
         /// <summary>
         /// Returns true if a value for the parameter exists in the xml.
         /// </summary>
-        private bool CanResolveParameterValue(ParameterInfo parameter, IResolver resolver)
+        private bool CanResolveParameterValue(ParameterInfo targetParameter, IResolver resolver)
         {
             object dummy;
-            if (TryGetValueForInstance(parameter.Name, parameter.ParameterType, out dummy))
+            if (TryGetTargetMemberValue(targetParameter.Name, targetParameter.ParameterType, out dummy))
             {
                 return true;
             }
 
-            if (resolver != null && resolver.CanGet(parameter.ParameterType))
+            if (resolver != null && resolver.CanGet(targetParameter.ParameterType))
             {
                 return true;
             }
@@ -168,144 +177,119 @@ namespace Rock.Serialization
             return false;
         }
 
-        private object[] CreateArgs(IEnumerable<ParameterInfo> parameters, IResolver resolver)
+        private object[] CreateConstructorArgs(
+            IEnumerable<ParameterInfo> targetConstructorParameters, IResolver resolver)
         {
-            var argsList = new List<object>();
-
-            foreach (var parameter in parameters)
+            return targetConstructorParameters.Select(parameter =>
             {
                 object argValue;
-
-                if (TryGetValueForInstance(parameter.Name, parameter.ParameterType, out argValue))
-                {
-                    argsList.Add(argValue);
-                }
-                else if (resolver != null && resolver.CanGet(parameter.ParameterType))
-                {
-                    argsList.Add(resolver.Get(parameter.ParameterType));
-                }
-                else
-                {
-                    var hasDefaultValue = (parameter.Attributes & ParameterAttributes.HasDefault) ==
-                                          ParameterAttributes.HasDefault;
-
-                    argsList.Add(hasDefaultValue ? parameter.DefaultValue : null);
-                }
-            }
-
-            return argsList.ToArray();
+                if (TryGetTargetMemberValue(parameter.Name, parameter.ParameterType, out argValue))
+                    return argValue;
+                if (resolver != null && resolver.CanGet(parameter.ParameterType))
+                    return resolver.Get(parameter.ParameterType);
+                return parameter.HasDefaultValue ? parameter.DefaultValue : null;
+            }).ToArray();
         }
 
-        private bool TryGetValueForInstance(string name, Type type, out object value)
+        private bool TryGetTargetMemberValue(
+            string targetMemberName, Type targetMemberType, out object targetMemberValue)
         {
-            if (TryGetProxyPropertyValue(name, type, out value))
+            var valueFactories =
+                GetMatchingProxyProperties(targetMemberName, targetMemberType)
+                    .Concat(GetMatchingProxyFields(targetMemberName, targetMemberType))
+                    .Concat(GetMatchingAdditionalAttributes(targetMemberName, targetMemberType))
+                    .Concat(GetMatchingAdditionalElements(targetMemberName, targetMemberType))
+                .OrderBy(valueFactory => valueFactory.Name, new CaseSensitiveEqualityFirstAsComparedTo(targetMemberName))
+                .ThenBy(valueFactory => valueFactory.Source); // AdditionalNode first, ProxyMember last.
+
+            foreach (var valueFactory in valueFactories)
             {
-                if (value == null)
+                if (valueFactory.TryGetValue(out targetMemberValue))
                 {
-                    object additionalValue;
-                    if (TryGetAdditionalValue(name, type, out additionalValue))
-                    {
-                        value = additionalValue;
-                    }
+                    return true;
                 }
-
-                return true;
             }
 
-            if (TryGetAdditionalValue(name, type, out value))
-            {
-                return true;
-            }
-
+            targetMemberValue = null;
             return false;
         }
 
-        private bool TryGetProxyPropertyValue(string name, Type type, out object value)
+        private IEnumerable<ValueFactory> GetMatchingAdditionalAttributes(
+            string targetMemberName, Type targetMemberType)
         {
-            var properties =
-                _proxyInstance.GetType().GetProperties()
-                    .Where(p =>
-                            (_baseClassType == null || p.DeclaringType != _baseClassType)
-                            && p.Name.Equals(name, StringComparison.OrdinalIgnoreCase)
-                            && p.PropertyType == type)
-                    .OrderBy(p => p.Name, new CaseSensitiveEqualityFirstAsComparedTo(name));
-
-            foreach (var property in properties)
-            {
-                try
-                {
-                    value = property.GetValue(_proxyInstance, null);
-
-                    if (value != null)
-                    {
-                        return true;
-                    }
-                } // ReSharper disable once EmptyGeneralCatchClause
-                catch
-                {
-                }
-            }
-
-            value = null;
-            return false;
+            return GetAllAdditionalAttributes()
+                .Where(attribute => AreMatchingNames(attribute.Name.LocalName, targetMemberName))
+                .Select(attribute => new ValueFactory(attribute.Name.LocalName, ValueSource.AdditionalNode,
+                    (out object value) => TryConvert(attribute.Value, targetMemberType, out value)));
         }
 
-        private bool TryGetAdditionalValue(string name, Type type, out object value)
+        private IEnumerable<ValueFactory> GetMatchingAdditionalElements(
+            string targetMemberName, Type targetMemberType)
         {
-            foreach (var additionalNode in GetAdditionalNodes(name))
-            {
-                var additionalElement = additionalNode as XElement;
-
-                if (additionalElement != null)
-                {
-                    if (TryGetElementValue(additionalElement, type, out value))
-                    {
-                        return true;
-                    }
-                }
-                else
-                {
-                    var additionalAttribute = (XAttribute)additionalNode;
-
-                    if (TryConvert(additionalAttribute.Value, type, out value))
-                    {
-                        return true;
-                    }
-                }
-            }
-
-            value = null;
-            return false;
+            return GetAllAdditionalElements()
+                .Where(element => AreMatchingNames(element.Name.LocalName, targetMemberName))
+                .Select(element => new ValueFactory(element.Name.LocalName, ValueSource.AdditionalNode,
+                    (out object value) => TryGetElementValue(element, targetMemberType, out value)));
         }
 
-        private IEnumerable<XObject> GetAdditionalNodes(string name)
+        private IEnumerable<XAttribute> GetAllAdditionalAttributes()
         {
-            var additionalNodes = AllAdditionalNodes
-                .Where(x => GetName(x).Equals(name, StringComparison.OrdinalIgnoreCase))
-                .OrderBy(GetName, new CaseSensitiveEqualityFirstAsComparedTo(name))
-                .ThenBy(x => x, new ElementsBeforeAttributes());
-
-            return additionalNodes;
+            return AdditionalXAttributes.Concat(
+                AdditionalXmlAttributes.Select(x =>
+                    new XAttribute(XName.Get(x.LocalName, x.NamespaceURI), x.Value)));
         }
 
-        private static string GetName(XObject xObject)
+        private IEnumerable<XElement> GetAllAdditionalElements()
         {
-            var xElement = xObject as XElement;
-            if (xElement != null)
-            {
-                return xElement.Name.ToString();
-            }
-
-            var xAttribute = xObject as XAttribute;
-            if (xAttribute != null)
-            {
-                return xAttribute.Name.ToString();
-            }
-
-            return null;
+            return AdditionalXElements.Concat(
+                AdditionalXmlElements.Select(x =>
+                    XElement.Load(x.CreateNavigator().ReadSubtree())));
         }
 
-        private static bool TryGetElementValue(XElement additionalElement, Type type, out object value)
+        private IEnumerable<ValueFactory> GetMatchingProxyProperties(
+            string targetMemberName, Type targetMemberType)
+        {
+            return GetMatchingProxyMembers(targetMemberName, targetMemberType,
+                type => type.GetProperties(PublicInstance).Where(p => p.CanRead && p.GetGetMethod(true).IsPublic),
+                property => property.PropertyType,
+                property => property.GetValue(_proxyInstance));
+        }
+
+        private IEnumerable<ValueFactory> GetMatchingProxyFields(
+            string targetMemberName, Type targetMemberType)
+        {
+            return GetMatchingProxyMembers(targetMemberName, targetMemberType,
+                type => type.GetFields(PublicInstance),
+                field => field.FieldType,
+                field => field.GetValue(_proxyInstance));
+        }
+
+        private IEnumerable<ValueFactory> GetMatchingProxyMembers<TMemberInfo>(
+            string targetMemberName, Type targetMemberType,
+            Func<Type, IEnumerable<TMemberInfo>> getAllProxyMembers,
+            Func<TMemberInfo, Type> getProxyMemberType,
+            Func<TMemberInfo, object> getProxyMemberValue)
+            where TMemberInfo : MemberInfo
+        {
+            return getAllProxyMembers(_proxyInstance.GetType())
+                .Where(proxyMember =>
+                    (_baseClassType == null || getProxyMemberType(proxyMember) != _baseClassType)
+                    && AreMatchingNames(proxyMember.Name, targetMemberName)
+                    && getProxyMemberType(proxyMember) == targetMemberType)
+                    .Select(m => new ValueFactory(m.Name, ValueSource.ProxyMember,
+                        () => getProxyMemberValue(m)));
+        }
+
+        private static bool AreMatchingNames(string lhs, string rhs)
+        {
+            return lhs == rhs
+                || (lhs.Length == rhs.Length
+                    && char.ToLower(lhs[0]) == char.ToLower(rhs[0])
+                    && lhs.Substring(1, lhs.Length - 1) == rhs.Substring(1, rhs.Length - 1));
+        }
+
+        private static bool TryGetElementValue(
+            XElement additionalElement, Type targetMemberType, out object value)
         {
             if (!additionalElement.HasAttributes
                 && (!additionalElement.Nodes().Any()
@@ -315,7 +299,7 @@ namespace Rock.Serialization
                 reader.MoveToContent();
                 var innerXml = reader.ReadInnerXml();
 
-                if (TryConvert(innerXml, type, out value))
+                if (TryConvert(innerXml, targetMemberType, out value))
                 {
                     return true;
                 }
@@ -337,19 +321,20 @@ namespace Rock.Serialization
                         if (typeFromAttribute != null)
                         {
                             serializer = new XmlSerializer(typeFromAttribute,
-                                new XmlRootAttribute(additionalElement.Name.ToString()));
+                                new XmlRootAttribute(additionalElement.Name.LocalName));
                         }
                     }
 
                     if (serializer == null)
                     {
-                        if (type.IsInterface || type.IsAbstract)
+                        if (targetMemberType.IsInterface || targetMemberType.IsAbstract)
                         {
                             value = null;
                             return false;
                         }
 
-                        serializer = new XmlSerializer(type, new XmlRootAttribute(additionalElement.Name.ToString()));
+                        serializer = new XmlSerializer(targetMemberType,
+                            new XmlRootAttribute(additionalElement.Name.LocalName));
                     }
 
                     value = serializer.Deserialize(reader);
@@ -388,45 +373,31 @@ namespace Rock.Serialization
             return false;
         }
 
-        private class CreationScenario
+        private class TargetCreationScenario
         {
-            private readonly ConstructorInfo _ctor;
+            private readonly ConstructorInfo _constructor;
             private readonly ParameterInfo[] _parameters;
-            private readonly IEnumerable<PropertyInfo> _properties;
+            private readonly IEnumerable<MemberInfo> _members;
 
-            public CreationScenario(ConstructorInfo ctor, Type type)
+            public TargetCreationScenario(ConstructorInfo constructor, Type concreteTargetType)
             {
-                _ctor = ctor;
-                _parameters = ctor.GetParameters();
+                _constructor = constructor;
+                _parameters = constructor.GetParameters();
 
-                var parameterNames = _parameters.Select(p => p.Name).ToList();
+                Func<MemberInfo, bool> memberNameDoesNotMatchAnyParameterNames = member =>
+                    !_parameters.Any(parameter => AreMatchingNames(member.Name, parameter.Name));
 
-                _properties =
-                    type.GetProperties()
-                        .Where(p =>
-                            p.CanRead
-                            && p.CanWrite
-                            && p.GetGetMethod(true).IsPublic
-                            && p.GetSetMethod(true).IsPublic
-                            &&
-                            parameterNames.All(
-                                parameterName => !parameterName.Equals(p.Name, StringComparison.OrdinalIgnoreCase)));
+                _members =
+                    concreteTargetType.GetProperties(PublicInstance)
+                        .Where(p => p.CanRead && p.CanWrite && p.GetGetMethod(true).IsPublic && p.GetSetMethod(true).IsPublic)
+                    .Concat(concreteTargetType.GetFields(PublicInstance)
+                        .Where(f => !f.IsInitOnly).Cast<MemberInfo>())
+                    .Where(memberNameDoesNotMatchAnyParameterNames);
             }
 
-            public ConstructorInfo Constructor
-            {
-                get { return _ctor; }
-            }
-
-            public IEnumerable<ParameterInfo> Parameters
-            {
-                get { return _parameters; }
-            }
-
-            public IEnumerable<PropertyInfo> Properties
-            {
-                get { return _properties; }
-            }
+            public ConstructorInfo Constructor { get { return _constructor; } }
+            public IEnumerable<ParameterInfo> Parameters { get { return _parameters; } }
+            public IEnumerable<MemberInfo> Members { get { return _members; } }
         }
 
         private class CaseSensitiveEqualityFirstAsComparedTo : IComparer<string>
@@ -440,36 +411,53 @@ namespace Rock.Serialization
 
             public int Compare(string lhs, string rhs)
             {
-                if (string.Equals(lhs, rhs, StringComparison.Ordinal))
-                {
-                    return 0;
-                }
-
-                if (string.Equals(lhs, _nameToMatch, StringComparison.Ordinal))
-                {
-                    return -1;
-                }
-
-                if (string.Equals(rhs, _nameToMatch, StringComparison.Ordinal))
-                {
-                    return 1;
-                }
-
+                if (string.Equals(lhs, rhs, StringComparison.Ordinal)) return 0;
+                if (string.Equals(lhs, _nameToMatch, StringComparison.Ordinal)) return -1;
+                if (string.Equals(rhs, _nameToMatch, StringComparison.Ordinal)) return 1;
                 return 0;
             }
         }
 
-        private class ElementsBeforeAttributes : IComparer<XObject>
+        private class ValueFactory
         {
-            public int Compare(XObject lhs, XObject rhs)
-            {
-                if (lhs is XElement)
-                {
-                    return (rhs is XAttribute) ? -1 : 0;
-                }
+            private readonly string _name;
+            private readonly ValueSource _source;
+            private readonly TryFunc<object> _tryGetValue;
 
-                return (rhs is XElement) ? 1 : 0;
+            public ValueFactory(string name, ValueSource source, Func<object> getValue)
+                : this(name, source, Try(getValue))
+            {
             }
+
+            public ValueFactory(string name, ValueSource source, TryFunc<object> tryGetValue)
+            {
+                _name = name;
+                _source = source;
+                _tryGetValue = tryGetValue;
+            }
+
+            public string Name { get { return _name; } }
+            public ValueSource Source { get { return _source; } }
+
+            public bool TryGetValue(out object value)
+            {
+                return _tryGetValue(out value);
+            }
+
+            private static TryFunc<object> Try(Func<object> getValue)
+            {
+                return (out object value) =>
+                {
+                    try { value = getValue(); return true; }
+                    catch { value = null; return false; }
+                };
+            }
+        }
+
+        private enum ValueSource
+        {
+            AdditionalNode = 0,
+            ProxyMember = 1,
         }
     }
 }
