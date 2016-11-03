@@ -11,6 +11,7 @@ using System.Xml;
 using System.Xml.Linq;
 using System.Xml.Serialization;
 using Rock.DependencyInjection;
+using Rock.Reflection;
 
 namespace Rock.Serialization
 {
@@ -152,16 +153,146 @@ namespace Rock.Serialization
 
         private ConstructorInfo GetConstructor(Type concreteTargetType, IResolver resolver)
         {
-            // The constructor with the most resolvable parameters wins.
-            // If tied, the constructor with fewest parameters wins.
+            var comparer = new ConstructorComparer(this, resolver);
 
-            return
-                (from ctor in concreteTargetType.GetConstructors()
-                 let parameters = ctor.GetParameters()
-                 orderby
-                         parameters.Count(p => CanResolveParameterValue(p, resolver)) descending,
-                         parameters.Length ascending
-                 select ctor).First();
+            var constructorGroups = concreteTargetType.GetConstructors()
+                // TODO (maybe): Filter out any contructors that have one or more unresolvable parameters?
+                .GroupBy(c => c, (key, constructors) => new { key, constructors }, comparer)
+                .OrderBy(x => x.key, comparer)
+                .Select(x => x.constructors.ToArray())
+                .ToArray();
+
+            if (constructorGroups.Length == 0)
+            {
+                throw new InvalidOperationException("No legal constructors found given the provided XML elements and attributes.");
+            }
+
+            if (constructorGroups[0].Length > 1)
+            {
+                throw new InvalidOperationException("Ambiguous constructors found given the provided XML elements and attributes.");
+            }
+
+            return constructorGroups[0][0];
+        }
+
+        internal class ConstructorComparer : IComparer<ConstructorInfo>, IEqualityComparer<ConstructorInfo>
+        {
+            private readonly XmlDeserializationProxyEngine<TTarget> _engine;
+            private readonly IResolver _resolver;
+
+            public ConstructorComparer(XmlDeserializationProxyEngine<TTarget> engine, IResolver resolver)
+            {
+                _engine = engine;
+                _resolver = resolver;
+            }
+
+            public int Compare(ConstructorInfo lhs, ConstructorInfo rhs)
+            {
+                if (lhs == rhs)
+                {
+                    return 0;
+                }
+
+                Debug.Assert(lhs.DeclaringType == rhs.DeclaringType, "Can only compare constructors for the same type.");
+
+                var lhsParameters = lhs.GetParameters();
+                var rhsParameters = rhs.GetParameters();
+
+                var lhsUnresolvableParameters = lhsParameters.Where(p => !_engine.CanResolveParameterValue(p, _resolver)).ToArray();
+                var rhsUnresolvableParameters = rhsParameters.Where(p => !_engine.CanResolveParameterValue(p, _resolver)).ToArray();
+
+                var lhsResolvableParameterCount = lhsParameters.Length - lhsUnresolvableParameters.Length;
+                var rhsResolvableParameterCount = rhsParameters.Length - rhsUnresolvableParameters.Length;
+
+                var lhsUnresolvableParameterWithDefaultValueCount = lhsUnresolvableParameters.Count(p => p.HasDefaultValue);
+                var rhsUnresolvableParameterWithDefaultValueCount = rhsUnresolvableParameters.Count(p => p.HasDefaultValue);
+
+                Debug.Assert(lhsUnresolvableParameters.Length - lhsUnresolvableParameterWithDefaultValueCount == 0, "");
+                Debug.Assert(rhsUnresolvableParameters.Length - rhsUnresolvableParameterWithDefaultValueCount == 0, "");
+
+                //if (lhsUnresolvableParameterWithoutDefaultValueCount < rhsUnresolvableParameterWithoutDefaultValueCount)
+                //{
+                //    return -1;
+                //}
+                //if (lhsUnresolvableParameterWithoutDefaultValueCount > rhsUnresolvableParameterWithoutDefaultValueCount)
+                //{
+                //    return 1;
+                //}
+
+                if (lhsResolvableParameterCount > rhsResolvableParameterCount)
+                {
+                    return -1;
+                }
+                if (lhsResolvableParameterCount < rhsResolvableParameterCount)
+                {
+                    return 1;
+                }
+
+                var commonParameterNames = lhsParameters.Where(lp => rhsParameters.Any(rp => lp.Name == rp.Name)).Select(p => p.Name).OrderBy(n => n).ToArray();
+                var lhsCommonParameters = commonParameterNames.Select(n => lhsParameters.Single(p => p.Name == n)).ToArray();
+                var rhsCommonParameters = commonParameterNames.Select(n => rhsParameters.Single(p => p.Name == n)).ToArray();
+
+                var score = 0;
+
+                for (int i = 0; i < commonParameterNames.Length; i++)
+                {
+                    var lhsParameterType = Nullable.GetUnderlyingType(lhsCommonParameters[i].ParameterType) ?? lhsCommonParameters[i].ParameterType;
+                    var rhsParameterType = Nullable.GetUnderlyingType(rhsCommonParameters[i].ParameterType) ?? rhsCommonParameters[i].ParameterType;
+
+                    if (lhsParameterType == rhsParameterType)
+                    {
+                        continue;
+                    }
+
+                    if (rhsParameterType.IsLessSpecificThan(lhsParameterType))
+                    {
+                        score--;
+                    }
+                    if (lhsParameterType.IsLessSpecificThan(rhsParameterType))
+                    {
+                        score++;
+                    }
+                }
+
+                if (score < 0)
+                {
+                    return -1;
+                }
+                if (score > 0)
+                {
+                    return 1;
+                }
+
+                if (lhsUnresolvableParameterWithDefaultValueCount < rhsUnresolvableParameterWithDefaultValueCount)
+                {
+                    return -1;
+                }
+                if (lhsUnresolvableParameterWithDefaultValueCount > rhsUnresolvableParameterWithDefaultValueCount)
+                {
+                    return 1;
+                }
+
+                //if (lhs.GetConstructorChain().Contains(rhs))
+                //{
+                //    return -1;
+                //}
+                //if (rhs.GetConstructorChain().Contains(lhs))
+                //{
+                //    return 1;
+                //}
+
+                return 0;
+            }
+
+            public bool Equals(ConstructorInfo lhs, ConstructorInfo rhs)
+            {
+                return Compare(lhs, rhs) == 0;
+            }
+
+            public int GetHashCode(ConstructorInfo constructor)
+            {
+                return constructor.DeclaringType == null ? 0 : constructor.DeclaringType.GetHashCode();
+            }
         }
 
         /// <summary>
@@ -212,8 +343,7 @@ namespace Rock.Serialization
                             .Concat(GetMatchingProxyFields(memberName, memberType))
                             .Concat(GetMatchingAdditionalAttributes(memberName, memberType))
                             .Concat(GetMatchingAdditionalElements(memberName, memberType))
-                            .OrderBy(valueFactory => valueFactory.Name,
-                                new CaseSensitiveEqualityFirstAsComparedTo(memberName))
+                            .OrderBy(valueFactory => valueFactory.Name, new CaseSensitiveEqualityFirstAsComparedTo(memberName))
                             .ThenBy(valueFactory => valueFactory.Source); // AdditionalNode first, ProxyMember last.
 
                     foreach (var valueFactory in valueFactories)
