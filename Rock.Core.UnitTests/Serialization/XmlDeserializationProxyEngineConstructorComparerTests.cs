@@ -10,6 +10,23 @@ namespace Rock.Core.UnitTests.Serialization
 {
     public class XmlDeserializationProxyEngineConstructorComparerTests
     {
+        // These are the rules. They represent all the ways we could think of to
+        // differentiate one constructor from another.
+        //
+        // Favor the constructor...
+        //
+        //     1) ...with the fewest unresolvable parameters.
+        //     2) ...with the most resolvable parameters.
+        //     3) ...with the fewest unresolvable parameters that have a default value.
+        //     4) ...with the most specific parameters.
+        //     5) ...that calls the other constructors.
+        //     6) ...that has parameters with the shortest ancestor distance to their respective available values.
+        //
+        // Note that not all the rules ended up getting implemented. Nor are they
+        // in the same order as above.
+        //
+        // The rule that are currently implemented are done so in this order: 2, 4, 3.
+
         public interface IFoo { }
         public class Foo : IFoo { }
         public interface IBar { }
