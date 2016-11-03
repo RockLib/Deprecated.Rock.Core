@@ -25,9 +25,10 @@ namespace Rock.Reflection.Emit
 
                 for (int i = 0; i < parameters.Length; i++)
                 {
+                    var parameter = constructorBuilder.DefineParameter(i + 1, ParameterAttributes.HasDefault | ParameterAttributes.Optional, parameters[i].Name);
+
                     if (parameters[i].HasDefaultValue)
                     {
-                        var parameter = constructorBuilder.DefineParameter(i + 1, ParameterAttributes.HasDefault | ParameterAttributes.Optional, null);
                         parameter.SetConstant(parameters[i].DefaultValue);
                     }
                 }

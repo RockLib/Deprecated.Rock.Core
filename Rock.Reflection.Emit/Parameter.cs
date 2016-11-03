@@ -6,16 +6,17 @@ namespace Rock.Reflection.Emit
     {
         private static readonly object _notADefaultValue = new object();
 
+        private readonly string _name;
         private readonly Type _type;
         private readonly string _fieldToSet;
         private readonly object _defaultValue;
 
-        public Parameter(Type type, string fieldToSet = null)
-            : this(_notADefaultValue, type, fieldToSet)
+        public Parameter(Type type, string name = null, string fieldToSet = null)
+            : this(_notADefaultValue, type, name, fieldToSet)
         {
         }
         
-        public Parameter(object defaultValue, Type type, string fieldToSet = null)
+        public Parameter(object defaultValue, Type type, string name = null, string fieldToSet = null)
         {
             if (defaultValue != _notADefaultValue)
             {
@@ -41,10 +42,12 @@ namespace Rock.Reflection.Emit
             }
 
             _defaultValue = defaultValue;
+            _name = name;
             _type = type;
             _fieldToSet = fieldToSet;
         }
 
+        public string Name { get { return _name; } }
         public Type Type { get { return _type; } }
         public string FieldToSet { get { return _fieldToSet; } }
         public object DefaultValue { get { return _defaultValue; } }
