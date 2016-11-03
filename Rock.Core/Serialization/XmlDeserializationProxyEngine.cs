@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -27,6 +29,8 @@ namespace Rock.Serialization
         private XmlElement[] _additionalXmlElements = new XmlElement[0];
         private readonly List<XAttribute> _additionalXAttributes = new List<XAttribute>();
         private readonly List<XElement> _additionalXElements = new List<XElement>();
+
+        private readonly ConcurrentDictionary<Tuple<string, Type>, object> _memberValueCache = new ConcurrentDictionary<Tuple<string, Type>, object>(); 
 
         public XmlDeserializationProxyEngine(
             object proxyInstance, Type defaultType, Type baseClassType)
@@ -83,6 +87,8 @@ namespace Rock.Serialization
             {
                 SetTargetMemberValue(targetInstance, targetMember);
             }
+
+            _memberValueCache.Clear();
 
             return (TTarget)targetInstance;
         }
@@ -194,24 +200,36 @@ namespace Rock.Serialization
         private bool TryGetTargetMemberValue(
             string targetMemberName, Type targetMemberType, out object targetMemberValue)
         {
-            var valueFactories =
-                GetMatchingProxyProperties(targetMemberName, targetMemberType)
-                    .Concat(GetMatchingProxyFields(targetMemberName, targetMemberType))
-                    .Concat(GetMatchingAdditionalAttributes(targetMemberName, targetMemberType))
-                    .Concat(GetMatchingAdditionalElements(targetMemberName, targetMemberType))
-                .OrderBy(valueFactory => valueFactory.Name, new CaseSensitiveEqualityFirstAsComparedTo(targetMemberName))
-                .ThenBy(valueFactory => valueFactory.Source); // AdditionalNode first, ProxyMember last.
-
-            foreach (var valueFactory in valueFactories)
-            {
-                if (valueFactory.TryGetValue(out targetMemberValue))
+            targetMemberValue = _memberValueCache.GetOrAdd(
+                Tuple.Create(targetMemberName, targetMemberType),
+                t =>
                 {
-                    return true;
-                }
-            }
+                    var memberName = t.Item1;
+                    var memberType = t.Item2;
 
-            targetMemberValue = null;
-            return false;
+                    var valueFactories =
+                        GetMatchingProxyProperties(memberName, memberType)
+                            .Concat(GetMatchingProxyFields(memberName, memberType))
+                            .Concat(GetMatchingAdditionalAttributes(memberName, memberType))
+                            .Concat(GetMatchingAdditionalElements(memberName, memberType))
+                            .OrderBy(valueFactory => valueFactory.Name,
+                                new CaseSensitiveEqualityFirstAsComparedTo(memberName))
+                            .ThenBy(valueFactory => valueFactory.Source); // AdditionalNode first, ProxyMember last.
+
+                    foreach (var valueFactory in valueFactories)
+                    {
+                        object memberValue;
+                        if (valueFactory.TryGetValue(out memberValue))
+                        {
+                            Debug.Assert(memberValue != null);
+                            return memberValue;
+                        }
+                    }
+
+                    return null;
+                });
+
+            return targetMemberValue != null;
         }
 
         private IEnumerable<ValueFactory> GetMatchingAdditionalAttributes(
