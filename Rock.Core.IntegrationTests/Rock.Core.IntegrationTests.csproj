@@ -53,6 +53,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Configuration\LateBoundConfigurationElementTests.cs" />
     <Compile Include="Configuration\XmlSerializerSectionHandlerTests.cs" />
     <Compile Include="Configuration\BackgroundErrorLoggerConfigTests.cs" />
     <Compile Include="EntryAssemblyApplicationIdProviderTests.cs" />

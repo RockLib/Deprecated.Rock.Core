@@ -70,6 +70,7 @@
     <Compile Include="Reflection\IsPublicExtensionTests.cs" />
     <Compile Include="Reflection\SlowFactoryTests.cs" />
     <Compile Include="Serialization\DataContractSerializerSerializerTests.cs" />
+    <Compile Include="Serialization\XmlDeserializationProxyEngineConstructorComparerTests.cs" />
     <Compile Include="Serialization\XmlDeserializationProxyTests.cs" />
     <Compile Include="Utilities\AttributeLocatorTests.cs" />
     <Compile Include="Collections\AsKeyedExtensionTests.cs" />
@@ -106,6 +107,10 @@
     <ProjectReference Include="..\Rock.Core\Rock.Core.csproj">
       <Project>{0feb58cd-b15c-4cdc-83d6-7621c1db98c7}</Project>
       <Name>Rock.Core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Rock.Reflection.Emit\Rock.Reflection.Emit.csproj">
+      <Project>{f33135cc-acab-4d98-b815-cb198640ba70}</Project>
+      <Name>Rock.Reflection.Emit</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

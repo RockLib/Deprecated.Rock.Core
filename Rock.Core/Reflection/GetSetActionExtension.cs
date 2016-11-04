@@ -7,7 +7,7 @@ namespace Rock.Reflection
     /// <summary>
     /// Provides extension methods on a PropertyInfo to get optimized reflection methods.
     /// </summary>
-    public static class GetdActionExtension
+    public static class GetSetActionExtension
     {
         /// <summary>
         /// Gets an <see cref="Action{T1,T2}"/> with generic arguments of type
