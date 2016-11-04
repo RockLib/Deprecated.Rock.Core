@@ -156,7 +156,6 @@ namespace Rock.Serialization
             var comparer = new ConstructorComparer(this, resolver);
 
             var constructorGroups = concreteTargetType.GetConstructors()
-                // TODO (maybe): Filter out any contructors that have one or more unresolvable parameters?
                 .GroupBy(c => c, (key, constructors) => new { key, constructors }, comparer)
                 .OrderBy(x => x.key, comparer)
                 .Select(x => x.constructors.ToArray())
@@ -207,17 +206,17 @@ namespace Rock.Serialization
                 var lhsUnresolvableParameterWithDefaultValueCount = lhsUnresolvableParameters.Count(p => p.HasDefaultValue);
                 var rhsUnresolvableParameterWithDefaultValueCount = rhsUnresolvableParameters.Count(p => p.HasDefaultValue);
 
-                Debug.Assert(lhsUnresolvableParameters.Length - lhsUnresolvableParameterWithDefaultValueCount == 0, "");
-                Debug.Assert(rhsUnresolvableParameters.Length - rhsUnresolvableParameterWithDefaultValueCount == 0, "");
+                var lhsUnresolvableParameterWithoutDefaultValueCount = lhsUnresolvableParameters.Length - lhsUnresolvableParameterWithDefaultValueCount;
+                var rhsUnresolvableParameterWithoutDefaultValueCount = rhsUnresolvableParameters.Length - rhsUnresolvableParameterWithDefaultValueCount;
 
-                //if (lhsUnresolvableParameterWithoutDefaultValueCount < rhsUnresolvableParameterWithoutDefaultValueCount)
-                //{
-                //    return -1;
-                //}
-                //if (lhsUnresolvableParameterWithoutDefaultValueCount > rhsUnresolvableParameterWithoutDefaultValueCount)
-                //{
-                //    return 1;
-                //}
+                if (lhsUnresolvableParameterWithoutDefaultValueCount < rhsUnresolvableParameterWithoutDefaultValueCount)
+                {
+                    return -1;
+                }
+                if (lhsUnresolvableParameterWithoutDefaultValueCount > rhsUnresolvableParameterWithoutDefaultValueCount)
+                {
+                    return 1;
+                }
 
                 if (lhsResolvableParameterCount > rhsResolvableParameterCount)
                 {

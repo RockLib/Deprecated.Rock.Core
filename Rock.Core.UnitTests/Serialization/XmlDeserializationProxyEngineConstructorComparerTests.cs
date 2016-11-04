@@ -22,16 +22,56 @@ namespace Rock.Core.UnitTests.Serialization
         //     5) ...that calls the other constructors.
         //     6) ...that has parameters with the shortest ancestor distance to their respective available values.
         //
-        // Note that not all the rules ended up getting implemented. Nor are they
-        // in the same order as above.
-        //
-        // The rule that are currently implemented are done so in this order: 2, 4, 3.
+        // The rules that are currently implemented are applied in this order: 1, 2, 4, 3.
+        // Rules 5 & 6 remain unimplemented.
 
         public interface IFoo { }
         public class Foo : IFoo { }
         public interface IBar { }
         public class Bar : IBar { }
         public interface IBaz { }
+
+        [Test]
+        public void Rule1_CompareA()
+        {
+            var constructors = GetConstructors(
+                new[] { new Parameter(typeof(IFoo), "foo"), new Parameter(typeof(IBar), "bar") },
+                new[] { new Parameter(typeof(IFoo), "foo") });
+
+            var comparer = GetConstructorComparer();
+
+            var comparison = comparer.Compare(constructors.Item1, constructors.Item2);
+
+            Assert.That(comparison, Is.GreaterThan(0));
+        }
+
+        [Test]
+        public void Rule1_CompareB()
+        {
+            var constructors = GetConstructors(
+                new[] { new Parameter(typeof(IFoo), "foo") },
+                new[] { new Parameter(typeof(IFoo), "foo"), new Parameter(typeof(IBar), "bar") });
+
+            var comparer = GetConstructorComparer();
+
+            var comparison = comparer.Compare(constructors.Item1, constructors.Item2);
+
+            Assert.That(comparison, Is.LessThan(0));
+        }
+
+        [Test]
+        public void Rule1_Equals()
+        {
+            var constructors = GetConstructors(
+                new[] { new Parameter(typeof(IFoo), "foo"), new Parameter(typeof(IBar), "bar") },
+                new[] { new Parameter(typeof(IFoo), "foo") });
+
+            var comparer = GetConstructorComparer();
+
+            var equals = comparer.Equals(constructors.Item1, constructors.Item2);
+
+            Assert.That(equals, Is.False);
+        }
 
         [Test]
         public void Rule2_CompareA()
@@ -160,6 +200,100 @@ namespace Rock.Core.UnitTests.Serialization
         }
 
         [Test]
+        public void Rule1vsRule2_CompareA()
+        {
+            var constructors = GetConstructors(
+                new[] { new Parameter(typeof(IFoo), "foo"),
+                        new Parameter(typeof(IBar), "bar"),
+                        new Parameter(typeof(IBaz), "baz") },
+                new[] { new Parameter(typeof(IFoo), "foo") });
+
+            var comparer = GetConstructorComparer(new Foo(), new Bar());
+
+            var comparison = comparer.Compare(constructors.Item1, constructors.Item2);
+
+            Assert.That(comparison, Is.GreaterThan(0));
+        }
+
+        [Test]
+        public void Rule1vsRule2_CompareB()
+        {
+            var constructors = GetConstructors(
+                new[] { new Parameter(typeof(IFoo), "foo") },
+                new[] { new Parameter(typeof(IFoo), "foo"),
+                        new Parameter(typeof(IBar), "bar"),
+                        new Parameter(typeof(IBaz), "baz") });
+
+            var comparer = GetConstructorComparer(new Foo(), new Bar());
+
+            var comparison = comparer.Compare(constructors.Item1, constructors.Item2);
+
+            Assert.That(comparison, Is.LessThan(0));
+        }
+
+        [Test]
+        public void Rule1vsRule3_CompareA()
+        {
+            var constructors = GetConstructors(
+                new[] { new Parameter(typeof(IFoo), "foo"),
+                        new Parameter(typeof(IBaz), "baz") },
+                new[] { new Parameter(typeof(IFoo), "foo"),
+                        new Parameter(null, typeof(IBar), "bar") });
+
+            var comparer = GetConstructorComparer(new Foo());
+
+            var comparison = comparer.Compare(constructors.Item1, constructors.Item2);
+
+            Assert.That(comparison, Is.GreaterThan(0));
+        }
+
+        [Test]
+        public void Rule1vsRule3_CompareB()
+        {
+            var constructors = GetConstructors(
+                new[] { new Parameter(typeof(IFoo), "foo"),
+                        new Parameter(null, typeof(IBar), "bar") },
+                new[] { new Parameter(typeof(IFoo), "foo"),
+                        new Parameter(typeof(IBaz), "baz") });
+
+            var comparer = GetConstructorComparer(new Foo());
+
+            var comparison = comparer.Compare(constructors.Item1, constructors.Item2);
+
+            Assert.That(comparison, Is.LessThan(0));
+        }
+
+        [Test]
+        public void Rule1vsRule4_CompareA()
+        {
+            var constructors = GetConstructors(
+                new[] { new Parameter(typeof(Foo), "foo"),
+                        new Parameter(typeof(IBar), "bar") },
+                new[] { new Parameter(typeof(IFoo), "foo") });
+
+            var comparer = GetConstructorComparer(new Foo());
+
+            var comparison = comparer.Compare(constructors.Item1, constructors.Item2);
+
+            Assert.That(comparison, Is.GreaterThan(0));
+        }
+
+        [Test]
+        public void Rule1vsRule4_CompareB()
+        {
+            var constructors = GetConstructors(
+                new[] { new Parameter(typeof(IFoo), "foo") },
+                new[] { new Parameter(typeof(Foo), "foo"),
+                        new Parameter(typeof(IBar), "bar") });
+
+            var comparer = GetConstructorComparer(new Foo());
+
+            var comparison = comparer.Compare(constructors.Item1, constructors.Item2);
+
+            Assert.That(comparison, Is.LessThan(0));
+        }
+
+        [Test]
         public void Rule2vsRule3_CompareA()
         {
             var constructors = GetConstructors(
@@ -185,20 +319,6 @@ namespace Rock.Core.UnitTests.Serialization
             var comparison = comparer.Compare(constructors.Item1, constructors.Item2);
 
             Assert.That(comparison, Is.GreaterThan(0));
-        }
-
-        [Test]
-        public void Rule2vsRule3_Equals()
-        {
-            var constructors = GetConstructors(
-                new[] { new Parameter(typeof(IFoo), "foo"), new Parameter(typeof(IBar), "bar"), new Parameter(null, typeof(IBaz), "baz") },
-                new[] { new Parameter(typeof(IFoo), "foo") });
-
-            var comparer = GetConstructorComparer(new Foo(), new Bar());
-
-            var equals = comparer.Equals(constructors.Item1, constructors.Item2);
-
-            Assert.That(equals, Is.False);
         }
 
         [Test]
@@ -230,20 +350,6 @@ namespace Rock.Core.UnitTests.Serialization
         }
 
         [Test]
-        public void Rule2vsRule4_Equals()
-        {
-            var constructors = GetConstructors(
-                new[] { new Parameter(typeof(IFoo), "foo"), new Parameter(typeof(IBar), "bar") },
-                new[] { new Parameter(typeof(IFoo), "foo") });
-
-            var comparer = GetConstructorComparer(new Foo(), new Bar());
-
-            var equals = comparer.Equals(constructors.Item1, constructors.Item2);
-
-            Assert.That(equals, Is.False);
-        }
-
-        [Test]
         public void Rule3vsRule4_CompareA()
         {
             var constructors = GetConstructors(
@@ -269,20 +375,6 @@ namespace Rock.Core.UnitTests.Serialization
             var comparison = comparer.Compare(constructors.Item1, constructors.Item2);
 
             Assert.That(comparison, Is.GreaterThan(0));
-        }
-
-        [Test]
-        public void Rule3vsRule4_Equals()
-        {
-            var constructors = GetConstructors(
-                new[] { new Parameter(typeof(Foo), "foo"), new Parameter(null, typeof(IBar), "bar") },
-                new[] { new Parameter(typeof(IFoo), "foo") });
-
-            var comparer = GetConstructorComparer(new Foo());
-
-            var equals = comparer.Equals(constructors.Item1, constructors.Item2);
-
-            Assert.That(equals, Is.False);
         }
 
         private Tuple<ConstructorInfo, ConstructorInfo> GetConstructors(Parameter[] constructor1, Parameter[] constructor2)
