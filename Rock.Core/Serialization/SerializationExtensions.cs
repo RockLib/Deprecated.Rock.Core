@@ -20,7 +20,7 @@ namespace Rock.Serialization
         /// </summary>
         /// <typeparam name="T">The type of object represented by this string</typeparam>
         /// <param name="str">The XML string to deserialize</param>
-        /// <returns>An object of type T</returns>
+        /// <returns>An object</returns>
         public static object FromXml(this string str, System.Type type)
         {
             return DefaultXmlSerializer.Current.DeserializeFromString(str, type);
@@ -31,7 +31,7 @@ namespace Rock.Serialization
         /// </summary>
         /// <typeparam name="T">The type of object represented by this string</typeparam>
         /// <param name="str">The JSON string to deserialize</param>
-        /// <returns>An object</returns>
+        /// <returns>An object of type T</returns>
         public static T FromJson<T>(this string str)
         {
             return DefaultJsonSerializer.Current.DeserializeFromString<T>(str);
