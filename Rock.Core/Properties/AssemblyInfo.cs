@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Quicken Loans")]
 [assembly: AssemblyProduct("Rock.Core")]
-[assembly: AssemblyCopyright("Copyright © Quicken Loans 2014-2015")]
+[assembly: AssemblyCopyright("Copyright © Quicken Loans 2014-2016")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -33,7 +33,7 @@ using System.Runtime.InteropServices;
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("0.9.0.0")]
-[assembly: AssemblyFileVersion("0.9.10")]
-[assembly: AssemblyInformationalVersion("0.9.10")]
+[assembly: AssemblyFileVersion("0.9.11")]
+[assembly: AssemblyInformationalVersion("0.9.11")]
 
 [assembly: InternalsVisibleTo("Rock.Core.UnitTests")]
