@@ -40,6 +40,7 @@
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Reflection.Context" />
     <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.Security" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -65,6 +66,10 @@
     <Compile Include="Configuration\LateBoundConfigurationElement.cs" />
     <Compile Include="Cryptography\HashType.cs" />
     <Compile Include="Cryptography\HashTypeExtensions.cs" />
+    <Compile Include="DataProtection\Xml\DPAPIProtectedValue.cs" />
+    <Compile Include="DataProtection\IProtectedValue.cs" />
+    <Compile Include="DataProtection\Xml\ProtectedValueProxy.cs" />
+    <Compile Include="DataProtection\Xml\UnprotectedValue.cs" />
     <Compile Include="DefaultApplicationIdProvider.cs" />
     <Compile Include="Collections\DeepEqualityComparerConfiguration.cs" />
     <Compile Include="Collections\MemberLocator.cs" />
