@@ -5,6 +5,7 @@ using System.Text;
 using System.Xml.Serialization;
 using NUnit.Framework;
 using Rock.DataProtection.Xml;
+using Rock.Serialization;
 
 namespace Rock.Core.UnitTests.DataProtection.Xml
 {
@@ -46,9 +47,39 @@ namespace Rock.Core.UnitTests.DataProtection.Xml
             Assert.That(bar.GetValue(), Is.EqualTo(value));
         }
 
-        public class Foo
+        [Test]
+        public void CanNestInsideAnotherProxyValue()
         {
-            public ProtectedValueProxy Bar { get; set; }
+            var xml = @"<Qux>
+  <Baz type='Rock.Core.UnitTests.DataProtection.Xml.Baz, Rock.Core.UnitTests'>
+    <Bar type='Rock.DataProtection.Xml.UnprotectedValue, Rock.Core'
+         value='SGVsbG8sIHdvcmxkIQ==' />
+  </Baz>
+</Qux>";
+            var serializer = new XmlSerializer(typeof(Qux));
+            var qux = (Qux)serializer.Deserialize(new StringReader(xml));
+            var baz = qux.Baz.CreateInstance();
+            Assert.That(() => baz.Bar.CreateInstance(), Throws.Nothing);
         }
+    }
+
+    public class Foo
+    {
+        public ProtectedValueProxy Bar { get; set; }
+    }
+
+    public interface IBaz
+    {
+        ProtectedValueProxy Bar { get; }
+    }
+
+    public class Baz : IBaz
+    {
+        public ProtectedValueProxy Bar { get; set; }
+    }
+
+    public class Qux
+    {
+        public XmlDeserializationProxy<IBaz> Baz { get; set; }
     }
 }

@@ -467,8 +467,15 @@ namespace Rock.Serialization
 
                         if (typeFromAttribute != null)
                         {
-                            serializer = new XmlSerializer(typeFromAttribute,
-                                new XmlRootAttribute(additionalElement.Name.LocalName));
+                            try
+                            {
+                                serializer = new XmlSerializer(typeFromAttribute,
+                                    new XmlRootAttribute(additionalElement.Name.LocalName));
+                            }
+                            catch (InvalidOperationException)
+                            {
+                                serializer = null;
+                            }
                         }
                     }
 
