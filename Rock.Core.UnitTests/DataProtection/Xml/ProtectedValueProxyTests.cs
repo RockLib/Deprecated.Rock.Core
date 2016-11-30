@@ -5,6 +5,7 @@ using System.Text;
 using System.Xml.Serialization;
 using NUnit.Framework;
 using Rock.DataProtection.Xml;
+using Rock.DataProtection;
 
 namespace Rock.Core.UnitTests.DataProtection.Xml
 {
@@ -21,6 +22,19 @@ namespace Rock.Core.UnitTests.DataProtection.Xml
             
             Assert.That(bar, Is.InstanceOf<UnprotectedValue>());
             Assert.That(bar.GetValue(), Is.EqualTo(value));
+        }
+
+        [Test]
+        public void CanSpecifyTextValueForUnprotectedValue()
+        {
+            var value = "Hello, world!";
+            var xml = string.Format("<Foo><Bar text=\"{0}\" /></Foo>", value);
+            var foo = (Foo)new XmlSerializer(typeof(Foo)).Deserialize(new StringReader(xml));
+
+            var bar = foo.Bar.CreateInstance();
+
+            Assert.That(bar, Is.InstanceOf<UnprotectedValue>());
+            Assert.That(bar.GetValue(), Is.EqualTo(Encoding.UTF8.GetBytes(value)));
         }
 
         [Test]

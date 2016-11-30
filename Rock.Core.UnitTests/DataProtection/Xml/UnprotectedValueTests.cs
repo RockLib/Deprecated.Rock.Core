@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using NUnit.Framework;
 using Rock.DataProtection;
 using Rock.DataProtection.Xml;
+using System.Text;
 
 namespace Rock.Core.UnitTests.DataProtection.Xml
 {
@@ -51,6 +52,16 @@ namespace Rock.Core.UnitTests.DataProtection.Xml
             IProtectedValue value = new UnprotectedValue(stringData);
 
             Assert.That(value.GetValue(), Is.EqualTo(data));
+        }
+
+        [Test]
+        public void CanInitializeUsingStringAndEncoding()
+        {
+            var text = "foobar";
+
+            IProtectedValue value = new UnprotectedValue(text, Encoding.UTF8);
+
+            Assert.That(value.GetValue(), Is.EqualTo(Encoding.UTF8.GetBytes(text)));
         }
     }
 }
