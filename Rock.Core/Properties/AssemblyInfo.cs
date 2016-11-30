@@ -33,7 +33,7 @@ using System.Runtime.InteropServices;
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("0.9.0.0")]
-[assembly: AssemblyFileVersion("0.9.11")]
-[assembly: AssemblyInformationalVersion("0.9.11")]
+[assembly: AssemblyFileVersion("0.9.12")]
+[assembly: AssemblyInformationalVersion("0.9.12")]
 
 [assembly: InternalsVisibleTo("Rock.Core.UnitTests")]
