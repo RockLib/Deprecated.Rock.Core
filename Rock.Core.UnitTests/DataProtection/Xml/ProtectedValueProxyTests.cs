@@ -25,6 +25,19 @@ namespace Rock.Core.UnitTests.DataProtection.Xml
         }
 
         [Test]
+        public void CanSpecifyTextValueForUnprotectedValue()
+        {
+            var value = "Hello, world!";
+            var xml = string.Format("<Foo><Bar text=\"{0}\" /></Foo>", value);
+            var foo = (Foo)new XmlSerializer(typeof(Foo)).Deserialize(new StringReader(xml));
+
+            var bar = foo.Bar.CreateInstance();
+
+            Assert.That(bar, Is.InstanceOf<UnprotectedValue>());
+            Assert.That(bar.GetValue(), Is.EqualTo(Encoding.UTF8.GetBytes(value)));
+        }
+
+        [Test]
         public void DPAPIProtectedValueCanBeSpecified()
         {
             var value = Encoding.UTF8.GetBytes("Hello, world!");
