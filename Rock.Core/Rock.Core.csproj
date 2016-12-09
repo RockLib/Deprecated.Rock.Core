@@ -66,6 +66,7 @@
     <Compile Include="Configuration\LateBoundConfigurationElement.cs" />
     <Compile Include="Cryptography\HashType.cs" />
     <Compile Include="Cryptography\HashTypeExtensions.cs" />
+    <Compile Include="DataProtection\DataProtectionException.cs" />
     <Compile Include="DataProtection\Xml\DPAPIProtectedValue.cs" />
     <Compile Include="DataProtection\IProtectedValue.cs" />
     <Compile Include="DataProtection\Xml\ProtectedValueProxy.cs" />
