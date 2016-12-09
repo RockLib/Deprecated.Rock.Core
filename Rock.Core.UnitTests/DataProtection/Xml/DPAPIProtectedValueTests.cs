@@ -4,33 +4,58 @@ using System.Security.Cryptography;
 using System.Text;
 using NUnit.Framework;
 using Rock.DataProtection.Xml;
+using Rock.DataProtection;
+using System.Threading;
 
 namespace Rock.Core.UnitTests.DataProtection.Xml
 {
     public class DPAPIProtectedValueTests
     {
+        private static ThreadLocal<Random> _random = new ThreadLocal<Random>(() => new Random());
+
         [Test]
-        public void CannotPassNullToTheByteArrayConstructor()
+        public void PassingNullToTheByteArrayConstructorDoesNotThrow()
         {
-            Assert.That(() => new DPAPIProtectedValue((IList<byte>)null), Throws.TypeOf<ArgumentNullException>());
+            Assert.That(() => new DPAPIProtectedValue((IList<byte>)null), Throws.Nothing);
         }
 
         [Test]
-        public void CannotPassNullToTheStringConstructor()
+        public void PassingNullToTheByteArrayConstructorCausesGetValueToThrow()
         {
-            Assert.That(() => new DPAPIProtectedValue((string)null), Throws.TypeOf<ArgumentNullException>());
+            var protectedValue = new DPAPIProtectedValue((IList<byte>)null);
+            Assert.That(() => protectedValue.GetValue(),
+                Throws.InstanceOf<DataProtectionException>()
+                    .With.InnerException.InstanceOf<ArgumentNullException>());
         }
 
         [Test]
-        public void CannotPassNonBase64EncodedStringToTheStringConstructor()
+        public void PassingNullToTheStringConstructorDoesNotThrow()
         {
-            Assert.That(() => new DPAPIProtectedValue("wtf"), Throws.TypeOf<FormatException>());
+            Assert.That(() => new DPAPIProtectedValue((string)null), Throws.Nothing);
         }
 
         [Test]
-        public void CanPassBase64EncodedStringToTheStringConstructor()
+        public void PassingNullToTheStringConstructorCausesGetValueToThrow()
         {
-            Assert.That(() => new DPAPIProtectedValue(Convert.ToBase64String(new byte[] { 1, 2, 3 })), Throws.Nothing);
+            var protectedValue = new DPAPIProtectedValue((string)null);
+            Assert.That(() => protectedValue.GetValue(),
+                Throws.InstanceOf<DataProtectionException>()
+                    .With.InnerException.InstanceOf<ArgumentNullException>());
+        }
+
+        [Test]
+        public void PassingNonBase64EncodedStringToTheStringConstructorDoesNotThrow()
+        {
+            Assert.That(() => new DPAPIProtectedValue("wtf"), Throws.Nothing);
+        }
+
+        [Test]
+        public void PassingNonBase64EncodedStringToTheStringConstructorCausesGetValueToThrow()
+        {
+            var protectedValue = new DPAPIProtectedValue("wtf");
+            Assert.That(() => protectedValue.GetValue(),
+                Throws.InstanceOf<DataProtectionException>()
+                    .With.InnerException.InstanceOf<FormatException>());
         }
 
         [Test]
@@ -152,13 +177,95 @@ namespace Rock.Core.UnitTests.DataProtection.Xml
         }
 
         [Test]
-        public void CannotUnprotectGarbage()
+        public void PassingInvalidBase64EncodedOptionalEntropyToTheStringConstructorDoesNotThrow()
         {
-            var garbage = new byte[] { 1, 2, 3, 4, 5, 6 };
+            var userData = Encoding.UTF8.GetBytes("Hello, world!");
+            var validOptionalEntropy = new byte[] { 4, 5, 6 };
+            var scope = DataProtectionScope.LocalMachine;
+            var encryptedData = Convert.ToBase64String(
+                ProtectedData.Protect(userData, validOptionalEntropy, scope));
 
-            var protectedValue = new DPAPIProtectedValue(garbage);
+            var invalidOptionalEntropy = "omg!wtf!bbq!";
 
-            Assert.That(() => protectedValue.GetValue(), Throws.TypeOf<CryptographicException>());
+            Assert.That(() => new DPAPIProtectedValue(encryptedData, invalidOptionalEntropy), Throws.Nothing);
+        }
+
+        [Test]
+        public void PassingInvalidBase64EncodedOptionalEntropyToTheStringConstructorCausesGetValueToThrow()
+        {
+            var userData = Encoding.UTF8.GetBytes("Hello, world!");
+            var validOptionalEntropy = new byte[] { 4, 5, 6 };
+            var scope = DataProtectionScope.LocalMachine;
+            var encryptedData = Convert.ToBase64String(
+                ProtectedData.Protect(userData, validOptionalEntropy, scope));
+
+            var invalidOptionalEntropy = "omg!wtf!bbq!";
+
+            var protectedValue = new DPAPIProtectedValue(encryptedData, invalidOptionalEntropy);
+
+            Assert.That(() => protectedValue.GetValue(),
+                Throws.TypeOf<DataProtectionException>()
+                    .With.InnerException.TypeOf<FormatException>());
+        }
+
+        [Test]
+        public void PassingBadEncryptedDataToTheStringConstructorDoesNotThrow()
+        {
+            var userData = Encoding.UTF8.GetBytes("Hello, world!");
+            var optionalEntropy = new byte[] { 4, 5, 6 };
+            var scope = DataProtectionScope.LocalMachine;
+
+            var encryptedData = ProtectedData.Protect(userData, optionalEntropy, scope);
+            encryptedData[0] ^= 0xFF;
+
+            Assert.That(() => new DPAPIProtectedValue(Convert.ToBase64String(encryptedData), optionalEntropy == null ? null : Convert.ToBase64String(optionalEntropy)), Throws.Nothing);
+        }
+
+        [Test]
+        public void PassingBadEncryptedDataToTheByteArrayConstructorDoesNotThrow()
+        {
+            var userData = Encoding.UTF8.GetBytes("Hello, world!");
+            var optionalEntropy = new byte[] { 4, 5, 6 };
+            var scope = DataProtectionScope.LocalMachine;
+
+            var encryptedData = ProtectedData.Protect(userData, optionalEntropy, scope);
+            encryptedData[0] ^= 0xFF;
+
+            Assert.That(() => new DPAPIProtectedValue(encryptedData, optionalEntropy), Throws.Nothing);
+        }
+
+        [Test]
+        public void PassingBadEncryptedDataToTheStringConstructorCausesGetValueToThrow()
+        {
+            var userData = Encoding.UTF8.GetBytes("Hello, world!");
+            var optionalEntropy = new byte[] { 4, 5, 6 };
+            var scope = DataProtectionScope.LocalMachine;
+
+            var encryptedData = ProtectedData.Protect(userData, optionalEntropy, scope);
+            encryptedData[0] ^= 0xFF;
+
+            var protectedValue = new DPAPIProtectedValue(encryptedData, optionalEntropy);
+
+            Assert.That(() => protectedValue.GetValue(),
+                Throws.TypeOf<DataProtectionException>()
+                    .With.InnerException.TypeOf<CryptographicException>());
+        }
+
+        [Test]
+        public void PassingBadEncryptedDataToTheByteArrayConstructorCausesGetValueToThrow()
+        {
+            var userData = Encoding.UTF8.GetBytes("Hello, world!");
+            var optionalEntropy = new byte[] { 4, 5, 6 };
+            var scope = DataProtectionScope.LocalMachine;
+
+            var encryptedData = ProtectedData.Protect(userData, optionalEntropy, scope);
+            encryptedData[0] ^= 0xFF;
+
+            var protectedValue = new DPAPIProtectedValue(Convert.ToBase64String(encryptedData), optionalEntropy == null ? null : Convert.ToBase64String(optionalEntropy));
+
+            Assert.That(() => protectedValue.GetValue(),
+                Throws.TypeOf<DataProtectionException>()
+                    .With.InnerException.TypeOf<CryptographicException>());
         }
     }
 }
