@@ -4,6 +4,7 @@
 * [Nuget](#nuget)
   * Install via [Nuget UI](#install-nuget-via-ui)
   * Install via [Command Line](#install-nuget-via-command-limne)
+* [Api Documentation](#api-documentation)
 
   
 ## Nuget
@@ -21,3 +22,6 @@ How to install from the package manager console:
 ```
 PM> Install-Package Rock.Core
 ```
+
+## Api Documentation
+* [Rock.Core Documentation](http://rockframework.org/documentation/Rock.Core/)
