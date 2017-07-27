@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Reflection;
 #if ROCKLIB
 using RockLib.Threading;
 #else
@@ -108,14 +109,19 @@ namespace Rock.Immutable
         }
 
         /// <summary>
-        /// Unlocks the <see cref="Value"/> property, allowing changes to be accepted.
+        /// Gets a method that unlocks the <see cref="Value"/> property, allowing changes to be accepted.
         /// </summary>
         /// <remarks>
         /// This method should not be used "in production". Its main use is to help facilitate testing.
         /// </remarks>
-        public void UnlockValue()
+        public MethodInfo GetUnlockValueMethod()
         {
-            if (CanUnlock && _lockedInstance != null)
+            return new Action(UnlockValue).GetMethodInfo();
+        }
+
+        private void UnlockValue()
+        {
+            if (_lockedInstance != null)
             {
                 lock (this)
                 {
