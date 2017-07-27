@@ -161,10 +161,12 @@ namespace Rock.Immutable
                     // set _potentialInstance.
                     _softLock.Release();
 
-                    // Break out of  the loop - our job is done and it might be a while until _lockedInstance has a value.
-                    break;
+                    // Return from the method - our job is done and it might be a while until _lockedInstance has a value.
+                    return;
                 }
             }
+
+            throw new InvalidOperationException("Setting the value of a Semimutable object is not permitted after it has been locked.");
         }
 
         private T GetValue()
