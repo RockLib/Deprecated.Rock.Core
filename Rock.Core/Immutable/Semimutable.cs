@@ -29,28 +29,15 @@ namespace Rock.Immutable
         private Lazy<T> _lockedInstance;
 
         private readonly Func<T> _getDefaultValue;
-        private readonly bool _canUnlock;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Semimutable{T}"/> class.
         /// </summary>
         /// <remarks>
-        /// Calls <see cref="Semimutable{T}(bool)"/>, passing <c>false</c>.
+        /// Calls <see cref="Semimutable{T}(T)"/>, passing the value of <c>default(T)</c> as the parameter.
         /// </remarks>
         public Semimutable()
-            : this(false)
-        {
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="Semimutable{T}"/> class.
-        /// </summary>
-        /// <remarks>
-        /// Calls <see cref="Semimutable{T}(T, bool)"/> with parameters: the value of <c>default(T)</c>;
-        /// and the value of <paramref name="canUnlock"/>.
-        /// </remarks>
-        public Semimutable(bool canUnlock = false)
-            : this(default(T), canUnlock)
+            : this(default(T))
         {
         }
 
@@ -58,16 +45,12 @@ namespace Rock.Immutable
         /// Initializes a new instance of the <see cref="Semimutable{T}"/> class.
         /// </summary>
         /// <param name="defaultValue">The default value.</param>
-        /// <param name="canUnlock">
-        /// Whether this instance of <see cref="Semimutable{T}"/> can be unlocked after it has
-        /// been locked.
-        /// </param>
         /// <remarks>
-        /// Calls <see cref="Semimutable{T}(Func{T}, bool)"/> with parameters: a function that returns
-        /// <paramref name="defaultValue"/>; and the value of <paramref name="canUnlock"/>.
+        /// Calls <see cref="Semimutable{T}(Func{T})"/> passing a function that returns
+        /// <paramref name="defaultValue"/> as the parameter.
         /// </remarks>
-        public Semimutable(T defaultValue, bool canUnlock = false)
-            : this(() => defaultValue, canUnlock)
+        public Semimutable(T defaultValue)
+            : this(() => defaultValue)
         {
         }
 
@@ -75,14 +58,9 @@ namespace Rock.Immutable
         /// Initializes a new instance of the <see cref="Semimutable{T}"/> class.
         /// </summary>
         /// <param name="getDefaultValue">A function that returns the default value.</param>
-        /// <param name="canUnlock">
-        /// Whether this instance of <see cref="Semimutable{T}"/> can be unlocked after it has
-        /// been locked.
-        /// </param>
-        public Semimutable(Func<T> getDefaultValue, bool canUnlock = false)
+        public Semimutable(Func<T> getDefaultValue)
         {
             _getDefaultValue = getDefaultValue;
-            _canUnlock = canUnlock;
             _potentialInstance = new Lazy<T>(getDefaultValue);
             _lockedInstance = null;
             HasDefaultValue = true;
@@ -97,14 +75,6 @@ namespace Rock.Immutable
         {
             get { return GetValue(); }
             set { SetValue(() => value); }
-        }
-
-        /// <summary>
-        /// Gets a value indicating whether this instance can be unlocked.
-        /// </summary>
-        public bool CanUnlock
-        {
-            get { return _canUnlock; }
         }
 
         /// <summary>
@@ -138,11 +108,10 @@ namespace Rock.Immutable
         }
 
         /// <summary>
-        /// Unlocks the <see cref="Value"/> property, allowing changes to be accepted. If the value of the
-        /// <see cref="CanUnlock"/> property is false, then this method does nothing.
+        /// Unlocks the <see cref="Value"/> property, allowing changes to be accepted.
         /// </summary>
         /// <remarks>
-        /// This method should not be used "in production". It's main use is to help facilitate testing.
+        /// This method should not be used "in production". Its main use is to help facilitate testing.
         /// </remarks>
         public void UnlockValue()
         {
