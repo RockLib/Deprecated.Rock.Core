@@ -1,6 +1,10 @@
 ﻿using System.Threading;
 
+#if ROCKLIB
+namespace RockLib.Threading
+#else
 namespace Rock.Threading
+#endif
 {
     /// <summary>
     /// An object that enables exclusive access to critical sections of code. Unlike a true lock, where
