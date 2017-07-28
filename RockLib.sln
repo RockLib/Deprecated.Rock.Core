@@ -9,6 +9,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RockLib.Immutable.Tests", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RockLib.DataProtection", "Rock.Core\DataProtection\RockLib.DataProtection.csproj", "{FD479944-7BB8-49FB-BBA9-351A2334AF8C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RockLib.DataProtection.Tests", "RockLib.DataProtection.Tests\RockLib.DataProtection.Tests.csproj", "{3AD569D7-F297-40B8-A40F-E3F7E494FCF4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{FD479944-7BB8-49FB-BBA9-351A2334AF8C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FD479944-7BB8-49FB-BBA9-351A2334AF8C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FD479944-7BB8-49FB-BBA9-351A2334AF8C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3AD569D7-F297-40B8-A40F-E3F7E494FCF4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3AD569D7-F297-40B8-A40F-E3F7E494FCF4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3AD569D7-F297-40B8-A40F-E3F7E494FCF4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3AD569D7-F297-40B8-A40F-E3F7E494FCF4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
