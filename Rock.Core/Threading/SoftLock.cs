@@ -1,13 +1,22 @@
 ﻿using System.Threading;
 
+#if ROCKLIB
+namespace RockLib.Threading
+#else
 namespace Rock.Threading
+#endif
 {
     /// <summary>
     /// An object that enables exclusive access to critical sections of code. Unlike a true lock, where
     /// a thread will block while another thread has the lock, a "soft lock" will cause a thread to skip over
     /// a critical section of code if another thread has the lock.
     /// </summary>
-    public class SoftLock
+#if ROCKLIB
+    internal
+#else
+    public
+#endif
+    class SoftLock
     {
         private const int _lockNotAcquired = 0;
         private const int _lockAcquired = 1;
