@@ -1,6 +1,10 @@
 ﻿using System;
 
+#if ROCKLIB
+namespace RockLib.DataProtection
+#else
 namespace Rock.DataProtection
+#endif
 {
     /// <summary>
     /// Represents errors that occur during a data protection operation.
