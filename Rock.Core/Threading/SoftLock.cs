@@ -11,7 +11,12 @@ namespace Rock.Threading
     /// a thread will block while another thread has the lock, a "soft lock" will cause a thread to skip over
     /// a critical section of code if another thread has the lock.
     /// </summary>
-    public class SoftLock
+#if ROCKLIB
+    internal
+#else
+    public
+#endif
+    class SoftLock
     {
         private const int _lockNotAcquired = 0;
         private const int _lockAcquired = 1;
