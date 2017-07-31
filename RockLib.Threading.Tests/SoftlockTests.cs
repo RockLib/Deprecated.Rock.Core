@@ -1,5 +1,4 @@
-﻿using System;
-using FluentAssertions;
+﻿using FluentAssertions;
 using Xunit;
 
 namespace RockLib.Threading.Tests
@@ -11,6 +10,7 @@ namespace RockLib.Threading.Tests
         {
             var softlock = new SoftLock();
 
+            // This will set the lock to true
             softlock.TryAcquire();
 
             softlock.IsLockAcquired.Should().BeTrue();
@@ -34,24 +34,12 @@ namespace RockLib.Threading.Tests
             softlock.TryAcquire();
 
             // prove it is locked
-            softlock.IsLockAcquired.Should().BeTrue();
+            softlock.IsLockAcquired.Should().BeTrue("If this failed we have issues in TryAcquire");
 
             softlock.Release();
 
             // verify it has been released
             softlock.IsLockAcquired.Should().BeFalse();
-        }
-
-        [Fact]
-        public void TryAcquire_WillAcquireLock()
-        {
-            var softlock = new SoftLock();
-
-            softlock.TryAcquire();
-
-            // prove it is locked
-            softlock.IsLockAcquired.Should().BeTrue();
-            
-        }
+        }       
     }
 }
