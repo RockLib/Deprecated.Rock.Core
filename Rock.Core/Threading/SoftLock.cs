@@ -12,7 +12,7 @@ namespace Rock.Threading
     /// a critical section of code if another thread has the lock.
     /// </summary>
 #if ROCKLIB
-    internal
+    public
 #else
     public
 #endif

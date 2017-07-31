@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26430.14
+VisualStudioVersion = 15.0.26430.15
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RockLib.Immutable", "Rock.Core\Immutable\RockLib.Immutable.csproj", "{D5199E9D-23EC-4AA5-8618-7BCE888A98DE}"
 EndProject
@@ -9,7 +9,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RockLib.Immutable.Tests", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RockLib.DataProtection", "Rock.Core\DataProtection\RockLib.DataProtection.csproj", "{FD479944-7BB8-49FB-BBA9-351A2334AF8C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RockLib.DataProtection.Tests", "RockLib.DataProtection.Tests\RockLib.DataProtection.Tests.csproj", "{3AD569D7-F297-40B8-A40F-E3F7E494FCF4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RockLib.DataProtection.Tests", "RockLib.DataProtection.Tests\RockLib.DataProtection.Tests.csproj", "{3AD569D7-F297-40B8-A40F-E3F7E494FCF4}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RockLib.Threading", "Rock.Core\Threading\RockLib.Threading.csproj", "{5421475F-E68A-44DD-8746-8FE14451A913}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +35,10 @@ Global
 		{3AD569D7-F297-40B8-A40F-E3F7E494FCF4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3AD569D7-F297-40B8-A40F-E3F7E494FCF4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3AD569D7-F297-40B8-A40F-E3F7E494FCF4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5421475F-E68A-44DD-8746-8FE14451A913}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5421475F-E68A-44DD-8746-8FE14451A913}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5421475F-E68A-44DD-8746-8FE14451A913}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5421475F-E68A-44DD-8746-8FE14451A913}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
