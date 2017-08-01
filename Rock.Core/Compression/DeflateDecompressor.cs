@@ -2,7 +2,11 @@ using System;
 using System.IO;
 using System.IO.Compression;
 
+#if ROCKLIB
+namespace RockLib.Compression
+#else
 namespace Rock.Compression
+#endif
 {
 	/// <summary>
 	/// An implementation of <see cref="IDecompressor"/> that uses a deflate stream.

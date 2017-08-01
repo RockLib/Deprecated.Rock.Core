@@ -1,6 +1,10 @@
 using System.IO;
 
+#if ROCKLIB
+namespace RockLib.Compression
+#else
 namespace Rock.Compression
+#endif
 {
     /// <summary>
     /// Defines an interface for compression.
