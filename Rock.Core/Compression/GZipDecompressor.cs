@@ -20,7 +20,7 @@ namespace Rock.Compression
         /// <returns>The decompressed byte array.</returns>
         public byte[] Decompress(Stream inputStream)
         {
-            if (inputStream == null) throw new ArgumentNullException("inputStream");
+            if (inputStream == null) throw new ArgumentNullException(nameof(inputStream));
             using (var outputStream = new MemoryStream())
             {
                 using (var gzStream = new GZipStream(inputStream, CompressionMode.Decompress, true))
