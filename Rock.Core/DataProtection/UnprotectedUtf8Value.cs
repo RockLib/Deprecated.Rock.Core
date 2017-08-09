@@ -18,7 +18,16 @@ namespace RockLib.DataProtection
             set
             {
                 if (value == null) throw new ArgumentNullException(nameof(value));
-                if (_value == null) lock (_valueLocker) if (_value == null) _value = new Semimutable<string>();
+                if (_value == null)
+                {
+                    lock (_valueLocker)
+                    {
+                        if (_value == null)
+                        {
+                            _value = new Semimutable<string>();
+                        }
+                    }
+                }
                 _value.Value = value;
             }
         }
