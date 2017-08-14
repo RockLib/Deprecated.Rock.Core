@@ -11,8 +11,8 @@ namespace Rock.BackgroundErrorLogging
     /// </summary>
     public static class BackgroundErrorLogger
     {
-        private static readonly Semimutable<IBackgroundErrorLogger> _current = new Semimutable<IBackgroundErrorLogger>(GetDefaultBackgroundErrorLogger, true);
-        private static readonly Semimutable<IBackgroundErrorLogFactory> _backgroundErrorLogFactory = new Semimutable<IBackgroundErrorLogFactory>(new BackgroundErrorLogFactory(CreateDefaultBackgroundErrorLog), true);
+        private static readonly Semimutable<IBackgroundErrorLogger> _current = new Semimutable<IBackgroundErrorLogger>(GetDefaultBackgroundErrorLogger);
+        private static readonly Semimutable<IBackgroundErrorLogFactory> _backgroundErrorLogFactory = new Semimutable<IBackgroundErrorLogFactory>(new BackgroundErrorLogFactory(CreateDefaultBackgroundErrorLog));
 
         /// <summary>
         /// Gets the current <see cref="IBackgroundErrorLogger"/>.
@@ -43,12 +43,12 @@ namespace Rock.BackgroundErrorLogging
 
         internal static void UnlockCurrent()
         {
-            _current.UnlockValue();
+            _current.GetUnlockValueMethod().Invoke(_current, null);
         }
 
         internal static void UnlockBackgroundErrorLogFactory()
         {
-            _backgroundErrorLogFactory.UnlockValue();
+            _backgroundErrorLogFactory.GetUnlockValueMethod().Invoke(_backgroundErrorLogFactory, null);
         }
 
         private static IBackgroundErrorLogger GetDefaultBackgroundErrorLogger()

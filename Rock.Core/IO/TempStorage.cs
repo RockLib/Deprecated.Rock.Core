@@ -9,7 +9,7 @@ namespace Rock.IO
 {
     public static class TempStorage
     {
-        private static readonly Semimutable<IKeyValueStore> _keyValueStore = new Semimutable<IKeyValueStore>(GetDefaultKeyValueStore, true);
+        private static readonly Semimutable<IKeyValueStore> _keyValueStore = new Semimutable<IKeyValueStore>(GetDefaultKeyValueStore);
 
         public static IKeyValueStore KeyValueStore
         {
@@ -29,7 +29,7 @@ namespace Rock.IO
 
         internal static void UnlockKeyValueStore()
         {
-            _keyValueStore.UnlockValue();
+            _keyValueStore.GetUnlockValueMethod().Invoke(_keyValueStore, null);
         }
 
         private static IKeyValueStore GetDefaultKeyValueStore()
