@@ -7,7 +7,7 @@ namespace Rock.Reflection
 {
     public static class IsPrimitivishExtension
     {
-        private static readonly Semimutable<IEnumerable<Type>> _extraPrimitivishTypes = new Semimutable<IEnumerable<Type>>(GetDefaultExtraPrimitiveTypes, true);
+        private static readonly Semimutable<IEnumerable<Type>> _extraPrimitivishTypes = new Semimutable<IEnumerable<Type>>(GetDefaultExtraPrimitiveTypes);
 
         internal static readonly Type[] _defaultPrimitivishTypes =
         {

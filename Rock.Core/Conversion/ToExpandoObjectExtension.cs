@@ -5,7 +5,7 @@ namespace Rock.Conversion
 {
     public static class ToExpandoObjectExtension
     {
-        private static readonly Semimutable<IConvertsTo<ExpandoObject>> _converter = new Semimutable<IConvertsTo<ExpandoObject>>(GetDefaultConverter, true);
+        private static readonly Semimutable<IConvertsTo<ExpandoObject>> _converter = new Semimutable<IConvertsTo<ExpandoObject>>(GetDefaultConverter);
 
         public static ExpandoObject ToExpandoObject(this object obj)
         {
