@@ -43,12 +43,12 @@ namespace Rock.BackgroundErrorLogging
 
         internal static void UnlockCurrent()
         {
-            _current.UnlockValue();
+            _current.GetUnlockValueMethod().Invoke(_current, null);
         }
 
         internal static void UnlockBackgroundErrorLogFactory()
         {
-            _backgroundErrorLogFactory.UnlockValue();
+            _backgroundErrorLogFactory.GetUnlockValueMethod().Invoke(_backgroundErrorLogFactory, null);
         }
 
         private static IBackgroundErrorLogger GetDefaultBackgroundErrorLogger()

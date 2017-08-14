@@ -131,7 +131,7 @@ namespace Rock.DependencyInjection
 
         internal static void UnlockDefaultResolverConstructorSelector()
         {
-            _defaultResolverConstructorSelector.UnlockValue();
+            _defaultResolverConstructorSelector.GetUnlockValueMethod().Invoke(_defaultResolverConstructorSelector, null);
         }
 
         private static IResolverConstructorSelector GetDefaultDefaultResolverConstructorSelector()

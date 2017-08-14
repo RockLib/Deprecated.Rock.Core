@@ -37,7 +37,7 @@ namespace Rock.Reflection
 
         internal static void UnlockExtraPrimitivishTypes()
         {
-            _extraPrimitivishTypes.UnlockValue();
+            _extraPrimitivishTypes.GetUnlockValueMethod().Invoke(_extraPrimitivishTypes, null);
         }
 
         private static IEnumerable<Type> GetDefaultExtraPrimitiveTypes()

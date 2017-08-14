@@ -29,7 +29,7 @@ namespace Rock.IO
 
         internal static void UnlockKeyValueStore()
         {
-            _keyValueStore.UnlockValue();
+            _keyValueStore.GetUnlockValueMethod().Invoke(_keyValueStore, null);
         }
 
         private static IKeyValueStore GetDefaultKeyValueStore()

@@ -30,7 +30,7 @@ namespace Rock.Conversion
 
         internal static void UnlockConverter()
         {
-            _converter.UnlockValue();
+            _converter.GetUnlockValueMethod().Invoke(_converter, null);
         }
 
         private static IConvertsTo<ExpandoObject> GetDefaultConverter()
