@@ -30,7 +30,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="RockLib.Threading" Version="0.0.1-alpha01" />
+    <PackageReference Include="RockLib.Threading" Version="1.0.0" />
   </ItemGroup>
 
 </Project>
