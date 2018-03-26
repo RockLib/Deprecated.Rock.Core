@@ -11,7 +11,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
 using Microsoft.CSharp.RuntimeBinder;
 
-namespace Rock.Reflection
+namespace RockLib.Dynamic
 {
     /// <summary>
     /// A proxy object that enables access to all members of a type, both public and non-public.

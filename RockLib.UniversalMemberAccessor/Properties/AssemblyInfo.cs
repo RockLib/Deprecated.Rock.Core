@@ -1,16 +1,15 @@
 ﻿using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("Rock.Reflection.UniversalMemberAccessor")]
+[assembly: AssemblyTitle("RockLib.Dynamic.UniversalMemberAccessor")]
 [assembly: AssemblyDescription("Defines a class that enables easy access to non-public members of a type. Very dangerous - use with caution.")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Quicken Loans")]
-[assembly: AssemblyProduct("Rock.Reflection.UniversalMemberAccessor")]
-[assembly: AssemblyCopyright("Copyright © Quicken Loans 2015")]
+[assembly: AssemblyProduct("RockLib.Dynamic.UniversalMemberAccessor")]
+[assembly: AssemblyCopyright("Copyright © Quicken Loans 2015-2018")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

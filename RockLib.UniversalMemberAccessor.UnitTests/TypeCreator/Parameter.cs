@@ -1,6 +1,6 @@
 using System;
 
-namespace Rock.Reflection.UnitTests.TypeCreator
+namespace RockLib.Dynamic.UnitTests.TypeCreator
 {
     public class Parameter
     {

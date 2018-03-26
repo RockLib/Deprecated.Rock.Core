@@ -1,4 +1,4 @@
-﻿namespace Rock.Reflection.UnitTests.TypeCreator
+﻿namespace RockLib.Dynamic.UnitTests.TypeCreator
 {
     public enum Visibility
     {

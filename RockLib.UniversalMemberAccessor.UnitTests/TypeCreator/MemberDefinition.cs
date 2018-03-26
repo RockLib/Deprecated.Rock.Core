@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection.Emit;
 
-namespace Rock.Reflection.UnitTests.TypeCreator
+namespace RockLib.Dynamic.UnitTests.TypeCreator
 {
     public class MemberDefinition
     {

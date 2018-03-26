@@ -5,10 +5,10 @@ using System.Linq;
 using Microsoft.CSharp.RuntimeBinder;
 using NUnit.Framework;
 using System.Reflection;
-using Rock.Reflection.UnitTests.TypeCreator;
-using UMA=Rock.Reflection.UniversalMemberAccessor;
+using RockLib.Dynamic.UnitTests.TypeCreator;
+using UMA=RockLib.Dynamic.UniversalMemberAccessor;
 
-namespace Rock.Reflection.UnitTests
+namespace RockLib.Dynamic.UnitTests
 {
     public class UniversalMemberAccessorTests
     {
@@ -87,7 +87,7 @@ namespace Rock.Reflection.UnitTests
 
             Assert.That(() => bar = foo,
                 Throws.InstanceOf<RuntimeBinderException>().With.Message.EqualTo(
-                "Cannot implicitly convert type 'Rock.Reflection.UnitTests.Foo' to 'Rock.Reflection.UnitTests.Bar'"));
+                "Cannot implicitly convert type 'RockLib.Dynamic.UnitTests.Foo' to 'RockLib.Dynamic.UnitTests.Bar'"));
         }
 
         [Test]
@@ -161,7 +161,7 @@ namespace Rock.Reflection.UnitTests
 
             Assert.That(() => foo.DoesNotExist = "abc",
                 Throws.InstanceOf<RuntimeBinderException>().With.Message.EqualTo(
-                "'Rock.Reflection.UniversalMemberAccessor' does not contain a definition for 'DoesNotExist'"));
+                "'RockLib.Dynamic.UniversalMemberAccessor' does not contain a definition for 'DoesNotExist'"));
         }
 
         [Test]
@@ -1173,7 +1173,7 @@ namespace Rock.Reflection.UnitTests
             
             Assert.That(() => foo.Garply(null),
                 Throws.InstanceOf<RuntimeBinderException>().With.Message.EqualTo(
-                "The call is ambiguous between the following methods or properties: 'Garply(System.String)' and 'Garply(Rock.Reflection.UnitTests.IBaz)'"));
+                "The call is ambiguous between the following methods or properties: 'Garply(System.String)' and 'Garply(RockLib.Dynamic.UnitTests.IBaz)'"));
         }
 
         [Test]

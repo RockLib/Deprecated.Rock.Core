@@ -1,4 +1,4 @@
-namespace Rock.Reflection
+namespace RockLib.Dynamic
 {
     /// <summary>
     /// A class to provide the <see cref="Unlock"/> extension method.

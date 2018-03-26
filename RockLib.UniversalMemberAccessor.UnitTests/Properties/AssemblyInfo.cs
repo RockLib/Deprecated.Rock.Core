@@ -5,12 +5,12 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("Rock.Reflection.UniversalMemberAccessor.UnitTests")]
+[assembly: AssemblyTitle("RockLib.Dynamic.UniversalMemberAccessor.UnitTests")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("Rock.Reflection.UniversalMemberAccessor.UnitTests")]
-[assembly: AssemblyCopyright("Copyright ©  2015")]
+[assembly: AssemblyProduct("RockLib.Dynamic.UniversalMemberAccessor.UnitTests")]
+[assembly: AssemblyCopyright("Copyright © Quicken Loans 2015-2018")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

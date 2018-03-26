@@ -1,7 +1,6 @@
 using System;
-using Microsoft.CSharp.RuntimeBinder;
 
-namespace Rock.Reflection
+namespace RockLib.Dynamic
 {
     /// <summary>
     /// A class to provide the <see cref="New"/> extension method.
