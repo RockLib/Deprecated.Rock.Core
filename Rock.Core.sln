@@ -19,9 +19,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{DC30A831
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rock.Reflection.Emit", "Rock.Reflection.Emit\Rock.Reflection.Emit.csproj", "{F33135CC-ACAB-4D98-B815-CB198640BA70}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rock.Reflection.UniversalMemberAccessor", "Rock.Reflection.UniversalMemberAccessor\Rock.Reflection.UniversalMemberAccessor.csproj", "{587A1310-2E6F-4C9B-9B8C-5F0C9A5F23E7}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rock.Reflection.UniversalMemberAccessor", "RockLib.UniversalMemberAccessor\Rock.Reflection.UniversalMemberAccessor.csproj", "{587A1310-2E6F-4C9B-9B8C-5F0C9A5F23E7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rock.Reflection.UniversalMemberAccessor.UnitTests", "Rock.Reflection.UniversalMemberAccessor.UnitTests\Rock.Reflection.UniversalMemberAccessor.UnitTests.csproj", "{9EC1C6A3-D54C-4300-A28C-EF06E134F5C6}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rock.Reflection.UniversalMemberAccessor.UnitTests", "RockLib.UniversalMemberAccessor.UnitTests\Rock.Reflection.UniversalMemberAccessor.UnitTests.csproj", "{9EC1C6A3-D54C-4300-A28C-EF06E134F5C6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
