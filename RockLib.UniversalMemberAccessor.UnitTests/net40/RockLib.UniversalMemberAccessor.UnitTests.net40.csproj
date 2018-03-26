@@ -4,7 +4,19 @@
     <TargetFramework>net40</TargetFramework>
 
     <IsPackable>false</IsPackable>
+
+    <ApplicationIcon />
+
+    <OutputType>Library</OutputType>
+
+    <StartupObject />
   </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="**" />
+    <EmbeddedResource Remove="**" />
+    <None Remove="**" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="nunit" Version="3.10.1" />
@@ -13,11 +25,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\RockLib.UniversalMemberAccessor\RockLib.UniversalMemberAccessor.csproj" />
+    <ProjectReference Include="..\..\RockLib.UniversalMemberAccessor\RockLib.UniversalMemberAccessor.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
+
+  <Import Project="..\RockLib.UniversalMemberAccessor.UnitTests.projitems" Label="Shared" />
 
 </Project>

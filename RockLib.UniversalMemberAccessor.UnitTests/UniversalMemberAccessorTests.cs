@@ -857,6 +857,7 @@ namespace RockLib.Dynamic.UnitTests
             Assert.That(bar, Is.EqualTo("abc"));
         }
 
+#if NET40
         [Test]
         public void CannotSetReadonlyValueTypeStaticField()
         {
@@ -868,6 +869,20 @@ namespace RockLib.Dynamic.UnitTests
                 Throws.InstanceOf<NotSupportedException>().With.Message.EqualTo(
                 "The current runtime does not allow the (illegal) changing of readonly static value-type fields."));
         }
+#else
+        [Test]
+        public void CanSetReadonlyValueTypeStaticField()
+        {
+            var type = Create.Class("Foo", Define.Field("_bar", typeof(int), true, true));
+
+            var foo = UMA.GetStatic(type);
+
+            foo._bar = 123;
+
+            var bar = foo._bar;
+            Assert.That(bar, Is.EqualTo(123));
+        }
+#endif
 
         [Test]
         public void CanReadFieldWithIllegalCSharpName()

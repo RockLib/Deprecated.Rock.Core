@@ -66,7 +66,11 @@ namespace RockLib.Dynamic.UnitTests.TypeCreator
             if (interfaces == null) throw new ArgumentNullException("interfaces");
             if (memberDefinitions == null) throw new ArgumentNullException("memberDefinitions");
 
+#if NET40
             var assemblyBuilder = AppDomain.CurrentDomain.DefineDynamicAssembly(
+#else
+            var assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(
+#endif
                 new AssemblyName(name), AssemblyBuilderAccess.Run);
 
             var moduleBuilder = assemblyBuilder.DefineDynamicModule("MainModule");
