@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26430.15
+VisualStudioVersion = 15.0.27004.2009
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RockLib.Immutable", "Rock.Core\Immutable\RockLib.Immutable.csproj", "{D5199E9D-23EC-4AA5-8618-7BCE888A98DE}"
 EndProject
@@ -13,11 +13,15 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RockLib.DataProtection.Test
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RockLib.Threading", "Rock.Core\Threading\RockLib.Threading.csproj", "{5421475F-E68A-44DD-8746-8FE14451A913}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RockLib.Threading.Tests", "RockLib.Threading.Tests\RockLib.Threading.Tests.csproj", "{227DE903-87C1-4067-BE65-C94D620D60C4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RockLib.Threading.Tests", "RockLib.Threading.Tests\RockLib.Threading.Tests.csproj", "{227DE903-87C1-4067-BE65-C94D620D60C4}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RockLib.Compression", "Rock.Core\Compression\RockLib.Compression.csproj", "{C551EF5E-5ED2-4A36-85FF-52D7F0F9DA26}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RockLib.Compression.Tests", "RockLib.Compression.Tests\RockLib.Compression.Tests.csproj", "{0F37F3C9-0E05-4581-815B-8BCC802C4E1E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RockLib.Compression.Tests", "RockLib.Compression.Tests\RockLib.Compression.Tests.csproj", "{0F37F3C9-0E05-4581-815B-8BCC802C4E1E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RockLib.UniversalMemberAccessor", "RockLib.UniversalMemberAccessor\RockLib.UniversalMemberAccessor.csproj", "{587A1310-2E6F-4C9B-9B8C-5F0C9A5F23E7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RockLib.UniversalMemberAccessor.UnitTests", "RockLib.UniversalMemberAccessor.UnitTests\RockLib.UniversalMemberAccessor.UnitTests.csproj", "{9EC1C6A3-D54C-4300-A28C-EF06E134F5C6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -57,8 +61,19 @@ Global
 		{0F37F3C9-0E05-4581-815B-8BCC802C4E1E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0F37F3C9-0E05-4581-815B-8BCC802C4E1E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0F37F3C9-0E05-4581-815B-8BCC802C4E1E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{587A1310-2E6F-4C9B-9B8C-5F0C9A5F23E7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{587A1310-2E6F-4C9B-9B8C-5F0C9A5F23E7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{587A1310-2E6F-4C9B-9B8C-5F0C9A5F23E7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{587A1310-2E6F-4C9B-9B8C-5F0C9A5F23E7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9EC1C6A3-D54C-4300-A28C-EF06E134F5C6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9EC1C6A3-D54C-4300-A28C-EF06E134F5C6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9EC1C6A3-D54C-4300-A28C-EF06E134F5C6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9EC1C6A3-D54C-4300-A28C-EF06E134F5C6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {B37BF6EF-2835-45A0-A227-6BB58DE4F9E9}
 	EndGlobalSection
 EndGlobal

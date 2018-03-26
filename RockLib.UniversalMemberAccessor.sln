@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27004.2009
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RockLib.UniversalMemberAccessor", "RockLib.UniversalMemberAccessor\RockLib.UniversalMemberAccessor.csproj", "{587A1310-2E6F-4C9B-9B8C-5F0C9A5F23E7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RockLib.UniversalMemberAccessor.UnitTests", "RockLib.UniversalMemberAccessor.UnitTests\RockLib.UniversalMemberAccessor.UnitTests.csproj", "{9EC1C6A3-D54C-4300-A28C-EF06E134F5C6}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{587A1310-2E6F-4C9B-9B8C-5F0C9A5F23E7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{587A1310-2E6F-4C9B-9B8C-5F0C9A5F23E7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{587A1310-2E6F-4C9B-9B8C-5F0C9A5F23E7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{587A1310-2E6F-4C9B-9B8C-5F0C9A5F23E7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9EC1C6A3-D54C-4300-A28C-EF06E134F5C6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9EC1C6A3-D54C-4300-A28C-EF06E134F5C6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9EC1C6A3-D54C-4300-A28C-EF06E134F5C6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9EC1C6A3-D54C-4300-A28C-EF06E134F5C6}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {7373B5DD-7658-4E15-BE01-1F21E5CFF7A8}
+	EndGlobalSection
+EndGlobal

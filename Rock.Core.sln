@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
-VisualStudioVersion = 12.0.40629.0
+# Visual Studio 15
+VisualStudioVersion = 15.0.27004.2009
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rock.Core", "Rock.Core\Rock.Core.csproj", "{0FEB58CD-B15C-4CDC-83D6-7621C1DB98C7}"
 EndProject
@@ -18,10 +18,6 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{DC30A831-32A9-4629-BCEE-43490E5D3738}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rock.Reflection.Emit", "Rock.Reflection.Emit\Rock.Reflection.Emit.csproj", "{F33135CC-ACAB-4D98-B815-CB198640BA70}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rock.Reflection.UniversalMemberAccessor", "RockLib.UniversalMemberAccessor\Rock.Reflection.UniversalMemberAccessor.csproj", "{587A1310-2E6F-4C9B-9B8C-5F0C9A5F23E7}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rock.Reflection.UniversalMemberAccessor.UnitTests", "RockLib.UniversalMemberAccessor.UnitTests\Rock.Reflection.UniversalMemberAccessor.UnitTests.csproj", "{9EC1C6A3-D54C-4300-A28C-EF06E134F5C6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -57,14 +53,6 @@ Global
 		{F33135CC-ACAB-4D98-B815-CB198640BA70}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F33135CC-ACAB-4D98-B815-CB198640BA70}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F33135CC-ACAB-4D98-B815-CB198640BA70}.Release|Any CPU.Build.0 = Release|Any CPU
-		{587A1310-2E6F-4C9B-9B8C-5F0C9A5F23E7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{587A1310-2E6F-4C9B-9B8C-5F0C9A5F23E7}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{587A1310-2E6F-4C9B-9B8C-5F0C9A5F23E7}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{587A1310-2E6F-4C9B-9B8C-5F0C9A5F23E7}.Release|Any CPU.Build.0 = Release|Any CPU
-		{9EC1C6A3-D54C-4300-A28C-EF06E134F5C6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{9EC1C6A3-D54C-4300-A28C-EF06E134F5C6}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{9EC1C6A3-D54C-4300-A28C-EF06E134F5C6}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{9EC1C6A3-D54C-4300-A28C-EF06E134F5C6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -73,6 +61,8 @@ Global
 		{6C71E326-E9B5-407E-889D-443311B0B22B} = {DC30A831-32A9-4629-BCEE-43490E5D3738}
 		{B189B018-183A-47B8-A410-BCD9482D62FC} = {DC30A831-32A9-4629-BCEE-43490E5D3738}
 		{21577CBE-8AE1-4188-B1E3-81D0700535D1} = {DC30A831-32A9-4629-BCEE-43490E5D3738}
-		{9EC1C6A3-D54C-4300-A28C-EF06E134F5C6} = {DC30A831-32A9-4629-BCEE-43490E5D3738}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {3BD437D1-2D02-40FC-B06B-458C1DC3AF4E}
 	EndGlobalSection
 EndGlobal

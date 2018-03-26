@@ -57,7 +57,7 @@
     <Compile Include="TypeCreator\Visibility.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Rock.Reflection.UniversalMemberAccessor\Rock.Reflection.UniversalMemberAccessor.csproj">
+    <ProjectReference Include="..\RockLib.UniversalMemberAccessor\RockLib.UniversalMemberAccessor.csproj">
       <Project>{587a1310-2e6f-4c9b-9b8c-5f0c9a5f23e7}</Project>
       <Name>Rock.Reflection.UniversalMemberAccessor</Name>
     </ProjectReference>
