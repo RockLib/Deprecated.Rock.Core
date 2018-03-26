@@ -57,7 +57,7 @@
 //                    {
 //                        var tokenSource = new CancellationTokenSource(_timeout);
 
-//                        response = await base.SendAsync(request, tokenSource.Token);
+//                        response = await base.SendAsync(request, tokenSource.Token).ConfigureAwait(false);
 
 //                        if (response.IsSuccessStatusCode)
 //                        {
@@ -77,7 +77,7 @@
 
 //                    if (++attempts < _maxRetries)
 //                    {
-//                        await Task.Delay(Convert.ToInt32(Math.Max(0, _timeout.TotalMilliseconds - stopwatch.Elapsed.TotalMilliseconds)));
+//                        await Task.Delay(Convert.ToInt32(Math.Max(0, _timeout.TotalMilliseconds - stopwatch.Elapsed.TotalMilliseconds))).ConfigureAwait(false);
 //                    }
 //                    else
 //                    {

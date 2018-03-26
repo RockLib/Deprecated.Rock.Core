@@ -19,7 +19,7 @@ namespace Rock.Net
             while (tasks.Count > 0)
             {
                 // Whenever any task finishes...
-                var task = await Task.WhenAny(tasks);
+                var task = await Task.WhenAny(tasks).ConfigureAwait(false);
 
                 // Remove that task from the list so the while loop can terminate if no endpoints are successful.
                 tasks.Remove(task);

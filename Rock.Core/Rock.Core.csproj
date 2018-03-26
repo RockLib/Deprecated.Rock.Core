@@ -40,6 +40,7 @@
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Reflection.Context" />
     <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.Security" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -48,11 +49,28 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ApplicationId.cs" />
+    <Compile Include="BackgroundErrorLogging\BackgroundErrorLogFactory.cs" />
+    <Compile Include="BackgroundErrorLogging\IBackgroundErrorLogFactory.cs" />
+    <Compile Include="BackgroundErrorLogging\StandardErrorBackgroundErrorLogger.cs" />
+    <Compile Include="BackgroundErrorLogging\WindowsEventLogBackgroundErrorLogger.cs" />
     <Compile Include="Collections\AddSafelyExtension.cs" />
     <Compile Include="Collections\ForEachExtension.cs" />
     <Compile Include="Collections\SerializableDictionary.cs" />
+    <Compile Include="Compression\CompressionExtensions.cs" />
+    <Compile Include="Compression\DeflateCompressor.cs" />
+    <Compile Include="Compression\DeflateDecompressor.cs" />
+    <Compile Include="Compression\GZipCompressor.cs" />
+    <Compile Include="Compression\GZipDecompressor.cs" />
+    <Compile Include="Compression\ICompressor.cs" />
+    <Compile Include="Compression\IDecompressor.cs" />
+    <Compile Include="Configuration\LateBoundConfigurationElement.cs" />
     <Compile Include="Cryptography\HashType.cs" />
     <Compile Include="Cryptography\HashTypeExtensions.cs" />
+    <Compile Include="DataProtection\DataProtectionException.cs" />
+    <Compile Include="DataProtection\Xml\DPAPIProtectedValue.cs" />
+    <Compile Include="DataProtection\IProtectedValue.cs" />
+    <Compile Include="DataProtection\Xml\ProtectedValueProxy.cs" />
+    <Compile Include="DataProtection\Xml\UnprotectedValue.cs" />
     <Compile Include="DefaultApplicationIdProvider.cs" />
     <Compile Include="Collections\DeepEqualityComparerConfiguration.cs" />
     <Compile Include="Collections\MemberLocator.cs" />
@@ -62,11 +80,18 @@
     <Compile Include="Conversion\ConvertFuncFactory.cs" />
     <Compile Include="Conversion\ConvertsToDictionaryOfStringToTValue.cs" />
     <Compile Include="Conversion\ToDictionaryOfStringToStringExtension.cs" />
-    <Compile Include="Extensions\DateTimeTruncateExtension.cs" />
-    <Compile Include="Extensions\EnumGetDescriptionExtension.cs" />
-    <Compile Include="Extensions\StringIsNullExtensions.cs" />
-    <Compile Include="Extensions\TimeSection.cs" />
-    <Compile Include="Extensions\ToUnixTimestampExtension.cs" />
+    <Compile Include="Extensions\DateTime\DateTimeSocialDateExtensions.cs" />
+    <Compile Include="Extensions\DateTime\DateTimeTruncateExtension.cs" />
+    <Compile Include="Extensions\Enum\EnumGetDescriptionExtension.cs" />
+    <Compile Include="Extensions\String\StringExtensions.cs" />
+    <Compile Include="Extensions\DateTime\TimeSection.cs" />
+    <Compile Include="Extensions\DateTime\ToUnixTimestampExtension.cs" />
+    <Compile Include="BackgroundErrorLogging\CompositeBackgroundErrorLogger.cs" />
+    <Compile Include="BackgroundErrorLogging\StandardOutBackgroundErrorLogger.cs" />
+    <Compile Include="BackgroundErrorLogging\IBackgroundErrorLogger.cs" />
+    <Compile Include="BackgroundErrorLogging\BackgroundErrorLogger.cs" />
+    <Compile Include="BackgroundErrorLogging\BackgroundErrorLog.cs" />
+    <Compile Include="BackgroundErrorLogging\NullBackgroundErrorLogger.cs" />
     <Compile Include="Net\EndpointDetector.cs" />
     <Compile Include="Net\EndpointSelector.cs" />
     <Compile Include="Net\Http\HttpClientFactory.cs" />
@@ -75,9 +100,15 @@
     <Compile Include="Reflection\GetTypesSafelyExtension.cs" />
     <Compile Include="Reflection\InternalExtensions.cs" />
     <Compile Include="Reflection\IsDefinedInThisAssemblyExtension.cs" />
+    <Compile Include="Rock.StaticDependencyInjection\ModuleInitializer.cs" />
+    <Compile Include="Rock.StaticDependencyInjection\StaticDependencyInjection.Generated.cs" />
     <Compile Include="Serialization\DefaultBinarySerializer.cs" />
     <Compile Include="Serialization\DefaultJsonSerializer.cs" />
     <Compile Include="Serialization\DefaultXmlSerializer.cs" />
+    <Compile Include="Serialization\SerializationExtensions.cs" />
+    <Compile Include="Serialization\XmlDeserializationProxyEngine.cs" />
+    <Compile Include="Serialization\XmlDeserializationProxyException.cs" />
+    <Compile Include="StringFormatting\BlockIndentExtension.cs" />
     <Compile Include="StringFormatting\FormatToStringExtension.cs" />
     <Compile Include="Immutable\Semimutable.cs" />
     <Compile Include="Net\Http\DefaultHttpClientFactory.cs" />
@@ -88,8 +119,6 @@
     <Compile Include="Reflection\SlowFactory.cs" />
     <Compile Include="Rock.StaticDependencyInjection\CompositionRoot.cs" />
     <Compile Include="Rock.StaticDependencyInjection\ExportAttribute.cs" />
-    <Compile Include="Rock.StaticDependencyInjection\ModuleInitializer.cs" />
-    <Compile Include="Rock.StaticDependencyInjection\StaticDependencyInjection.Generated.cs" />
     <Compile Include="Serialization\XmlDeserializationProxy.cs" />
     <Compile Include="StringFormatting\ToHexStringExtensions.cs" />
     <Compile Include="StringFormatting\ToOctetStringExtension.cs" />
@@ -162,14 +191,12 @@
     <Compile Include="Serialization\ToXmlExtension.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
     <None Include="Extensions\README.txt" />
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="InjectModuleInitializer" AfterTargets="AfterBuild" Condition="'$(UseInjectModuleInitializer)' == 'true'">
-    <Exec Command="..\packages\Rock.StaticDependencyInjection.1.1.0\tools\InjectModuleInitializer.exe &quot;$(TargetPath)&quot;" />
+    <Exec Command="..\packages\Rock.StaticDependencyInjection.1.1.7\tools\InjectModuleInitializer.exe &quot;$(TargetPath)&quot;" />
   </Target>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

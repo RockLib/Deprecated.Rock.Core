@@ -1,6 +1,10 @@
 ﻿using System.Threading;
 
+#if ROCKLIB
+namespace RockLib.Threading
+#else
 namespace Rock.Threading
+#endif
 {
     /// <summary>
     /// An object that enables exclusive access to critical sections of code. Unlike a true lock, where
@@ -35,9 +39,6 @@ namespace Rock.Threading
         /// <summary>
         /// Gets a value indicating whether the lock has been acquired.
         /// </summary>
-        public bool IsLockAcquired
-        {
-            get { return _lock == _lockAcquired; }
-        }
+        public bool IsLockAcquired => _lock == _lockAcquired;
     }
 }

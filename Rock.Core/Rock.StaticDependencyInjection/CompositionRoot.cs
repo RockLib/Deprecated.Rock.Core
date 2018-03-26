@@ -1,3 +1,4 @@
+using Rock.BackgroundErrorLogging;
 using Rock.Conversion;
 using Rock.DependencyInjection;
 using Rock.DependencyInjection.Heuristics;
@@ -19,21 +20,34 @@ namespace Rock.Rock.StaticDependencyInjection
     {
         public override void Bootstrap()
         {
+            ImportFirst<IBackgroundErrorLogger>(BackgroundErrorLogger.SetCurrent);
+            ImportFirst<IBackgroundErrorLogFactory>(BackgroundErrorLogger.SetBackgroundErrorLogFactory);
+            
             ImportFirst<IApplicationIdProvider>(ApplicationId.SetCurrent);
-
+            
             ImportFirst<IResolverConstructorSelector>(AutoContainer.SetDefaultResolverConstructorSelector);
-
+            
             ImportFirst<IConvertsTo<IDictionary<string, string>>>(ToDictionaryOfStringToStringExtension.SetConverter);
             ImportFirst<IConvertsTo<ExpandoObject>>(ToExpandoObjectExtension.SetConverter);
-
+            
             ImportFirst<IKeyValueStore>(TempStorage.SetKeyValueStore, "TempStorage");
-
-            ImportFirst<ISerializer>(DefaultBinarySerializer.SetCurrent, "DefaultBinarySerializer");
+            
+            ImportFirst<ISerializer>(DefaultBinarySerializer.SetCurrent, "BinarySerializer");
             ImportFirst<IEndpointDetector>(DefaultEndpointDetector.SetCurrent);
             ImportFirst<IEndpointSelector>(DefaultEndpointSelector.SetCurrent);
             ImportFirst<IHttpClientFactory>(DefaultHttpClientFactory.SetCurrent);
             ImportFirst<ISerializer>(DefaultJsonSerializer.SetCurrent, "JsonSerializer");
             ImportFirst<ISerializer>(DefaultXmlSerializer.SetCurrent, "XmlSerializer");
+
+            BackgroundErrorLogger.UnlockCurrent();
+            BackgroundErrorLogger.UnlockBackgroundErrorLogFactory();
+        }
+
+        protected override void OnError(string message, Exception exception, ImportInfo import)
+        {
+            BackgroundErrorLogger.Log(exception, "Static Dependency Injection - " + message, "Rock.Core", "ImportInfo:\r\n" + import);
+
+            base.OnError(message, exception, import);
         }
 
         /// <summary>

@@ -19,7 +19,7 @@ namespace Rock.DependencyInjection
     {
         private const Func<object> _getInstanceFuncNotFound = null;
 
-        private static readonly Semimutable<IResolverConstructorSelector> _defaultResolverConstructorSelector = new Semimutable<IResolverConstructorSelector>(GetDefaultDefaultResolverConstructorSelector, true);
+        private static readonly Semimutable<IResolverConstructorSelector> _defaultResolverConstructorSelector = new Semimutable<IResolverConstructorSelector>(GetDefaultDefaultResolverConstructorSelector);
 
         private static readonly MethodInfo _genericGetMethod;
 
@@ -131,7 +131,7 @@ namespace Rock.DependencyInjection
 
         internal static void UnlockDefaultResolverConstructorSelector()
         {
-            _defaultResolverConstructorSelector.UnlockValue();
+            _defaultResolverConstructorSelector.GetUnlockValueMethod().Invoke(_defaultResolverConstructorSelector, null);
         }
 
         private static IResolverConstructorSelector GetDefaultDefaultResolverConstructorSelector()

@@ -38,6 +38,7 @@ namespace Rock.Serialization
                     return new XmlSerializationOptions(
                         c.Namespaces,
                         c.Encoding,
+						false,
                         c.DefaultNamespace,
                         c.Indent,
                         c.RootElementNameMap == null

@@ -32,8 +32,8 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Rock.Core, Version=0.9.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Rock.Core.0.9.3\lib\net45\Rock.Core.dll</HintPath>
+      <HintPath>..\packages\Rock.Core.0.9.12\lib\net45\Rock.Core.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -43,8 +43,8 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
     <Reference Include="XSerializer, Version=0.1.0.0, Culture=neutral, PublicKeyToken=9ab97cfaa8f0c80a, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\XSerializer.0.1.27\lib\net40\XSerializer.dll</HintPath>
+      <HintPath>..\packages\XSerializer.0.3.7\lib\net40\XSerializer.dll</HintPath>
+      <Private>True</Private>
     </Reference>
   </ItemGroup>
   <ItemGroup>
