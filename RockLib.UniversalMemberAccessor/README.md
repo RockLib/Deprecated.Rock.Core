@@ -1,4 +1,4 @@
-# RockLib.UniversalMemeberAccessor
+# RockLib.UniversalMemeberAccessor [![Build status](https://ci.appveyor.com/api/projects/status/oaebm3r0g1hcc8nx?svg=true)](https://ci.appveyor.com/project/bfriesen/rocklib-core-2eygt)
 
 *Defines mechanisms that enable easy access to non-public members of a type. Very dangerous - use with caution.*
 
