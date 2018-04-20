@@ -1,3 +1,5 @@
+using System;
+
 namespace RockLib.Dynamic
 {
     /// <summary>
@@ -23,6 +25,17 @@ namespace RockLib.Dynamic
         public static dynamic Unlock(this object instance)
         {
             return UniversalMemberAccessor.Get(instance);
+        }
+
+        /// <summary>
+        /// Gets a dynamic proxy object (specifically, an instance of <see cref="UniversalMemberAccessor"/>)
+        /// for the static members of the given type.
+        /// </summary>
+        /// <param name="type">The type whose static members will be exposed by the resulting dynamic proxy object.</param>
+        /// <returns>A dynamic proxy object enabling access to all static members of the given type.</returns>
+        public static dynamic Unlock(this Type type)
+        {
+            return UniversalMemberAccessor.GetStatic(type);
         }
     }
 }

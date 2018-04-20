@@ -13,6 +13,30 @@ namespace RockLib.Dynamic.UnitTests
     public class UniversalMemberAccessorTests
     {
         [Test]
+        public void UnlockExtensionMethodAndGetMethodReturnTheSameObject()
+        {
+            var type = Create.Class();
+
+            var instance = Activator.CreateInstance(type);
+
+            var unlock = instance.Unlock();
+            var get = UniversalMemberAccessor.Get(instance);
+
+            Assert.That(unlock, Is.SameAs(get));
+        }
+
+        [Test]
+        public void UnlockExtensionMethodAndGetStaticMethodReturnTheSameObject()
+        {
+            var type = Create.Class();
+
+            var unlock = type.Unlock();
+            var getStatic = UniversalMemberAccessor.GetStatic(type);
+
+            Assert.That(unlock, Is.SameAs(getStatic));
+        }
+
+        [Test]
         public void GetDynamicMemberNamesReturnsAllTheMemberNamesOfTheType()
         {
             var type = Create.Class();
