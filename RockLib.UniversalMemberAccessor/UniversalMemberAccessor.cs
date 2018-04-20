@@ -49,6 +49,8 @@ namespace RockLib.Dynamic
 
         static UniversalMemberAccessor()
         {
+            // Need to figure out if the current runtime supports setting readonly fields given two variables: 1) whether
+            // the field is static or instance, and 2) whether the field's type is a value type or reference type.
             var staticValueTypeField = typeof(ReadonlyFields).GetField("_staticValueType", BindingFlags.NonPublic | BindingFlags.Static);
             var staticReferenceTypeField = typeof(ReadonlyFields).GetField("_staticReferenceType", BindingFlags.NonPublic | BindingFlags.Static);
             var instanceValueTypeField = typeof(ReadonlyFields).GetField("_instanceValueType", BindingFlags.NonPublic | BindingFlags.Instance);
@@ -73,6 +75,8 @@ namespace RockLib.Dynamic
             _canSetReadonlyInstanceValueType = (readonlyFields.InstanceValueType != initialInstanceValueType);
             _canSetReadonlyInstanceReferenceType = (readonlyFields.InstanceReferenceType != initialInstanceReferenceType);
 
+            // Need to use some reflection in order to get the generic type arguments supplied by the caller.
+            // Note that Visual Basic's late binding does not support generic type arguments.
             var cSharpBinderType = Type.GetType("Microsoft.CSharp.RuntimeBinder.ICSharpInvokeOrInvokeMemberBinder, Microsoft.CSharp, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a");
 
             if (cSharpBinderType != null)
@@ -144,7 +148,6 @@ namespace RockLib.Dynamic
         /// A dynamic proxy object enabling access to all members of the given instance, or null
         /// if <paramref name="instance"/> is null.
         /// </returns>
-        /// <remarks>This is a very dangerous method - use with caution.</remarks>
         public static dynamic Get(object instance)
         {
             if (instance == null)
@@ -166,7 +169,6 @@ namespace RockLib.Dynamic
         /// </summary>
         /// <param name="type">The type whose static members will be exposed by the resulting dynamic proxy object.</param>
         /// <returns>A dynamic proxy object enabling access to all static members of the given type.</returns>
-        /// <remarks>This is a very dangerous method - use with caution.</remarks>
         public static dynamic GetStatic(Type type)
         {
             if (type == null) throw new ArgumentNullException("type");
@@ -871,13 +873,13 @@ namespace RockLib.Dynamic
                 {
                     typeArguments = new Type[methodInfo.GetGenericArguments().Length];
                     
-                    var paramters = methodInfo.GetParameters();
+                    var parameters = methodInfo.GetParameters();
 
                     for (int i = 0; i < typeArguments.Length; i++)
                     {
-                        for (int j = 0; j < paramters.Length; j++)
+                        for (int j = 0; j < parameters.Length; j++)
                         {
-                            var parameterType = paramters[j].ParameterType;
+                            var parameterType = parameters[j].ParameterType;
 
                             // ref and out parameters need to be unwrapped.
                             if (parameterType.IsByRef)
