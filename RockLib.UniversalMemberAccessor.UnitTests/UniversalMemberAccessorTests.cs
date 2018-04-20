@@ -6,7 +6,6 @@ using Microsoft.CSharp.RuntimeBinder;
 using NUnit.Framework;
 using System.Reflection;
 using RockLib.Dynamic.UnitTests.TypeCreator;
-using UMA=RockLib.Dynamic.UniversalMemberAccessor;
 
 namespace RockLib.Dynamic.UnitTests
 {
@@ -55,7 +54,7 @@ namespace RockLib.Dynamic.UnitTests
         [Test]
         public void CannotCallGetStaticWithNullType()
         {
-            Assert.That(() => UMA.GetStatic((Type)null), Throws.InstanceOf<ArgumentNullException>());
+            Assert.That(() => UniversalMemberAccessor.GetStatic((Type)null), Throws.InstanceOf<ArgumentNullException>());
         }
 
         [Test]
@@ -65,7 +64,7 @@ namespace RockLib.Dynamic.UnitTests
 
             var backingFoo = foo.Instance;
 
-            Assert.That(foo, Is.InstanceOf<UMA>());
+            Assert.That(foo, Is.InstanceOf<UniversalMemberAccessor>());
             Assert.That(backingFoo, Is.InstanceOf<Foo>());
         }
 
@@ -76,7 +75,7 @@ namespace RockLib.Dynamic.UnitTests
 
             var backingFoo = foo.Object;
 
-            Assert.That(foo, Is.InstanceOf<UMA>());
+            Assert.That(foo, Is.InstanceOf<UniversalMemberAccessor>());
             Assert.That(backingFoo, Is.InstanceOf<Foo>());
         }
 
@@ -87,7 +86,7 @@ namespace RockLib.Dynamic.UnitTests
 
             var backingFoo = foo.Value;
 
-            Assert.That(foo, Is.InstanceOf<UMA>());
+            Assert.That(foo, Is.InstanceOf<UniversalMemberAccessor>());
             Assert.That(backingFoo, Is.InstanceOf<Foo>());
         }
 
@@ -98,7 +97,7 @@ namespace RockLib.Dynamic.UnitTests
 
             Foo backingFoo = foo;
 
-            Assert.That(foo, Is.InstanceOf<UMA>());
+            Assert.That(foo, Is.InstanceOf<UniversalMemberAccessor>());
             Assert.That(backingFoo, Is.InstanceOf<Foo>());
         }
 
@@ -117,7 +116,7 @@ namespace RockLib.Dynamic.UnitTests
         [Test]
         public void CannotGetBackingInstanceFromStaticAccessorWithInstance()
         {
-            var foo = UMA.GetStatic<Foo>();
+            var foo = typeof(Foo).Unlock();
 
             Assert.That(() => foo.Instance, Throws.InstanceOf<RuntimeBinderException>());
         }
@@ -125,7 +124,7 @@ namespace RockLib.Dynamic.UnitTests
         [Test]
         public void CannotGetBackingInstanceFromStaticAccessorWithObject()
         {
-            var foo = UMA.GetStatic<Foo>();
+            var foo = typeof(Foo).Unlock();
 
             Assert.That(() => foo.Object, Throws.InstanceOf<RuntimeBinderException>());
         }
@@ -133,7 +132,7 @@ namespace RockLib.Dynamic.UnitTests
         [Test]
         public void CannotGetBackingInstanceFromStaticAccessorWithValue()
         {
-            var foo = UMA.GetStatic<Foo>();
+            var foo = typeof(Foo).Unlock();
 
             Assert.That(() => foo.Value, Throws.InstanceOf<RuntimeBinderException>());
         }
@@ -411,7 +410,7 @@ namespace RockLib.Dynamic.UnitTests
         {
             Foo.Reset();
 
-            var foo = UMA.GetStatic<Foo>();
+            var foo = typeof(Foo).Unlock();
 
             int baz = foo._baz;
 
@@ -423,7 +422,7 @@ namespace RockLib.Dynamic.UnitTests
         {
             Foo.Reset();
 
-            var foo = UMA.GetStatic<Foo>();
+            var foo = typeof(Foo).Unlock();
 
             int baz = foo.Baz;
 
@@ -433,7 +432,7 @@ namespace RockLib.Dynamic.UnitTests
         [Test]
         public void CanSetValueOfPrivateStaticFieldThroughStaticAccessor()
         {
-            var foo = UMA.GetStatic<Foo>();
+            var foo = typeof(Foo).Unlock();
 
             foo._baz = 123;
 
@@ -443,7 +442,7 @@ namespace RockLib.Dynamic.UnitTests
         [Test]
         public void CanSetValueOfPrivateStaticPropertyThroughStaticAccessor()
         {
-            var foo = UMA.GetStatic<Foo>();
+            var foo = typeof(Foo).Unlock();
 
             foo.Baz = 123;
 
@@ -873,7 +872,7 @@ namespace RockLib.Dynamic.UnitTests
         {
             var type = Create.Class("Foo", Define.Field("_bar", typeof(string), true, true));
 
-            var foo = UMA.GetStatic(type);
+            var foo = type.Unlock();
 
             foo._bar = "abc";
 
@@ -887,7 +886,7 @@ namespace RockLib.Dynamic.UnitTests
         {
             var type = Create.Class("Foo", Define.Field("_bar", typeof(int), true, true));
 
-            var foo = UMA.GetStatic(type);
+            var foo = type.Unlock();
 
             Assert.That(() => foo._bar = 123,
                 Throws.InstanceOf<NotSupportedException>().With.Message.EqualTo(
@@ -899,7 +898,7 @@ namespace RockLib.Dynamic.UnitTests
         {
             var type = Create.Class("Foo", Define.Field("_bar", typeof(int), true, true));
 
-            var foo = UMA.GetStatic(type);
+            var foo = type.Unlock();
 
             foo._bar = 123;
 
@@ -1150,7 +1149,7 @@ namespace RockLib.Dynamic.UnitTests
         [Test]
         public void CanRegisterAndDeregisterPrivateStaticEventThroughStaticAccessor()
         {
-            var bar = UMA.GetStatic<Bar>();
+            var bar = typeof(Bar).Unlock();
 
             var invocationCount = 0;
 
@@ -1188,7 +1187,7 @@ namespace RockLib.Dynamic.UnitTests
         [Test]
         public void CanCallPrivateStaticMethodsThroughStaticAccessor()
         {
-            var foo = UMA.GetStatic<Foo>();
+            var foo = typeof(Foo).Unlock();
 
             Assert.That(foo.Grault(123), Is.EqualTo("Grault(int i)"));
         }
@@ -1218,7 +1217,7 @@ namespace RockLib.Dynamic.UnitTests
         [Test]
         public void CanInvokePrivateConstructorsWithNew()
         {
-            var quxFactory = UMA.GetStatic<Qux>();
+            var quxFactory = typeof(Qux).Unlock();
 
             Qux qux = quxFactory.New();
 
@@ -1228,7 +1227,7 @@ namespace RockLib.Dynamic.UnitTests
         [Test]
         public void CanInvokePrivateConstructorsWithCreate()
         {
-            var quxFactory = UMA.GetStatic<Qux>();
+            var quxFactory = typeof(Qux).Unlock();
 
             Qux qux = quxFactory.Create();
 
@@ -1238,7 +1237,7 @@ namespace RockLib.Dynamic.UnitTests
         [Test]
         public void CanInvokePrivateConstructorsWithNewInstance()
         {
-            var quxFactory = UMA.GetStatic<Qux>();
+            var quxFactory = typeof(Qux).Unlock();
 
             Qux qux = quxFactory.NewInstance();
 
@@ -1248,7 +1247,7 @@ namespace RockLib.Dynamic.UnitTests
         [Test]
         public void CanInvokePrivateConstructorsWithCreateInstance()
         {
-            var quxFactory = UMA.GetStatic<Qux>();
+            var quxFactory = typeof(Qux).Unlock();
 
             Qux qux = quxFactory.CreateInstance();
 
@@ -1258,7 +1257,7 @@ namespace RockLib.Dynamic.UnitTests
         [Test]
         public void CannotInvokeConstructorsWithAliasWithIncorrectArgs()
         {
-            var quxFactory = UMA.GetStatic<Qux>();
+            var quxFactory = typeof(Qux).Unlock();
 
             Assert.That(() => quxFactory.CreateInstance("wrong", "args"), Throws.InstanceOf<RuntimeBinderException>());
         }
@@ -1266,7 +1265,7 @@ namespace RockLib.Dynamic.UnitTests
         [Test]
         public void CanResolveMultipleConstructors()
         {
-            var garplyFactory = UMA.GetStatic<Garply>();
+            var garplyFactory = typeof(Garply).Unlock();
 
             Assert.That(garplyFactory.New().Value, Is.EqualTo("Garply()"));
             Assert.That(garplyFactory.New(123).Value, Is.EqualTo("Garply(int i)"));
@@ -1303,7 +1302,7 @@ namespace RockLib.Dynamic.UnitTests
         public void CanGetPrivateEnumValue()
         {
             var fooType = Create.Class("Foo", Define.NestedEnum("Bar", "Baz", "Qux"));
-            var Foo = UMA.GetStatic(fooType);
+            var Foo = fooType.Unlock();
 
             // Note that these variables are declared as object. (see below)
             object baz = Foo.Bar.Baz;
@@ -1322,7 +1321,7 @@ namespace RockLib.Dynamic.UnitTests
         public void CanGetDefaultValueOfPrivateEnum()
         {
             var fooType = Create.Class("Foo", Define.NestedEnum("Bar", "Baz", "Qux"));
-            var Foo = UMA.GetStatic(fooType);
+            var Foo = fooType.Unlock();
 
             // Note that the variable is declared as object. (see below)
             object defaultBar = Foo.Bar.New();
@@ -1339,7 +1338,7 @@ namespace RockLib.Dynamic.UnitTests
         {
             var fooType = Create.Class("Foo", Define.NestedClass("Bar"));
 
-            var foo = UMA.GetStatic(fooType);
+            var foo = fooType.Unlock();
 
             var bar = foo.Bar.New();
 
@@ -1357,7 +1356,7 @@ namespace RockLib.Dynamic.UnitTests
                                 Define.NestedClass("Grault",
                                     Define.NestedClass("Garply"))))));
 
-            var foo = UMA.GetStatic(fooType);
+            var foo = fooType.Unlock();
 
             var garply = foo.Bar.Baz.Qux.Grault.Garply.New();
 
@@ -1369,7 +1368,7 @@ namespace RockLib.Dynamic.UnitTests
         {
             var fooType = Create.Class("Foo", Define.NestedStruct("Bar"));
 
-            var foo = UMA.GetStatic(fooType);
+            var foo = fooType.Unlock();
 
             var bar = foo.Bar.New();
 
@@ -1394,7 +1393,7 @@ namespace RockLib.Dynamic.UnitTests
         [TestCase(typeof(string), typeof(int), ushort.MaxValue)]
         public void AncestorDistanceIsCalculatedCorrectlyForInterfacesAndClasses(Type type, Type ancestorType, int expectedDistance)
         {
-            var candidate = UMA.GetStatic<UMA>().Candidate;
+            var candidate = typeof(UniversalMemberAccessor).Unlock().Candidate;
 
             var distance = candidate.GetAncestorDistance(type, ancestorType);
 
@@ -1478,7 +1477,7 @@ namespace RockLib.Dynamic.UnitTests
         [TestCase(typeof(decimal), typeof(decimal), 0)]
         public void AncestorDistanceIsCalculatedCorrectlyForNumericTypes(Type type, Type ancestorType, int expectedDistance)
         {
-            var candidate = UMA.GetStatic<UMA>().Candidate;
+            var candidate = typeof(UniversalMemberAccessor).Unlock().Candidate;
 
             var distance = candidate.GetAncestorDistance(type, ancestorType);
 
@@ -1492,7 +1491,7 @@ namespace RockLib.Dynamic.UnitTests
         [TestCase(typeof(Ham), typeof(Pork), true, TestName="inherited class returns true")]
         public void HasAncestorReturnsTheCorrectValue(Type type, Type ancestorType, bool expectedValue)
         {
-            var candidate = UMA.GetStatic<UMA>().Candidate;
+            var candidate = typeof(UniversalMemberAccessor).Unlock().Candidate;
 
             bool hasAncestor = candidate.HasAncestor(type, ancestorType);
 
@@ -1514,7 +1513,7 @@ namespace RockLib.Dynamic.UnitTests
         [TestCase(typeof(string), typeof(Ham), typeof(CountryHam), -32767)]
         public void AccumulateScoreModifiesScoreCorrectly(Type thisType, Type otherType, Type argType, int expectedScore)
         {
-            var candidate = UMA.GetStatic<UMA>().Candidate;
+            var candidate = typeof(UniversalMemberAccessor).Unlock().Candidate;
 
             var score = 0;
             candidate.AccumulateScore(thisType, otherType, argType, ref score);
@@ -1533,7 +1532,7 @@ namespace RockLib.Dynamic.UnitTests
 
             var constructor = type.GetConstructors()[0];
 
-            var candidateFactory = UMA.GetStatic<UMA>().Candidate;
+            var candidateFactory = typeof(UniversalMemberAccessor).Unlock().Candidate;
 
             var candidate = candidateFactory.New(constructor);
 
@@ -1553,7 +1552,7 @@ namespace RockLib.Dynamic.UnitTests
 
             var constructor = type.GetConstructors()[0];
 
-            var candidateFactory = UMA.GetStatic<UMA>().Candidate;
+            var candidateFactory = typeof(UniversalMemberAccessor).Unlock().Candidate;
 
             var candidate = candidateFactory.New(constructor);
 
@@ -1573,7 +1572,7 @@ namespace RockLib.Dynamic.UnitTests
 
             var constructor = type.GetConstructors()[0];
 
-            var candidateFactory = UMA.GetStatic<UMA>().Candidate;
+            var candidateFactory = typeof(UniversalMemberAccessor).Unlock().Candidate;
 
             var candidate = candidateFactory.New(constructor);
 
@@ -1593,7 +1592,7 @@ namespace RockLib.Dynamic.UnitTests
 
             var constructor = type.GetConstructors()[0];
 
-            var candidateFactory = UMA.GetStatic<UMA>().Candidate;
+            var candidateFactory = typeof(UniversalMemberAccessor).Unlock().Candidate;
 
             var candidate = candidateFactory.New(constructor);
 
@@ -1611,7 +1610,7 @@ namespace RockLib.Dynamic.UnitTests
         {
             var method = GetType().GetMethod("Generic");
 
-            var candidateFactory = UMA.GetStatic<UMA>().Candidate;
+            var candidateFactory = typeof(UniversalMemberAccessor).Unlock().Candidate;
 
             var candidate = candidateFactory.New(method);
 
@@ -1630,7 +1629,7 @@ namespace RockLib.Dynamic.UnitTests
         {
             var method = GetType().GetMethod("NewConstraint");
 
-            var candidateFactory = UMA.GetStatic<UMA>().Candidate;
+            var candidateFactory = typeof(UniversalMemberAccessor).Unlock().Candidate;
 
             var candidate = candidateFactory.New(method);
 
@@ -1644,7 +1643,7 @@ namespace RockLib.Dynamic.UnitTests
         {
             var method = GetType().GetMethod("NewConstraint");
 
-            var candidateFactory = UMA.GetStatic<UMA>().Candidate;
+            var candidateFactory = typeof(UniversalMemberAccessor).Unlock().Candidate;
 
             var candidate = candidateFactory.New(method);
 
@@ -1658,7 +1657,7 @@ namespace RockLib.Dynamic.UnitTests
         {
             var method = GetType().GetMethod("NewConstraint");
 
-            var candidateFactory = UMA.GetStatic<UMA>().Candidate;
+            var candidateFactory = typeof(UniversalMemberAccessor).Unlock().Candidate;
 
             var candidate = candidateFactory.New(method);
 
@@ -1672,7 +1671,7 @@ namespace RockLib.Dynamic.UnitTests
         {
             var method = GetType().GetMethod("NewConstraint");
 
-            var candidateFactory = UMA.GetStatic<UMA>().Candidate;
+            var candidateFactory = typeof(UniversalMemberAccessor).Unlock().Candidate;
 
             var candidate = candidateFactory.New(method);
 
@@ -1686,7 +1685,7 @@ namespace RockLib.Dynamic.UnitTests
         {
             var method = GetType().GetMethod("NewConstraint");
 
-            var candidateFactory = UMA.GetStatic<UMA>().Candidate;
+            var candidateFactory = typeof(UniversalMemberAccessor).Unlock().Candidate;
 
             var candidate = candidateFactory.New(method);
 
@@ -1700,7 +1699,7 @@ namespace RockLib.Dynamic.UnitTests
         {
             var method = GetType().GetMethod("NewConstraint");
 
-            var candidateFactory = UMA.GetStatic<UMA>().Candidate;
+            var candidateFactory = typeof(UniversalMemberAccessor).Unlock().Candidate;
 
             var candidate = candidateFactory.New(method);
 
@@ -1719,7 +1718,7 @@ namespace RockLib.Dynamic.UnitTests
         {
             var method = GetType().GetMethod("ClassConstraint");
 
-            var candidateFactory = UMA.GetStatic<UMA>().Candidate;
+            var candidateFactory = typeof(UniversalMemberAccessor).Unlock().Candidate;
 
             var candidate = candidateFactory.New(method);
 
@@ -1733,7 +1732,7 @@ namespace RockLib.Dynamic.UnitTests
         {
             var method = GetType().GetMethod("ClassConstraint");
 
-            var candidateFactory = UMA.GetStatic<UMA>().Candidate;
+            var candidateFactory = typeof(UniversalMemberAccessor).Unlock().Candidate;
 
             var candidate = candidateFactory.New(method);
 
@@ -1747,7 +1746,7 @@ namespace RockLib.Dynamic.UnitTests
         {
             var method = GetType().GetMethod("ClassConstraint");
 
-            var candidateFactory = UMA.GetStatic<UMA>().Candidate;
+            var candidateFactory = typeof(UniversalMemberAccessor).Unlock().Candidate;
 
             var candidate = candidateFactory.New(method);
 
@@ -1761,7 +1760,7 @@ namespace RockLib.Dynamic.UnitTests
         {
             var method = GetType().GetMethod("ClassConstraint");
 
-            var candidateFactory = UMA.GetStatic<UMA>().Candidate;
+            var candidateFactory = typeof(UniversalMemberAccessor).Unlock().Candidate;
 
             var candidate = candidateFactory.New(method);
 
@@ -1780,7 +1779,7 @@ namespace RockLib.Dynamic.UnitTests
         {
             var method = GetType().GetMethod("StructConstraint");
 
-            var candidateFactory = UMA.GetStatic<UMA>().Candidate;
+            var candidateFactory = typeof(UniversalMemberAccessor).Unlock().Candidate;
 
             var candidate = candidateFactory.New(method);
 
@@ -1794,7 +1793,7 @@ namespace RockLib.Dynamic.UnitTests
         {
             var method = GetType().GetMethod("StructConstraint");
 
-            var candidateFactory = UMA.GetStatic<UMA>().Candidate;
+            var candidateFactory = typeof(UniversalMemberAccessor).Unlock().Candidate;
 
             var candidate = candidateFactory.New(method);
 
@@ -1808,7 +1807,7 @@ namespace RockLib.Dynamic.UnitTests
         {
             var method = GetType().GetMethod("StructConstraint");
 
-            var candidateFactory = UMA.GetStatic<UMA>().Candidate;
+            var candidateFactory = typeof(UniversalMemberAccessor).Unlock().Candidate;
 
             var candidate = candidateFactory.New(method);
 
@@ -1822,7 +1821,7 @@ namespace RockLib.Dynamic.UnitTests
         {
             var method = GetType().GetMethod("StructConstraint");
 
-            var candidateFactory = UMA.GetStatic<UMA>().Candidate;
+            var candidateFactory = typeof(UniversalMemberAccessor).Unlock().Candidate;
 
             var candidate = candidateFactory.New(method);
 
@@ -1841,7 +1840,7 @@ namespace RockLib.Dynamic.UnitTests
         {
             var method = GetType().GetMethod("BaseClassContraint");
 
-            var candidateFactory = UMA.GetStatic<UMA>().Candidate;
+            var candidateFactory = typeof(UniversalMemberAccessor).Unlock().Candidate;
 
             var candidate = candidateFactory.New(method);
 
@@ -1855,7 +1854,7 @@ namespace RockLib.Dynamic.UnitTests
         {
             var method = GetType().GetMethod("BaseClassContraint");
 
-            var candidateFactory = UMA.GetStatic<UMA>().Candidate;
+            var candidateFactory = typeof(UniversalMemberAccessor).Unlock().Candidate;
 
             var candidate = candidateFactory.New(method);
 
@@ -1869,7 +1868,7 @@ namespace RockLib.Dynamic.UnitTests
         {
             var method = GetType().GetMethod("BaseClassContraint");
 
-            var candidateFactory = UMA.GetStatic<UMA>().Candidate;
+            var candidateFactory = typeof(UniversalMemberAccessor).Unlock().Candidate;
 
             var candidate = candidateFactory.New(method);
 
@@ -1883,7 +1882,7 @@ namespace RockLib.Dynamic.UnitTests
         {
             var method = GetType().GetMethod("BaseClassContraint");
 
-            var candidateFactory = UMA.GetStatic<UMA>().Candidate;
+            var candidateFactory = typeof(UniversalMemberAccessor).Unlock().Candidate;
 
             var candidate = candidateFactory.New(method);
 
@@ -1902,7 +1901,7 @@ namespace RockLib.Dynamic.UnitTests
         {
             var method = GetType().GetMethod("InterfaceContraint");
 
-            var candidateFactory = UMA.GetStatic<UMA>().Candidate;
+            var candidateFactory = typeof(UniversalMemberAccessor).Unlock().Candidate;
 
             var candidate = candidateFactory.New(method);
 
@@ -1916,7 +1915,7 @@ namespace RockLib.Dynamic.UnitTests
         {
             var method = GetType().GetMethod("InterfaceContraint");
 
-            var candidateFactory = UMA.GetStatic<UMA>().Candidate;
+            var candidateFactory = typeof(UniversalMemberAccessor).Unlock().Candidate;
 
             var candidate = candidateFactory.New(method);
 
@@ -1930,7 +1929,7 @@ namespace RockLib.Dynamic.UnitTests
         {
             var method = GetType().GetMethod("InterfaceContraint");
 
-            var candidateFactory = UMA.GetStatic<UMA>().Candidate;
+            var candidateFactory = typeof(UniversalMemberAccessor).Unlock().Candidate;
 
             var candidate = candidateFactory.New(method);
 
@@ -1944,7 +1943,7 @@ namespace RockLib.Dynamic.UnitTests
         {
             var method = GetType().GetMethod("InterfaceContraint");
 
-            var candidateFactory = UMA.GetStatic<UMA>().Candidate;
+            var candidateFactory = typeof(UniversalMemberAccessor).Unlock().Candidate;
 
             var candidate = candidateFactory.New(method);
 
@@ -1963,7 +1962,7 @@ namespace RockLib.Dynamic.UnitTests
         {
             var method = GetType().GetMethod("TypeParameterContraint");
 
-            var candidateFactory = UMA.GetStatic<UMA>().Candidate;
+            var candidateFactory = typeof(UniversalMemberAccessor).Unlock().Candidate;
 
             var candidate = candidateFactory.New(method);
 
@@ -1977,7 +1976,7 @@ namespace RockLib.Dynamic.UnitTests
         {
             var method = GetType().GetMethod("TypeParameterContraint");
 
-            var candidateFactory = UMA.GetStatic<UMA>().Candidate;
+            var candidateFactory = typeof(UniversalMemberAccessor).Unlock().Candidate;
 
             var candidate = candidateFactory.New(method);
 
@@ -1991,7 +1990,7 @@ namespace RockLib.Dynamic.UnitTests
         {
             var method = GetType().GetMethod("TypeParameterContraint");
 
-            var candidateFactory = UMA.GetStatic<UMA>().Candidate;
+            var candidateFactory = typeof(UniversalMemberAccessor).Unlock().Candidate;
 
             var candidate = candidateFactory.New(method);
 
@@ -2146,7 +2145,7 @@ namespace RockLib.Dynamic.UnitTests
         [Test]
         public void CreateInstanceDefinitionEqualsReturnsTrueWhenReferencesAreEqual()
         {
-            var type = UMA.GetStatic<UMA>().CreateInstanceDefinition;
+            var type = typeof(UniversalMemberAccessor).Unlock().CreateInstanceDefinition;
 
             var definition1 = type.New(typeof(int), new[] { typeof(string), typeof(bool) }).Value;
             var definition2 = definition1;
@@ -2157,7 +2156,7 @@ namespace RockLib.Dynamic.UnitTests
         [Test]
         public void CreateInstanceDefinitionEqualsReturnsFalseWhenOtherTypeIsNotCreateInstanceDefinition()
         {
-            var type = UMA.GetStatic<UMA>().CreateInstanceDefinition;
+            var type = typeof(UniversalMemberAccessor).Unlock().CreateInstanceDefinition;
 
             var definition1 = type.New(typeof(int), new[] { typeof(string), typeof(bool) }).Value;
             var definition2 = "abcd";
@@ -2168,7 +2167,7 @@ namespace RockLib.Dynamic.UnitTests
         [Test]
         public void CreateInstanceDefinitionEqualsReturnsFalseWhenOtherHasDifferentType()
         {
-            var type = UMA.GetStatic<UMA>().CreateInstanceDefinition;
+            var type = typeof(UniversalMemberAccessor).Unlock().CreateInstanceDefinition;
 
             var definition1 = type.New(typeof(int), new[] { typeof(string), typeof(bool) }).Value;
             var definition2 = type.New(typeof(string), new[] { typeof(string), typeof(bool) }).Value;
@@ -2179,7 +2178,7 @@ namespace RockLib.Dynamic.UnitTests
         [Test]
         public void CreateInstanceDefinitionEqualsReturnsFalseWhenOtherHasDifferentNumberOfArgTypes()
         {
-            var type = UMA.GetStatic<UMA>().CreateInstanceDefinition;
+            var type = typeof(UniversalMemberAccessor).Unlock().CreateInstanceDefinition;
 
             var definition1 = type.New(typeof(int), new[] { typeof(string), typeof(bool) }).Value;
             var definition2 = type.New(typeof(int), new[] { typeof(string) }).Value;
@@ -2190,7 +2189,7 @@ namespace RockLib.Dynamic.UnitTests
         [Test]
         public void CreateInstanceDefinitionEqualsReturnsFalseWhenOtherHasDifferentArgTypes()
         {
-            var type = UMA.GetStatic<UMA>().CreateInstanceDefinition;
+            var type = typeof(UniversalMemberAccessor).Unlock().CreateInstanceDefinition;
 
             var definition1 = type.New(typeof(int), new[] { typeof(string), typeof(bool) }).Value;
             var definition2 = type.New(typeof(int), new[] { typeof(string), typeof(DateTime) }).Value;
@@ -2201,7 +2200,7 @@ namespace RockLib.Dynamic.UnitTests
         [Test]
         public void CreateInstanceDefinitionEqualsReturnsTrueWhenTypeAndArgTypesAreTheSame()
         {
-            var type = UMA.GetStatic<UMA>().CreateInstanceDefinition;
+            var type = typeof(UniversalMemberAccessor).Unlock().CreateInstanceDefinition;
 
             var definition1 = type.New(typeof(int), new[] { typeof(string), typeof(bool) }).Value;
             var definition2 = type.New(typeof(int), new[] { typeof(string), typeof(bool) }).Value;
@@ -2212,7 +2211,7 @@ namespace RockLib.Dynamic.UnitTests
         [Test]
         public void CreateInstanceDefinitionGetHashCodeIsTheSameForEqualInstances()
         {
-            var type = UMA.GetStatic<UMA>().CreateInstanceDefinition;
+            var type = typeof(UniversalMemberAccessor).Unlock().CreateInstanceDefinition;
 
             var definition1 = type.New(typeof(int), new[] { typeof(string), typeof(bool) }).Value;
             var definition2 = type.New(typeof(int), new[] { typeof(string), typeof(bool) }).Value;
@@ -2224,7 +2223,7 @@ namespace RockLib.Dynamic.UnitTests
         [Test]
         public void CreateInstanceDefinitionGetHashCodeIsTheSameForReferenceEqualInstances()
         {
-            var type = UMA.GetStatic<UMA>().CreateInstanceDefinition;
+            var type = typeof(UniversalMemberAccessor).Unlock().CreateInstanceDefinition;
 
             var definition1 = type.New(typeof(int), new[] { typeof(string), typeof(bool) }).Value;
             var definition2 = definition1;
@@ -2236,7 +2235,7 @@ namespace RockLib.Dynamic.UnitTests
         [Test]
         public void InvokeMethodDefinitionEqualsReturnsTrueWhenReferencesAreEqual()
         {
-            var type = UMA.GetStatic<UMA>().InvokeMethodDefinition;
+            var type = typeof(UniversalMemberAccessor).Unlock().InvokeMethodDefinition;
 
             var definition1 = type.New(typeof(int), "Foo", Type.EmptyTypes, new object[] { "abc", true }).Value;
             var definition2 = definition1;
@@ -2247,7 +2246,7 @@ namespace RockLib.Dynamic.UnitTests
         [Test]
         public void InvokeMethodDefinitionEqualsReturnsFalseWhenOtherTypeIsNotInvokeMethodDefinition()
         {
-            var type = UMA.GetStatic<UMA>().InvokeMethodDefinition;
+            var type = typeof(UniversalMemberAccessor).Unlock().InvokeMethodDefinition;
 
             var definition1 = type.New(typeof(int), "Foo", Type.EmptyTypes, new object[] { "abc", true }).Value;
             var definition2 = "abcd";
@@ -2258,7 +2257,7 @@ namespace RockLib.Dynamic.UnitTests
         [Test]
         public void InvokeMethodDefinitionEqualsReturnsFalseWhenOtherHasDifferentType()
         {
-            var type = UMA.GetStatic<UMA>().InvokeMethodDefinition;
+            var type = typeof(UniversalMemberAccessor).Unlock().InvokeMethodDefinition;
 
             var definition1 = type.New(typeof(int), "Foo", Type.EmptyTypes, new object[] { "abc", true }).Value;
             var definition2 = type.New(typeof(string), "Foo", Type.EmptyTypes, new object[] { "abc", true }).Value;
@@ -2269,7 +2268,7 @@ namespace RockLib.Dynamic.UnitTests
         [Test]
         public void InvokeMethodDefinitionEqualsReturnsFalseWhenOtherHasDifferentName()
         {
-            var type = UMA.GetStatic<UMA>().InvokeMethodDefinition;
+            var type = typeof(UniversalMemberAccessor).Unlock().InvokeMethodDefinition;
 
             var definition1 = type.New(typeof(int), "Foo", Type.EmptyTypes, new object[] { "abc", true }).Value;
             var definition2 = type.New(typeof(int), "Bar", Type.EmptyTypes, new object[] { "abc", true }).Value;
@@ -2280,7 +2279,7 @@ namespace RockLib.Dynamic.UnitTests
         [Test]
         public void InvokeMethodDefinitionEqualsReturnsFalseWhenOtherHasDifferentNumberOfArgTypes()
         {
-            var type = UMA.GetStatic<UMA>().InvokeMethodDefinition;
+            var type = typeof(UniversalMemberAccessor).Unlock().InvokeMethodDefinition;
 
             var definition1 = type.New(typeof(int), "Foo", Type.EmptyTypes, new object[] { "abc", true }).Value;
             var definition2 = type.New(typeof(int), "Foo", Type.EmptyTypes, new object[] { "abc" }).Value;
@@ -2291,7 +2290,7 @@ namespace RockLib.Dynamic.UnitTests
         [Test]
         public void InvokeMethodDefinitionEqualsReturnsFalseWhenOtherHasDifferentArgTypes()
         {
-            var type = UMA.GetStatic<UMA>().InvokeMethodDefinition;
+            var type = typeof(UniversalMemberAccessor).Unlock().InvokeMethodDefinition;
 
             var definition1 = type.New(typeof(int), "Foo", Type.EmptyTypes, new object[] { "abc", true }).Value;
             var definition2 = type.New(typeof(int), "Foo", Type.EmptyTypes, new object[] { "abc", DateTime.Now }).Value;
@@ -2302,7 +2301,7 @@ namespace RockLib.Dynamic.UnitTests
         [Test]
         public void InvokeMethodDefinitionEqualsReturnsFalseWhenOtherHasDifferentNumberOfTypeArguments()
         {
-            var type = UMA.GetStatic<UMA>().InvokeMethodDefinition;
+            var type = typeof(UniversalMemberAccessor).Unlock().InvokeMethodDefinition;
 
             var definition1 = type.New(typeof(int), "Foo", new[] { typeof(int) }, new object[] { "abc", true }).Value;
             var definition2 = type.New(typeof(int), "Foo", new[] { typeof(int), typeof(string) }, new object[] { "abc" }).Value;
@@ -2313,7 +2312,7 @@ namespace RockLib.Dynamic.UnitTests
         [Test]
         public void InvokeMethodDefinitionEqualsReturnsFalseWhenOtherHasDifferentTypeArguments()
         {
-            var type = UMA.GetStatic<UMA>().InvokeMethodDefinition;
+            var type = typeof(UniversalMemberAccessor).Unlock().InvokeMethodDefinition;
 
             var definition1 = type.New(typeof(int), "Foo", new[] { typeof(int), typeof(string) }, new object[] { "abc", true }).Value;
             var definition2 = type.New(typeof(int), "Foo", new[] { typeof(int), typeof(int) }, new object[] { "abc", DateTime.Now }).Value;
@@ -2324,7 +2323,7 @@ namespace RockLib.Dynamic.UnitTests
         [Test]
         public void InvokeMethodDefinitionEqualsReturnsTrueWhenTypeAndArgTypesAreTheSame()
         {
-            var type = UMA.GetStatic<UMA>().InvokeMethodDefinition;
+            var type = typeof(UniversalMemberAccessor).Unlock().InvokeMethodDefinition;
 
             var definition1 = type.New(typeof(int), "Foo", new[] { typeof(int), typeof(string) }, new object[] { "abc", true }).Value;
             var definition2 = type.New(typeof(int), "Foo", new[] { typeof(int), typeof(string) }, new object[] { "abc", true }).Value;
@@ -2335,7 +2334,7 @@ namespace RockLib.Dynamic.UnitTests
         [Test]
         public void InvokeMethodDefinitionGetHashCodeIsTheSameForEqualInstances()
         {
-            var type = UMA.GetStatic<UMA>().InvokeMethodDefinition;
+            var type = typeof(UniversalMemberAccessor).Unlock().InvokeMethodDefinition;
 
             var definition1 = type.New(typeof(int), "Foo", new[] { typeof(int), typeof(string) }, new object[] { "abc", true }).Value;
             var definition2 = type.New(typeof(int), "Foo", new[] { typeof(int), typeof(string) }, new object[] { "abc", true }).Value;
@@ -2347,7 +2346,7 @@ namespace RockLib.Dynamic.UnitTests
         [Test]
         public void InvokeMethodDefinitionGetHashCodeIsTheSameForReferenceEqualInstances()
         {
-            var type = UMA.GetStatic<UMA>().InvokeMethodDefinition;
+            var type = typeof(UniversalMemberAccessor).Unlock().InvokeMethodDefinition;
 
             var definition1 = type.New(typeof(int), "Foo", new[] { typeof(int), typeof(string) }, new object[] { "abc", true }).Value;
             var definition2 = definition1;
