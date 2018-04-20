@@ -27,7 +27,6 @@ namespace RockLib.Dynamic
         private static readonly bool _canSetReadonlyInstanceValueType;
         private static readonly bool _canSetReadonlyInstanceReferenceType;
 
-        private static readonly Type _cSharpBinderType;
         private static readonly Func<InvokeMemberBinder, IList<Type>> _getCSharpTypeArguments;
 
         private static readonly ConditionalWeakTable<object, UniversalMemberAccessor> _instanceMap = new ConditionalWeakTable<object, UniversalMemberAccessor>();
@@ -74,11 +73,11 @@ namespace RockLib.Dynamic
             _canSetReadonlyInstanceValueType = (readonlyFields.InstanceValueType != initialInstanceValueType);
             _canSetReadonlyInstanceReferenceType = (readonlyFields.InstanceReferenceType != initialInstanceReferenceType);
 
-            _cSharpBinderType = Type.GetType("Microsoft.CSharp.RuntimeBinder.ICSharpInvokeOrInvokeMemberBinder, Microsoft.CSharp, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a");
+            var cSharpBinderType = Type.GetType("Microsoft.CSharp.RuntimeBinder.ICSharpInvokeOrInvokeMemberBinder, Microsoft.CSharp, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a");
 
-            if (_cSharpBinderType != null)
+            if (cSharpBinderType != null)
             {
-                var property = _cSharpBinderType.GetProperty("TypeArguments");
+                var property = cSharpBinderType.GetProperty("TypeArguments");
 
                 if (property != null && property.PropertyType == typeof(IList<Type>))
                 {
@@ -86,12 +85,24 @@ namespace RockLib.Dynamic
 
                     var lambda = Expression.Lambda<Func<InvokeMemberBinder, IList<Type>>>(
                         Expression.Property(
-                            Expression.Convert(binderParameter, _cSharpBinderType),
+                            Expression.Convert(binderParameter, cSharpBinderType),
                             property),
                         binderParameter);
 
-                    _getCSharpTypeArguments = lambda.Compile();
+                    var getTypeArguments = lambda.Compile();
+                    var empty = new Type[0];
+
+                    _getCSharpTypeArguments = binder =>
+                        cSharpBinderType.IsInstanceOfType(binder)
+                            ? getTypeArguments(binder)
+                            : empty;
                 }
+            }
+
+            if (_getCSharpTypeArguments == null)
+            {
+                var empty = new Type[0];
+                _getCSharpTypeArguments = binder => empty;
             }
         }
 
@@ -292,12 +303,7 @@ namespace RockLib.Dynamic
             object[] args,
             out object result)
         {
-            IList<Type> typeArguments = new Type[0];
-
-            if (_cSharpBinderType != null && _cSharpBinderType.IsInstanceOfType(binder))
-            {
-                typeArguments = _getCSharpTypeArguments(binder);
-            }
+            var typeArguments = _getCSharpTypeArguments(binder);
 
             var invokeMethodFunc = _invokeMethodFuncs.GetOrAdd(
                 new InvokeMethodDefinition(_type, binder.Name, typeArguments, args),
