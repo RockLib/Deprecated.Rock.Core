@@ -12,6 +12,59 @@ namespace RockLib.Dynamic.UnitTests
     public class UniversalMemberAccessorTests
     {
         [Test]
+        public void ObjectVirtualMethodsAreInvokedAsExpectedForInstanceProxy()
+        {
+            var instance = new SpiesOnObjectMethods();
+
+            Assume.That(instance.ToStringInvocations, Is.EqualTo(0));
+            Assume.That(instance.GetHashCodeInvocations, Is.EqualTo(0));
+            Assume.That(instance.EqualsInvocations, Is.EqualTo(0));
+
+            string toStringDirect = instance.ToString();
+            int getHashCodeDirect = instance.GetHashCode();
+            bool equalsDirect = instance.Equals(instance);
+
+            Assume.That(instance.ToStringInvocations, Is.EqualTo(1));
+            Assume.That(instance.GetHashCodeInvocations, Is.EqualTo(1));
+            Assume.That(instance.EqualsInvocations, Is.EqualTo(1));
+
+            var proxy = instance.Unlock();
+
+            string toStringProxy = proxy.ToString();
+            int getHashCodeProxy = proxy.GetHashCode();
+            bool equalsProxy = proxy.Equals(proxy);
+
+            Assert.That(instance.ToStringInvocations, Is.EqualTo(2));
+            Assert.That(instance.GetHashCodeInvocations, Is.EqualTo(2));
+            Assert.That(instance.EqualsInvocations, Is.EqualTo(2));
+
+            Assert.That(toStringProxy, Is.EqualTo(toStringDirect));
+            Assert.That(getHashCodeProxy, Is.EqualTo(getHashCodeDirect));
+            Assert.That(equalsProxy, Is.EqualTo(equalsDirect));
+        }
+
+        [Test]
+        public void ObjectVirtualMethodsAreInvokedOnTypeForStaticProxy()
+        {
+            var type = Create.Class();
+
+            var proxy = type.Unlock();
+
+            var actualToString = type.ToString();
+            var proxyToString = proxy.ToString();
+
+            var actualGetHashCode = type.GetHashCode();
+            var proxyGetHashCode = proxy.GetHashCode();
+
+            var actualEquals = type.Equals(type);
+            var proxyEquals = proxy.Equals(proxy);
+
+            Assert.That(proxyToString, Is.EqualTo(actualToString));
+            Assert.That(proxyGetHashCode, Is.EqualTo(actualGetHashCode));
+            Assert.That(proxyEquals, Is.EqualTo(actualEquals));
+        }
+
+        [Test]
         public void UnlockExtensionMethodAndGetMethodReturnTheSameObject()
         {
             var type = Create.Class();
@@ -2760,6 +2813,31 @@ namespace RockLib.Dynamic.UnitTests
     public enum MyEnum
     {
         First
+    }
+
+    public class SpiesOnObjectMethods
+    {
+        public int EqualsInvocations { get; private set; }
+        public int GetHashCodeInvocations { get; private set; }
+        public int ToStringInvocations { get; private set; }
+
+        public override bool Equals(object obj)
+        {
+            EqualsInvocations++;
+            return base.Equals(obj);
+        }
+
+        public override int GetHashCode()
+        {
+            GetHashCodeInvocations++;
+            return base.GetHashCode();
+        }
+
+        public override string ToString()
+        {
+            ToStringInvocations++;
+            return base.ToString();
+        }
     }
 
     // ReSharper restore EventNeverSubscribedTo.Local

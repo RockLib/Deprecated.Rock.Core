@@ -206,6 +206,49 @@ namespace RockLib.Dynamic
             return GetStatic(Type.GetType(assemblyQualifiedName, true));
         }
 
+        /// <inheritdoc />
+        public override string ToString()
+        {
+            return _instance != null ? _instance.ToString() : _type.ToString();
+        }
+
+        /// <inheritdoc />
+        public override bool Equals(object obj)
+        {
+            if (_instance != null)
+            {
+                var other = obj as UniversalMemberAccessor;
+                if (other != null)
+                {
+                    if (other._instance != null)
+                    {
+                        return _instance.Equals(other._instance);
+                    }
+                    return false;
+                }
+                return _instance.Equals(obj);
+            }
+            else
+            {
+                var other = obj as UniversalMemberAccessor;
+                if (other != null)
+                {
+                    if (other._instance == null)
+                    {
+                        return _type.Equals((object)other._type);
+                    }
+                    return false;
+                }
+                return _type.Equals(obj);
+            }
+        }
+
+        /// <inheritdoc />
+        public override int GetHashCode()
+        {
+            return _instance != null ? _instance.GetHashCode() : _type.GetHashCode();
+        }
+
         /// <summary>
         /// Provides the implementation for operations that get member values.
         /// </summary>
