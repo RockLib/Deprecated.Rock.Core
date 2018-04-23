@@ -3,7 +3,7 @@ using System;
 namespace RockLib.Dynamic
 {
     /// <summary>
-    /// A class to provide the <see cref="Unlock"/> extension method.
+    /// A class to provide the <see cref="Unlock(object)"/> and <see cref="Unlock(Type)"/> extension methods.
     /// </summary>
     public static class UnlockExtension
     {

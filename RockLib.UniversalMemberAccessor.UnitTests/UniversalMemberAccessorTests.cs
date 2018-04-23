@@ -2581,6 +2581,176 @@ namespace RockLib.Dynamic.UnitTests
             Assert.That(outBar, Is.SameAs(ham));
         }
 
+        [Test]
+        public void CanAccessPrivateMembersOfBaseClass()
+        {
+            var obj = new DerivedClassFromBaseClassWithPrivateMembers();
+            var proxy = obj.Unlock();
+
+            int foo = proxy._foo;
+            string bar = proxy.Bar();
+            double baz = proxy.Baz;
+
+            Assert.That(foo, Is.EqualTo(obj.GetBaseFoo()));
+            Assert.That(bar, Is.EqualTo(obj.GetBaseBar()));
+            Assert.That(baz, Is.EqualTo(obj.GetBaseBaz()));
+
+            proxy._foo = -1;
+            proxy.Baz = -543.21;
+
+            Assert.That(obj.GetBaseFoo(), Is.EqualTo(-1));
+            Assert.That(obj.GetBaseBaz(), Is.EqualTo(-543.21));
+        }
+
+        [Test]
+        public void CannotAccessPrivateMembersOfBaseClassWhenNameConflictsWithDerivedClass()
+        {
+            var obj = new DerivedClassWithConflictingPrivateMembers();
+            var proxy = obj.Unlock();
+
+            int foo = proxy._foo;
+            string bar = proxy.Bar();
+            double baz = proxy.Baz;
+
+            Assert.That(foo, Is.Not.EqualTo(obj.GetBaseFoo()));
+            Assert.That(bar, Is.Not.EqualTo(obj.GetBaseBar()));
+            Assert.That(baz, Is.Not.EqualTo(obj.GetBaseBaz()));
+
+            Assert.That(foo, Is.EqualTo(obj.GetDerivedFoo()));
+            Assert.That(bar, Is.EqualTo(obj.GetDerivedBar()));
+            Assert.That(baz, Is.EqualTo(obj.GetDerivedBaz()));
+
+            proxy._foo = -1;
+            proxy.Baz = -543.21;
+
+            Assert.That(obj.GetBaseFoo(), Is.Not.EqualTo(-1));
+            Assert.That(obj.GetBaseBaz(), Is.Not.EqualTo(-543.21));
+
+            Assert.That(obj.GetDerivedFoo(), Is.EqualTo(-1));
+            Assert.That(obj.GetDerivedBaz(), Is.EqualTo(-543.21));
+        }
+
+        [Test]
+        public void CanAccessPrivateMembersOfBaseClassWhenNameConflictsWithDerivedClassIfBasePseudoPropertyIsUsed()
+        {
+            var obj = new DerivedClassWithConflictingPrivateMembers();
+            var proxy = obj.Unlock();
+
+            int foo = proxy.Base._foo;
+            string bar = proxy.Base.Bar();
+            double baz = proxy.Base.Baz;
+
+            Assert.That(foo, Is.EqualTo(obj.GetBaseFoo()));
+            Assert.That(bar, Is.EqualTo(obj.GetBaseBar()));
+            Assert.That(baz, Is.EqualTo(obj.GetBaseBaz()));
+
+            Assert.That(foo, Is.Not.EqualTo(obj.GetDerivedFoo()));
+            Assert.That(bar, Is.Not.EqualTo(obj.GetDerivedBar()));
+            Assert.That(baz, Is.Not.EqualTo(obj.GetDerivedBaz()));
+
+            proxy.Base._foo = -1;
+            proxy.Base.Baz = -543.21;
+
+            Assert.That(obj.GetBaseFoo(), Is.EqualTo(-1));
+            Assert.That(obj.GetBaseBaz(), Is.EqualTo(-543.21));
+
+            Assert.That(obj.GetDerivedFoo(), Is.Not.EqualTo(-1));
+            Assert.That(obj.GetDerivedBaz(), Is.Not.EqualTo(-543.21));
+        }
+
+        [Test]
+        public void CanAccessPrivateMembersOfBaseClassWhenNameConflictsWithDerivedClassIfBaseTypePseudoPropertyIsUsed()
+        {
+            var obj = new DerivedClassWithConflictingPrivateMembers();
+            var proxy = obj.Unlock();
+
+            int foo = proxy.BaseType._foo;
+            string bar = proxy.BaseType.Bar();
+            double baz = proxy.BaseType.Baz;
+
+            Assert.That(foo, Is.EqualTo(obj.GetBaseFoo()));
+            Assert.That(bar, Is.EqualTo(obj.GetBaseBar()));
+            Assert.That(baz, Is.EqualTo(obj.GetBaseBaz()));
+
+            Assert.That(foo, Is.Not.EqualTo(obj.GetDerivedFoo()));
+            Assert.That(bar, Is.Not.EqualTo(obj.GetDerivedBar()));
+            Assert.That(baz, Is.Not.EqualTo(obj.GetDerivedBaz()));
+
+            proxy.BaseType._foo = -1;
+            proxy.BaseType.Baz = -543.21;
+
+            Assert.That(obj.GetBaseFoo(), Is.EqualTo(-1));
+            Assert.That(obj.GetBaseBaz(), Is.EqualTo(-543.21));
+
+            Assert.That(obj.GetDerivedFoo(), Is.Not.EqualTo(-1));
+            Assert.That(obj.GetDerivedBaz(), Is.Not.EqualTo(-543.21));
+        }
+
+        [Test]
+        public void CanAccessPrivateMembersOfBaseClassWhenNameConflictsWithDerivedClassIfBaseClassPseudoPropertyIsUsed()
+        {
+            var obj = new DerivedClassWithConflictingPrivateMembers();
+            var proxy = obj.Unlock();
+
+            int foo = proxy.BaseClass._foo;
+            string bar = proxy.BaseClass.Bar();
+            double baz = proxy.BaseClass.Baz;
+
+            Assert.That(foo, Is.EqualTo(obj.GetBaseFoo()));
+            Assert.That(bar, Is.EqualTo(obj.GetBaseBar()));
+            Assert.That(baz, Is.EqualTo(obj.GetBaseBaz()));
+
+            Assert.That(foo, Is.Not.EqualTo(obj.GetDerivedFoo()));
+            Assert.That(bar, Is.Not.EqualTo(obj.GetDerivedBar()));
+            Assert.That(baz, Is.Not.EqualTo(obj.GetDerivedBaz()));
+
+            proxy.BaseClass._foo = -1;
+            proxy.BaseClass.Baz = -543.21;
+
+            Assert.That(obj.GetBaseFoo(), Is.EqualTo(-1));
+            Assert.That(obj.GetBaseBaz(), Is.EqualTo(-543.21));
+
+            Assert.That(obj.GetDerivedFoo(), Is.Not.EqualTo(-1));
+            Assert.That(obj.GetDerivedBaz(), Is.Not.EqualTo(-543.21));
+        }
+
+        private class BaseClassWithPrivateMembers
+        {
+            private int _foo = 1;
+            private string Bar() => "abc";
+            private double Baz { get; set; } = 123.45;
+
+            public int GetBaseFoo() => _foo;
+            public string GetBaseBar() => Bar();
+            public double GetBaseBaz() => Baz;
+        }
+
+        private class DerivedClassFromBaseClassWithPrivateMembers : BaseClassWithPrivateMembers
+        {
+        }
+
+        private class BaseClassWithConflictingPrivateMembers
+        {
+            private int _foo = 1;
+            private string Bar() => "abc";
+            private double Baz { get; set; } = 123.45;
+
+            public int GetBaseFoo() => _foo;
+            public string GetBaseBar() => Bar();
+            public double GetBaseBaz() => Baz;
+        }
+
+        private class DerivedClassWithConflictingPrivateMembers : BaseClassWithConflictingPrivateMembers
+        {
+            private int _foo = 2;
+            private string Bar() => "xyz";
+            private double Baz { get; set; } = 987.65;
+
+            public int GetDerivedFoo() => _foo;
+            public string GetDerivedBar() => Bar();
+            public double GetDerivedBaz() => Baz;
+        }
+
         public class GenericFoo
         {
             public T Bar<T>(string s, T t)

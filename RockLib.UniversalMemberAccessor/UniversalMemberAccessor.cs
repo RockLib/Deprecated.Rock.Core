@@ -44,6 +44,7 @@ namespace RockLib.Dynamic
         private static readonly ConcurrentDictionary<CreateInstanceDefinition, Func<object[], object>> _createInstanceFuncs = new ConcurrentDictionary<CreateInstanceDefinition, Func<object[], object>>();
 
         private readonly object _instance;
+        private readonly Lazy<UniversalMemberAccessor> _base;
         private readonly Type _type;
         private readonly IEnumerable<string> _memberNames;
 
@@ -114,6 +115,15 @@ namespace RockLib.Dynamic
         {
             _type = type;
 
+            if (_type.BaseType != null)
+            {
+                _base = new Lazy<UniversalMemberAccessor>(() => new UniversalMemberAccessor(_instance, _type.BaseType));
+            }
+            else
+            {
+                _base = new Lazy<UniversalMemberAccessor>(() => null);
+            }
+
             _memberNames = _staticMemberNamesCache.GetOrAdd(_type, t =>
                 t.GetMembers(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static)
                     .Where(m => !(m is ConstructorInfo) && !(m is EventInfo) && !(m is Type))
@@ -122,10 +132,19 @@ namespace RockLib.Dynamic
                     .AsReadOnly());
         }
 
-        private UniversalMemberAccessor(object instance)
+        private UniversalMemberAccessor(object instance, Type type = null)
         {
             _instance = instance;
-            _type = _instance.GetType();
+            _type = type ?? instance.GetType();
+
+            if (_type.BaseType != null)
+            {
+                _base = new Lazy<UniversalMemberAccessor>(() => new UniversalMemberAccessor(_instance, _type.BaseType));
+            }
+            else
+            {
+                _base = new Lazy<UniversalMemberAccessor>(() => null);
+            }
 
             _memberNames = _instanceMemberNamesCache.GetOrAdd(_type, t =>
                 t.GetMembers(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static)
@@ -271,6 +290,15 @@ namespace RockLib.Dynamic
                         if (_instance != null)
                         {
                             result = _instance;
+                            return true;
+                        }
+                        break;
+                    case "Base":
+                    case "BaseType":
+                    case "BaseClass":
+                        if (_base != null)
+                        {
+                            result = _base.Value;
                             return true;
                         }
                         break;
@@ -503,24 +531,11 @@ namespace RockLib.Dynamic
             var parameter = Expression.Parameter(typeof(object), "instance");
             var convertParameter = Expression.Convert(parameter, _type);
 
-            Expression propertyOrField;
+            var propertyOrField = GetPropertyOrFieldGetterExpression(_type, name, convertParameter);
 
-            var propertyInfo = _type.GetProperty(name, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static);
-            if (propertyInfo != null)
+            if (propertyOrField == null)
             {
-                propertyOrField = Expression.Property(IsStatic(propertyInfo) ? null : convertParameter, propertyInfo);
-            }
-            else
-            {
-                var fieldInfo = _type.GetField(name, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static);
-                if (fieldInfo != null)
-                {
-                    propertyOrField = Expression.Field(fieldInfo.IsStatic ? null : convertParameter, fieldInfo);
-                }
-                else
-                {
-                    return null;
-                }
+                return null;
             }
 
             var type = propertyOrField.Type;
@@ -545,6 +560,62 @@ namespace RockLib.Dynamic
             return obj => Get(func(UnwrapInstance(obj)));
         }
 
+        private Expression GetPropertyOrFieldGetterExpression(Type type, string name, Expression convertParameter)
+        {
+            var propertyInfo = type.GetProperty(name, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static);
+            if (propertyInfo != null)
+            {
+                return Expression.Property(IsStatic(propertyInfo) ? null : convertParameter, propertyInfo);
+            }
+            else
+            {
+                var fieldInfo = type.GetField(name, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static);
+                if (fieldInfo != null)
+                {
+                    return Expression.Field(fieldInfo.IsStatic ? null : convertParameter, fieldInfo);
+                }
+                else
+                {
+                    if (type.BaseType != typeof(object))
+                    {
+                        return GetPropertyOrFieldGetterExpression(type.BaseType, name, convertParameter);
+                    }
+                    return null;
+                }
+            }
+        }
+
+        private static void GetPropertyOrField(Type type, string name, out PropertyInfo property, out FieldInfo field)
+        {
+            var propertyInfo = type.GetProperty(name, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static);
+            if (propertyInfo != null)
+            {
+                property = propertyInfo;
+                field = null;
+            }
+            else
+            {
+                var fieldInfo = type.GetField(name, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static);
+                if (fieldInfo != null)
+                {
+                    property = null;
+                    field = fieldInfo;
+                }
+                else
+                {
+                    if (type.BaseType != typeof(object))
+                    {
+                        GetPropertyOrField(type.BaseType, name, out property, out field);
+                    }
+                    else
+                    {
+                        property = null;
+                        field = null;
+                    }
+                }
+            }
+        }
+
         private Action<object, object> CreateSetMemberAction(string name, Type valueType)
         {
             var instanceParameter = Expression.Parameter(typeof(object), "instance");
@@ -555,8 +626,11 @@ namespace RockLib.Dynamic
             Action<object, object> action = null;
 
             Expression propertyOrField;
+            PropertyInfo propertyInfo;
+            FieldInfo fieldInfo;
 
-            var propertyInfo = _type.GetProperty(name, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static);
+            GetPropertyOrField(_type, name, out propertyInfo, out fieldInfo);
+
             if (propertyInfo != null)
             {
                 if (valueType != null)
@@ -577,7 +651,6 @@ namespace RockLib.Dynamic
             }
             else
             {
-                var fieldInfo = _type.GetField(name, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static);
                 if (fieldInfo != null)
                 {
                     if (valueType != null)
@@ -797,14 +870,7 @@ namespace RockLib.Dynamic
         private static Func<object, object[], object> CreateInvokeMethodFunc(
             InvokeMethodDefinition definition)
         {
-            var methodInfos =
-                definition.Type.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static)
-                    .Where(m => m.Name == definition.Name);
-
-            var candidates = methodInfos.Select(c => new Candidate(c))
-                .Where(c => c.HasRequiredNumberOfParameters(definition.ArgTypes)).ToList();
-
-            var legalCandidates = candidates.Where(c => c.IsLegal(definition.ArgTypes, definition.TypeArguments)).ToList();
+            var legalCandidates = GetLegalCandidates(definition.Type, definition, out var getErrorMessage);
 
             if (legalCandidates.Count == 0)
             {
@@ -821,24 +887,8 @@ namespace RockLib.Dynamic
                         return (instance, args) =>  createInstanceFunc(args);
                 }
 
-                if (candidates.Count == 0)
-                {
-                    var message = string.Format("No overload for method '{0}' takes {1} arguments",
-                        definition.Name, definition.ArgTypes.Length);
-
-                    return (instance, args) => { throw new RuntimeBinderException(message); };
-                }
-                else
-                {
-                    var method = candidates[0].Method.ToString();
-
-                    var message = string.Format(
-                        "The best overloaded method match for '{0}.{1}' has some invalid arguments",
-                        definition.Type,
-                        method.Substring(method.IndexOf(' ') + 1));
-
-                    return (instance, args) => { throw new RuntimeBinderException(message); };
-                }
+                var errorMessage = getErrorMessage();
+                return (instance, args) => { throw new RuntimeBinderException(errorMessage); };
             }
 
             Candidate candidate;
@@ -1014,6 +1064,46 @@ namespace RockLib.Dynamic
             }
 
             return (instance, args) => Get(func(UnwrapInstance(instance), UnwrapArgs(args)));
+        }
+
+        private static List<Candidate> GetLegalCandidates(Type type, InvokeMethodDefinition definition, out Func<string> getErrorMessage)
+        {
+            var methodInfos =
+                type.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static)
+                    .Where(m => m.Name == definition.Name);
+
+            var candidates = methodInfos.Select(c => new Candidate(c))
+                .Where(c => c.HasRequiredNumberOfParameters(definition.ArgTypes)).ToList();
+
+            var legalCandidates = candidates.Where(c => c.IsLegal(definition.ArgTypes, definition.TypeArguments)).ToList();
+
+            if (legalCandidates.Count > 0)
+            {
+                getErrorMessage = () => null;
+                return legalCandidates;
+            }
+
+            if (type.BaseType == typeof(object))
+            {
+                if (candidates.Count == 0)
+                {
+                    getErrorMessage = () => string.Format("No overload for method '{0}' takes {1} arguments",
+                        definition.Name, definition.ArgTypes.Length);
+                }
+                else
+                {
+                    var method = candidates[0].Method.ToString();
+
+                    getErrorMessage = () => string.Format(
+                        "The best overloaded method match for '{0}.{1}' has some invalid arguments",
+                        definition.Type,
+                        method.Substring(method.IndexOf(' ') + 1));
+                }
+
+                return legalCandidates;
+            }
+
+            return GetLegalCandidates(type.BaseType, definition, out getErrorMessage);
         }
 
         private static Expression[] GetArguments(ParameterInfo[] parameters,
