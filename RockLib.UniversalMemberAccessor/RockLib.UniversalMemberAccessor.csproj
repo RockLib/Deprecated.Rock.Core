@@ -9,11 +9,11 @@
     <PackageVersion>1.0.0-alpha01</PackageVersion>
     <RootNamespace>RockLib.Dynamic</RootNamespace>
     <Authors>Quicken Loans</Authors>
-    <Description>Defines mechanisms that enable easy access to non-public members of a type. Very dangerous - use with caution.</Description>
+    <Description>Defines a dynamic proxy object that enables easy access to non-public members.</Description>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <PackageReleaseNotes></PackageReleaseNotes>
     <Copyright>Copyright 2015-2018 (c) Quicken Loans Corporation. All rights reserved.</Copyright>
-    <PackageTags>dynamic nonpublic</PackageTags>
+    <PackageTags>dynamic proxy nonpublic</PackageTags>
     <Version>1.0.0-alpha01</Version>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
   </PropertyGroup>
