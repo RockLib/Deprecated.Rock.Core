@@ -19,7 +19,7 @@ namespace RockLib.Dynamic
     /// <remarks>This is a very dangerous class - use with caution.</remarks>
     public class UniversalMemberAccessor : DynamicObject
     {
-        const ParameterAttributes HasDefaultValue = 
+        const ParameterAttributes HasDefaultValue =
             ParameterAttributes.HasDefault | ParameterAttributes.Optional;
 
         private static readonly bool _canSetReadonlyStaticValueType;
@@ -46,6 +46,7 @@ namespace RockLib.Dynamic
         private readonly object _instance;
         private readonly Lazy<UniversalMemberAccessor> _base;
         private readonly Type _type;
+        private readonly List<PropertyInfo> _indexers;
         private readonly IEnumerable<string> _memberNames;
 
         static UniversalMemberAccessor()
@@ -114,6 +115,7 @@ namespace RockLib.Dynamic
         private UniversalMemberAccessor(Type type)
         {
             _type = type;
+            _indexers = _type.GetProperties().Where(p => p.Name == "Item").ToList();
 
             if (_type.BaseType != null)
             {
@@ -136,6 +138,7 @@ namespace RockLib.Dynamic
         {
             _instance = instance;
             _type = type ?? instance.GetType();
+            _indexers = _type.GetProperties().Where(p => p.Name == "Item").ToList();
 
             if (_type.BaseType != null)
             {
@@ -334,7 +337,7 @@ namespace RockLib.Dynamic
             Action<object, object> setMember;
             var valueType = GetValueType(value);
 
-            if (!TryGetSetMemberAction(binder.Name, valueType,  out setMember))
+            if (!TryGetSetMemberAction(binder.Name, valueType, out setMember))
             {
                 return base.TrySetMember(binder, value);
             }
@@ -345,7 +348,7 @@ namespace RockLib.Dynamic
 
         private static Type GetValueType(object value)
         {
-            return 
+            return
                 value == null
                     ? null
                     : value is UniversalMemberAccessor
@@ -453,6 +456,45 @@ namespace RockLib.Dynamic
                 }
             }
 
+            if (_indexers != null)
+            {
+                if (_indexers.Count == 1)
+                {
+                    result = _indexers[0].GetValue(_instance, indexes);
+                    return true;
+                }
+
+                foreach (var indexer in _indexers)
+                {
+                    var getMethod = indexer.GetGetMethod();
+                    var parameters = getMethod.GetParameters();
+                    if (parameters.Length == indexes.Length)
+                    {
+                        var foundMatch = true;
+                        for (int i = 0; i < indexes.Length; i++)
+                        {
+                            if (indexes[i].GetType() != parameters[i].ParameterType)
+                            {
+                                foundMatch = false;
+                                break;
+                            }
+                        }
+
+                        if (foundMatch)
+                        {
+                            result = indexer.GetValue(_instance, indexes);
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            if (_type.IsArray)
+            {
+                result = ((Array)_instance).GetValue(indexes.Cast<int>().ToArray());
+                return true;
+            }
+
             return base.TryGetIndex(binder, indexes, out result);
         }
 
@@ -481,6 +523,45 @@ namespace RockLib.Dynamic
                     setMember(_instance, value);
                     return true;
                 }
+            }
+
+            if (_indexers != null)
+            {
+                if (_indexers.Count == 1)
+                {
+                    _indexers[0].SetValue(_instance, value, indexes);
+                    return true;
+                }
+
+                foreach (var indexer in _indexers)
+                {
+                    var setMethod = indexer.GetSetMethod();
+                    var parameters = setMethod.GetParameters();
+                    if (parameters.Length == indexes.Length + 1)
+                    {
+                        var foundMatch = true;
+                        for (int i = 0; i < indexes.Length; i++)
+                        {
+                            if (indexes[i].GetType() != parameters[i].ParameterType)
+                            {
+                                foundMatch = false;
+                                break;
+                            }
+                        }
+
+                        if (foundMatch)
+                        {
+                            indexer.SetValue(_instance, value, indexes);
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            if (_type.IsArray)
+            {
+                ((Array)_instance).SetValue(value, indexes.Cast<int>().ToArray());
+                return true;
             }
 
             return base.TrySetIndex(binder, indexes, value);
@@ -884,7 +965,7 @@ namespace RockLib.Dynamic
                             new CreateInstanceDefinition(definition.Type, definition.ArgTypes),
                             CreateCreateInstanceFunc);
 
-                        return (instance, args) =>  createInstanceFunc(args);
+                        return (instance, args) => createInstanceFunc(args);
                 }
 
                 var errorMessage = getErrorMessage();
@@ -965,7 +1046,7 @@ namespace RockLib.Dynamic
                 else
                 {
                     typeArguments = new Type[methodInfo.GetGenericArguments().Length];
-                    
+
                     var parameters = methodInfo.GetParameters();
 
                     for (int i = 0; i < typeArguments.Length; i++)
@@ -1303,7 +1384,7 @@ namespace RockLib.Dynamic
                 var parameters = Method.GetParameters();
 
                 _parameters = parameters.Select(p => p.ParameterType).ToArray();
-                
+
                 _defaultParameterTypes = new Type[_parameters.Length];
 
                 for (int i = 0; i < _defaultParameterTypes.Length; i++)
@@ -1977,7 +2058,7 @@ namespace RockLib.Dynamic
         {
             private readonly Type _type;
             private readonly string _name;
-            private readonly IList<Type> _typeArguments; 
+            private readonly IList<Type> _typeArguments;
             private readonly Type[] _argTypes;
 
             public InvokeMethodDefinition(Type type, string name, IList<Type> typeArguments, object[] args)

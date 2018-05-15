@@ -12,6 +12,82 @@ namespace RockLib.Dynamic.UnitTests
     public class UniversalMemberAccessorTests
     {
         [Test]
+        public void TestSomeIndexerStuff()
+        {
+            //TODO: This just makes sure nothing blows up, still need to add legit tests.
+            var testInstance1 = new HasIndexedProperty();
+            var testInstance2 = new Dictionary<string, string> { { "first", "one" }, { "second", "two" }, { "third", "three" } };
+            var testInstance3 = new string[,] { {"one", "two", "three"}, { "two", "three", "four" }, { "three", "four", "five" } };
+            var testInstance4 = new string[] {"one", "two", "three"};
+
+            var unlocked1 = testInstance1.Unlock();
+            var unlocked2 = testInstance2.Unlock();
+            var unlocked3 = testInstance3.Unlock();
+            var unlocked4 = testInstance4.Unlock();
+
+            var unlocked1Test1 = unlocked1[1];
+            var unlocked1Test2 = unlocked1["something"];
+            var unlocked1Test3 = unlocked1[1, "something"];
+            unlocked1[1, "stuff"] = "5";
+
+            var unlocked2Test1 = unlocked2["third"];
+            unlocked2["first"] = "not_first";
+
+            var unlocked3Test1 = unlocked3[1, 2];
+            unlocked3[2, 1] = "not_two";
+
+            var unlocked4Test1 = unlocked4[2];
+            unlocked4[0] = "not_one";
+
+            //NOTE: For now, if we got here, indexing is working as expected.
+        }
+
+        public class HasIndexedProperty
+        {
+            public string[] StringArray { get; set; } = { "one", "two", "three" };
+
+            private string _setStringIndex = null;
+            private int _setIntIndex = 0;
+
+            public string this[string index]
+            {
+                get
+                {
+                    return index;
+                }
+                set
+                {
+                    _setStringIndex = value;
+                }
+            }
+
+            public int this[int index]
+            {
+                get
+                {
+                    return index;
+                }
+                set
+                {
+                    _setIntIndex = value;
+                }
+            }
+
+            public string this[int index, string stringIndex]
+            {
+                get
+                {
+                    return stringIndex + index;
+                }
+                set
+                {
+                    _setIntIndex = int.Parse(value);
+                    _setStringIndex = value;
+                }
+            }
+        }
+
+        [Test]
         public void ObjectVirtualMethodsAreInvokedAsExpectedForInstanceProxy()
         {
             var instance = new SpiesOnObjectMethods();
