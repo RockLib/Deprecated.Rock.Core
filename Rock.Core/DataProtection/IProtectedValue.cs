@@ -1,8 +1,4 @@
-﻿#if ROCKLIB
-namespace RockLib.DataProtection
-#else
-namespace Rock.DataProtection
-#endif
+﻿namespace Rock.DataProtection
 {
     /// <summary>
     /// Defines an interface for encapsulating sensitive data.

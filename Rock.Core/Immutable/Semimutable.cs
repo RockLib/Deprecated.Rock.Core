@@ -1,16 +1,8 @@
 ﻿using System;
 using System.Reflection;
-#if ROCKLIB
-using RockLib.Threading;
-#else
 using Rock.Threading;
-#endif
 
-#if ROCKLIB
-namespace RockLib.Immutable
-#else
 namespace Rock.Immutable
-#endif
 {
     /// <summary>
     /// Represents a "semimutable" value. Its value can be changed either via the setter of the <see cref="Value"/>

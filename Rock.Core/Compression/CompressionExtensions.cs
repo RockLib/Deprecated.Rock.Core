@@ -1,11 +1,7 @@
 ﻿using System.IO;
 using System.Text;
 
-#if ROCKLIB
-namespace RockLib.Compression
-#else
 namespace Rock.Compression
-#endif
 {
     /// <summary>
     /// Extensions for ICompressor and IDecompressor
